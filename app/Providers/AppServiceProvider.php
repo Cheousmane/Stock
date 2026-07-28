@@ -93,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\URL::forceScheme('https');
         Product::observe(ProductObserver::class);
         Invoice::observe(InvoiceObserver::class);
         \App\Models\WarehouseStock::observe(WarehouseStockObserver::class);
