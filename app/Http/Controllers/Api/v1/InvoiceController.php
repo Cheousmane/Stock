@@ -39,6 +39,7 @@ class InvoiceController extends Controller
         }
 
         if ($limit = $request->integer('limit')) {
+            $limit = min($limit, 100);
             return response()->json(InvoiceResource::collection($query->limit($limit)->get()), Response::HTTP_OK);
         }
 

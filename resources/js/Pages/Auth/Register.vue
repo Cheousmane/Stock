@@ -78,6 +78,37 @@
               <p v-if="errors.email" class="mt-1.5 text-xs text-red-500">{{ errors.email[0] }}</p>
             </div>
             <div class="opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.16,1,0.3,1)_0.2s_forwards]">
+              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.industry') }}</label>
+              <select
+                v-model="form.industry"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+              >
+                <option value="">{{ $t('auth.industry_placeholder') }}</option>
+                <option v-for="sector in industryOptions" :key="sector" :value="sector">{{ sector }}</option>
+              </select>
+              <input
+                v-if="form.industry === 'Autre'"
+                v-model="form.otherIndustry"
+                type="text"
+                :placeholder="$t('auth.other_industry_placeholder')"
+                class="mt-2 block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+              />
+              <p v-if="errors.industry" class="mt-1.5 text-xs text-red-500">{{ errors.industry[0] }}</p>
+            </div>
+            <div class="opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.16,1,0.3,1)_0.2s_forwards]">
+              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.company_size') }}</label>
+              <select
+                v-model="form.size"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+              >
+                <option value="">{{ $t('auth.company_size_placeholder') }}</option>
+                <option value="petite">{{ $t('auth.size_petite') }}</option>
+                <option value="moyenne">{{ $t('auth.size_moyenne') }}</option>
+                <option value="grande">{{ $t('auth.size_grande') }}</option>
+              </select>
+              <p v-if="errors.size" class="mt-1.5 text-xs text-red-500">{{ errors.size[0] }}</p>
+            </div>
+            <div class="opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.16,1,0.3,1)_0.25s_forwards]">
               <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.password') }} <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input
@@ -165,7 +196,7 @@ const error = ref('');
 const errors = reactive({});
 const showPassword = ref(false);
 const showConfirm = ref(false);
-const form = reactive({ name: '', email: '', password: '', password_confirmation: '', company_name: '', company_slug: '' });
+const form = reactive({ name: '', email: '', password: '', password_confirmation: '', company_name: '', company_slug: '', industry: '', size: '', otherIndustry: '' });
 
 onMounted(async () => {
   await nextTick();
@@ -187,6 +218,22 @@ const features = [
   'Rapports financiers et tableau de bord analytique',
 ];
 
+const industryOptions = [
+  'Agriculture & Agroalimentaire',
+  'Commerce & Distribution',
+  'BTP & Immobilier',
+  'Industrie & Manufacture',
+  'Services & Consulting',
+  'Transport & Logistique',
+  'Santé & Pharmacie',
+  'Éducation & Formation',
+  'Technologie & Télécoms',
+  'Finance & Assurance',
+  'Hôtellerie & Restauration',
+  'Énergie & Environnement',
+  'Autre',
+];
+
 async function register() {
   loading.value = true;
   error.value = '';
@@ -194,6 +241,9 @@ async function register() {
   try {
     form.company_name = form.company_name || form.name;
     form.company_slug = form.company_slug || form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (form.industry === 'Autre') {
+      form.industry = form.otherIndustry.trim() || 'Autre';
+    }
     const { data } = await axios.post('/auth/register', form);
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -209,29 +259,29 @@ async function register() {
 </script>
 
 <style>
-// Animation du fond : léger mouvement de zoom/rotation lent
+/* Animation du fond : léger mouvement de zoom/rotation lent */
 @keyframes bgShift {
   0% { transform: scale(1) rotate(0); }
   100% { transform: scale(1.1) rotate(2deg); }
 }
-// Particules décoratives : apparaissent et flottent aléatoirement
+/* Particules décoratives : apparaissent et flottent aléatoirement */
 @keyframes particleFloat {
   0%, 100% { transform: translate(0, 0); opacity: 0; }
   10% { opacity: 1; }
   50% { transform: translate(var(--dx, 30px), var(--dy, -30px)); opacity: 0.6; }
   90% { opacity: 1; }
 }
-// Entrée progressive par le bas
+/* Entrée progressive par le bas */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-// Glow pulsé sur le bouton (mode clair)
+/* Glow pulsé sur le bouton (mode clair) */
 @keyframes ctaPulseLight {
   0%, 100% { box-shadow: 0 0 20px rgba(5,150,105,0.2); }
   50% { box-shadow: 0 0 40px rgba(5,150,105,0.4); }
 }
-// Glow pulsé sur le bouton (mode sombre)
+/* Glow pulsé sur le bouton (mode sombre) */
 @keyframes ctaPulseDark {
   0%, 100% { box-shadow: 0 0 20px rgba(52,211,153,0.25); }
   50% { box-shadow: 0 0 40px rgba(52,211,153,0.5); }

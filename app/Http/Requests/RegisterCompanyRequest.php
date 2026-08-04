@@ -38,6 +38,8 @@ class RegisterCompanyRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string', $password, 'confirmed'],
+            'industry' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'size' => ['sometimes', 'nullable', 'string', 'in:petite,moyenne,grande'],
         ];
     }
 }

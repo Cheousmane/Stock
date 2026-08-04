@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.stock.title')" :subtitle="meta ? $t('page.stock.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchData(meta?.current_page || 1)" title="Rafraîchir">

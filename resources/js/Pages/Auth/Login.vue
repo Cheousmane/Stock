@@ -206,34 +206,34 @@ async function login() {
 </script>
 
 <style>
-// Animation du fond : léger mouvement de zoom/rotation lent
+/* Animation du fond : léger mouvement de zoom/rotation lent */
 @keyframes bgShift {
   0% { transform: scale(1) rotate(0); }
   100% { transform: scale(1.1) rotate(2deg); }
 }
-// Particules décoratives : apparaissent et flottent aléatoirement
+/* Particules décoratives : apparaissent et flottent aléatoirement */
 @keyframes particleFloat {
   0%, 100% { transform: translate(0, 0); opacity: 0; }
   10% { opacity: 1; }
   50% { transform: translate(var(--dx, 30px), var(--dy, -30px)); opacity: 0.6; }
   90% { opacity: 1; }
 }
-// Entrée progressive par le bas (utilisée sur tous les éléments du formulaire)
+/* Entrée progressive par le bas (utilisée sur tous les éléments du formulaire) */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-// Effet de glow pulsé sur le bouton de connexion (mode clair)
+/* Effet de glow pulsé sur le bouton de connexion (mode clair) */
 @keyframes ctaPulseLight {
   0%, 100% { box-shadow: 0 0 20px rgba(5,150,105,0.2); }
   50% { box-shadow: 0 0 40px rgba(5,150,105,0.4); }
 }
-// Effet de glow pulsé sur le bouton (mode sombre)
+/* Effet de glow pulsé sur le bouton (mode sombre) */
 @keyframes ctaPulseDark {
   0%, 100% { box-shadow: 0 0 20px rgba(52,211,153,0.25); }
   50% { box-shadow: 0 0 40px rgba(52,211,153,0.5); }
 }
-// Classe utilitaire pour le glow vert permanent
+/* Classe utilitaire pour le glow vert permanent */
 .animate-ctaPulse {
   animation: ctaPulseLight 3s ease-in-out infinite;
 }

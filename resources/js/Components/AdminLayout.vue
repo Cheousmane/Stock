@@ -7,8 +7,8 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar-surface border-r border-sidebar-border transition-[width,transform] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] lg:relative lg:translate-x-0 sidebar-transition"
-      :class="[sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64', sidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-64']"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar-surface border-r border-sidebar-border transition-[width,transform] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] lg:translate-x-0 sidebar-transition"
+      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-64', 'w-64']"
     >
       <!-- Logo -->
       <div class="flex items-center h-14 px-3 border-b border-sidebar-border shrink-0 sidebar-transition">
@@ -102,7 +102,7 @@
     </Teleport>
 
     <!-- Main area -->
-    <div class="flex flex-col flex-1 min-w-0">
+    <div class="flex flex-col flex-1 min-w-0 transition-[margin] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-64'">
       <!-- Top navbar -->
       <header class="sticky top-0 z-30 flex items-center h-14 px-4 lg:px-6 bg-surface/70 backdrop-blur-xl border-b border-border">
         <button @click="sidebarOpen = true" class="flex items-center justify-center w-8 h-8 -ml-1.5 text-text-secondary rounded-lg lg:hidden hover:bg-surface-tertiary">
@@ -241,7 +241,7 @@ import {
   DocumentDuplicateIcon, TruckIcon, CreditCardIcon, ArchiveBoxIcon,
   BanknotesIcon, TagIcon, BuildingStorefrontIcon, ScaleIcon,
   CalendarDaysIcon, BriefcaseIcon, ShoppingCartIcon,
-  ArrowUturnLeftIcon, Cog6ToothIcon, ClockIcon, CurrencyDollarIcon,
+  ArrowUturnLeftIcon, Cog6ToothIcon, ClockIcon, CurrencyDollarIcon, BuildingOfficeIcon,
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -260,6 +260,7 @@ const userName = ref('')
 const userEmail = ref('')
 const userPermissions = ref([])
 const companyName = ref('')
+const isSuperAdmin = ref(false)
 
 watch(sidebarCollapsed, (v) => localStorage.setItem('sidebarCollapsed', v))
 watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
@@ -302,6 +303,7 @@ const allNavItems = [
   { label: 'Entrepôts', to: '/warehouses', icon: BuildingStorefrontIcon, key: 'nav.warehouses', permission: 'view_warehouse' },
   { label: 'Événements', to: '/events', icon: CalendarDaysIcon, key: 'nav.events', permission: 'view_events' },
   { divider: true, key: 'nav.system', label: 'Système' },
+  { label: 'Panel Admin', to: '/admin/dashboard', icon: Cog6ToothIcon, key: 'nav.admin_panel', permission: null, superAdminOnly: true },
   { label: 'Utilisateurs', to: '/users', icon: UsersIcon, key: 'nav.users', permission: 'manage_users' },
   { label: 'Activité', to: '/activity-logs', icon: ClockIcon, key: 'nav.activity_logs', permission: 'view_activity_logs' },
   { label: 'Paramètres', to: '/settings', icon: Cog6ToothIcon, key: 'nav.settings', permission: 'manage_settings' },
@@ -310,7 +312,11 @@ const allNavItems = [
 function can(perm) { return !perm || userPermissions.value.includes(perm) }
 
 const navItems = computed(() => {
-  const visible = allNavItems.filter(i => i.divider || can(i.permission))
+  const visible = allNavItems.filter(i => {
+    if (i.divider) return true
+    if (i.superAdminOnly) return isSuperAdmin.value
+    return can(i.permission)
+  })
   return visible.filter((i, idx, arr) => {
     if (!i.divider) return true
     return arr.slice(idx + 1).some(x => !x.divider)
@@ -369,6 +375,9 @@ const searchPages = [
   { title: 'Utilisateurs', subtitle: 'Gestion des utilisateurs', url: '/users', icon: Cog6ToothIcon },
   { title: 'Journal activité', subtitle: 'Logs système', url: '/activity-logs', icon: ClockIcon },
   { title: 'Paramètres', subtitle: 'Configuration', url: '/settings', icon: Cog6ToothIcon },
+  { title: 'Panel Admin', subtitle: 'Administration globale', url: '/admin/dashboard', icon: Cog6ToothIcon },
+  { title: 'Admin Entreprises', subtitle: 'Gérer les entreprises', url: '/admin/companies', icon: BuildingOfficeIcon },
+  { title: 'Admin Connexions', subtitle: 'Journal des connexions', url: '/admin/login-logs', icon: ClockIcon },
 ]
 
 watch(searchQuery, async (q) => {
@@ -398,6 +407,7 @@ onMounted(async () => {
     const u = JSON.parse(localStorage.getItem('user') || '{}')
     if (u.name) userName.value = u.name
     if (u.email) userEmail.value = u.email
+    if (u.is_super_admin) isSuperAdmin.value = u.is_super_admin
     if (u.permissions?.length) { userPermissions.value = u.permissions }
     else {
       const { data } = await axios.get('/auth/me')
@@ -406,6 +416,7 @@ onMounted(async () => {
       if (fresh.permissions) userPermissions.value = fresh.permissions
       if (fresh.name) userName.value = fresh.name
       if (fresh.email) userEmail.value = fresh.email
+      if (fresh.is_super_admin) isSuperAdmin.value = fresh.is_super_admin
     }
   } catch {}
   try {

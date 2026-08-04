@@ -214,6 +214,14 @@
     "login_loading": "Signing in...",
     "register_loading": "Registering...",
     "name": "Full Name",
+    "industry": "Industry",
+    "industry_placeholder": "Select your industry (optional)",
+    "other_industry_placeholder": "Specify your industry",
+    "company_size": "Company size",
+    "company_size_placeholder": "Select the size (optional)",
+    "size_petite": "Small",
+    "size_moyenne": "Medium",
+    "size_grande": "Large",
     "invalid_credentials": "Invalid email or password",
     "register_error": "Registration error"
   },
@@ -233,6 +241,7 @@
     "exit": "Exit",
     "overdue": "Overdue",
     "paid": "Paid",
+    "partial": "Partially paid",
     "sent": "Sent",
     "accepted": "Accepted",
     "converted": "Converted",
@@ -289,6 +298,7 @@
     "select_category": "Select a category",
     "select_customer": "Select a customer",
     "sku": "SKU",
+    "sku_auto": "Generated automatically (initials + date)",
     "status": "Status",
     "stock": "Stock",
     "stock_quantity": "Stock quantity",
@@ -409,6 +419,8 @@
       "record_payment": "Record payment",
       "all_statuses": "All statuses",
       "create_first": "Create first invoice",
+      "stock_insufficient": "Insufficient stock",
+      "stock_available": "Stock: {count}",
       "no_invoices": "No invoices",
       "no_results": "No results",
       "n_selected": "{n} invoice(s) selected",
@@ -858,3 +870,4 @@
     "hi": "हिन्दी"
   }
 }
+

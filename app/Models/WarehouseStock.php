@@ -24,6 +24,15 @@ class WarehouseStock extends Model
         'available_quantity',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'reserved_quantity' => 'integer',
+            'available_quantity' => 'integer',
+        ];
+    }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);

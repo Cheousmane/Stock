@@ -20,6 +20,21 @@ class PermissionSeeder extends Seeder
                 ['name' => $permission, 'guard_name' => 'web'],
             );
         }
+
+        foreach (self::adminGlobalPermissions() as $permission) {
+            Permission::updateOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],
+                ['name' => $permission, 'guard_name' => 'web'],
+            );
+        }
+    }
+
+    public static function adminGlobalPermissions(): array
+    {
+        return [
+            'admin_dashboard', 'admin_companies', 'admin_company_edit',
+            'admin_login_logs', 'admin_users', 'admin_settings',
+        ];
     }
 
     public static function allPermissions(): array

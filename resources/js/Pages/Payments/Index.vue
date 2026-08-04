@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.payments.title')" :subtitle="meta ? $t('page.payments.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
@@ -151,6 +151,17 @@ const paymentForm = reactive({
   invoice_id: '', amount_xof: 0, method: 'cash', payment_date: new Date().toISOString().slice(0, 10),
 });
 let debounceTimer = null;
+
+watch(() => paymentForm.invoice_id, (id) => {
+  if (!id) {
+    paymentForm.amount_xof = 0;
+    return;
+  }
+  const inv = unpaidInvoices.value.find(i => String(i.id) === String(id));
+  if (inv) {
+    paymentForm.amount_xof = Number(inv.balance_due_xof ?? inv.total_xof ?? 0);
+  }
+});
 
 const hasActiveFilters = computed(() => search.value);
 const allSelected = computed(() => payments.value.length > 0 && selectedIds.value.length === payments.value.length);

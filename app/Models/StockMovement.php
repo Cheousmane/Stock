@@ -30,6 +30,17 @@ class StockMovement extends Model
         'created_by',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'before_quantity' => 'integer',
+            'after_quantity' => 'integer',
+            'unit_cost' => 'integer',
+            'total_cost' => 'integer',
+        ];
+    }
+
     protected static function booted(): void
     {
         static::creating(function (StockMovement $movement) {

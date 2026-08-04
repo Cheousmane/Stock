@@ -85,8 +85,14 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
+    private ?bool $hasVariantsCache = null;
+
     public function hasVariants(): bool
     {
-        return $this->variants()->where('is_active', true)->exists();
+        if ($this->hasVariantsCache !== null) {
+            return $this->hasVariantsCache;
+        }
+
+        return $this->hasVariantsCache = $this->variants()->where('is_active', true)->exists();
     }
 }

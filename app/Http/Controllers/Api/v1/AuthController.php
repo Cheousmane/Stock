@@ -55,7 +55,7 @@ class AuthController extends Controller
         $tokenExpiration = $dto->remember ? Carbon::now()->addDays(30) : null;
         $token = $user->createToken('auth_token', ['*'], $tokenExpiration)->plainTextToken;
 
-        $user->load('company', 'roles');
+        $user->loadMissing('company', 'roles', 'permissions');
 
         return response()->json([
             'user' => new UserResource($user),

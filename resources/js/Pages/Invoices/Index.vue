@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.invoices.title')" :subtitle="meta ? $t('page.invoices.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
@@ -21,6 +21,7 @@
           { value: '', label: $t('page.invoices.all_statuses') },
           { value: 'draft', label: $t('status.draft') },
           { value: 'sent', label: $t('status.sent') },
+          { value: 'partial', label: $t('status.partial') },
           { value: 'paid', label: $t('status.paid') },
           { value: 'overdue', label: $t('status.overdue') },
           { value: 'cancelled', label: $t('status.cancelled') },
@@ -168,6 +169,7 @@ let debounceTimer = null;
 const statusMap = {
   draft: { class: 'bg-gray-100 text-gray-700 border-gray-200', dot: 'bg-gray-400', label: 'status.draft' },
   sent: { class: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'status.sent' },
+  partial: { class: 'bg-yellow-100 text-yellow-700 border-yellow-200', dot: 'bg-yellow-500', label: 'status.partial' },
   paid: { class: 'bg-green-100 text-green-700 border-green-200', dot: 'bg-green-500', label: 'status.paid' },
   cancelled: { class: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-500', label: 'status.cancelled' },
   overdue: { class: 'bg-orange-100 text-orange-700 border-orange-200', dot: 'bg-orange-500', label: 'status.overdue' },

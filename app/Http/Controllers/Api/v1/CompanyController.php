@@ -29,11 +29,19 @@ class CompanyController extends Controller
             'phone' => 'sometimes|nullable|string|max:255',
             'address' => 'sometimes|nullable|string|max:255',
             'currency' => 'sometimes|nullable|string|max:10',
+            'industry' => 'sometimes|nullable|string|max:100',
+            'size' => 'sometimes|nullable|string|in:petite,moyenne,grande',
         ]);
 
         $data = [];
         if (isset($validated['company_name'])) {
             $data['name'] = $validated['company_name'];
+        }
+
+        foreach (['industry', 'size'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $data[$field] = $validated[$field];
+            }
         }
 
         $metadata = $company->metadata ?? [];

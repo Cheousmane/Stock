@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => \App\Http\Middleware\TenantMiddleware::class,
             'quota' => \App\Http\Middleware\CheckSubscriptionQuota::class,
             'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
         $middleware->removeFromGroup('api', \Illuminate\Routing\Middleware\SubstituteBindings::class);

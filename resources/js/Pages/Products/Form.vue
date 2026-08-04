@@ -13,7 +13,10 @@
         <BaseCard>
           <div class="space-y-4">
             <BaseInput v-model="form.name" :label="$t('form.name')" required :error="errors.name?.[0] || ''" :list="nameSuggestions" />
-            <BaseInput v-model="form.sku" :label="$t('form.sku')" required :error="errors.sku?.[0] || ''" />
+            <div>
+              <BaseInput v-model="form.sku" :label="$t('form.sku')" required disabled :error="errors.sku?.[0] || ''" />
+              <p class="mt-1 text-xs text-text-tertiary">{{ $t('form.sku_auto') }}</p>
+            </div>
             <div class="flex gap-2 items-end">
               <div class="flex-1">
                 <BaseInput v-model="form.barcode" :label="$t('form.barcode')" :error="errors.barcode?.[0] || ''" />
@@ -62,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, inject } from 'vue';
+import { ref, reactive, computed, watch, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -97,6 +100,30 @@ const form = reactive({
   quantity: 0, min_stock: 0, is_active: true,
 });
 
+const autoSku = ref(!isEdit.value);
+
+function generateSku(name) {
+  const initials = (name || 'PDT')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0))
+    .join('')
+    .slice(0, 4)
+    .toUpperCase();
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const date = `${String(now.getFullYear()).slice(-2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${initials}-${date}-${suffix}`;
+}
+
+watch(
+  () => form.name,
+  () => {
+    if (autoSku.value) form.sku = generateSku(form.name);
+  }
+);
+
 function generateBarcode() {
   const prefix = '2';
   const timestamp = Date.now().toString().slice(-11);
@@ -119,7 +146,11 @@ onMounted(async () => {
   if (!isEdit.value && !form.barcode) {
     form.barcode = generateBarcode();
   }
+  if (!isEdit.value) {
+    form.sku = generateSku(form.name);
+  }
   if (isEdit.value) {
+    autoSku.value = false;
     try {
       const { data } = await axios.get(`/products/${route.params.id}`);
       const product = data.data ?? data;
@@ -149,12 +180,13 @@ async function submit() {
   submitting.value = true;
   Object.assign(errors, {});
   try {
+    const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
     const data = {
       name: form.name, sku: form.sku, barcode: form.barcode || '',
       category_id: form.category_id || null, description: form.description || '',
-      price_xof: form.price_xof, purchase_price_xof: form.purchase_price_xof,
-      cost_price_xof: form.cost_price_xof, wholesale_price_xof: form.wholesale_price_xof,
-      quantity: form.quantity, min_stock: form.min_stock, is_active: form.is_active === true,
+      price_xof: num(form.price_xof), purchase_price_xof: num(form.purchase_price_xof),
+      cost_price_xof: num(form.cost_price_xof), wholesale_price_xof: num(form.wholesale_price_xof),
+      quantity: num(form.quantity), min_stock: num(form.min_stock), is_active: form.is_active === true,
     };
     const payload = selectedFile.value ? buildFormData(data) : data;
     if (isEdit.value) {
@@ -183,6 +215,7 @@ function buildFormData(data) {
   const fd = new FormData();
   for (const key of Object.keys(data)) {
     const val = data[key];
+    if (val === null || val === undefined || val === '') continue;
     if (typeof val === 'boolean') {
       fd.append(key, val ? '1' : '0');
     } else {

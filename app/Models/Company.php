@@ -21,15 +21,24 @@ class Company extends Model
     protected $fillable = [
         'name',
         'slug',
+        'status',
+        'size',
+        'industry',
+        'phone',
+        'address',
         'metadata',
         'plan_id',
         'manual_capital',
         'capital_updated_at',
+        'trial_ends_at',
+        'suspended_at',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'capital_updated_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'suspended_at' => 'datetime',
     ];
 
     public function plan(): BelongsTo
@@ -55,5 +64,25 @@ class Company extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function loginLogs(): HasMany
+    {
+        return $this->hasMany(LoginLog::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
     }
 }

@@ -40,9 +40,11 @@ class CreateProductAction
                 'category_id' => $dto->categoryId,
             ];
 
+            if ($dto->purchasePriceXof !== null) {
+                $data['purchase_price_xof'] = $dto->purchasePriceXof;
+            }
             if ($dto->costPriceXof !== null) {
                 $data['cost_price_xof'] = $dto->costPriceXof;
-                $data['purchase_price_xof'] = $dto->costPriceXof;
             }
             if ($dto->wholesalePriceXof !== null) {
                 $data['wholesale_price_xof'] = $dto->wholesalePriceXof;

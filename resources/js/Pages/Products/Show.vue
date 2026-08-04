@@ -32,7 +32,7 @@
             <div class="col-span-2"><span class="text-text-tertiary">Description</span><p class="text-text-primary">{{ product.description || '—' }}</p></div>
             <div><span class="text-text-tertiary">Prix de vente</span><p class="font-medium text-text-primary">{{ formatXOF(product.price_xof) }}</p></div>
             <div><span class="text-text-tertiary">Prix d'achat</span><p class="text-text-primary">{{ product.purchase_price_xof ? formatXOF(product.purchase_price_xof) : '—' }}</p></div>
-            <div><span class="text-text-tertiary">Prix de revient</span><p class="text-text-primary">{{ formatXOF(product.cost_price_xof) }}</p></div>
+            <div><span class="text-text-tertiary">Prix de revient</span><p class="text-text-primary">{{ product.cost_price_xof ? formatXOF(product.cost_price_xof) : '—' }}</p></div>
             <div><span class="text-text-tertiary">Prix de gros</span><p class="text-text-primary">{{ product.wholesale_price_xof ? formatXOF(product.wholesale_price_xof) : '—' }}</p></div>
             <div>
               <span class="text-text-tertiary">Statut</span>

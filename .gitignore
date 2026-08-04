@@ -25,3 +25,4 @@ Thumbs.db
 *.txt
 check_*.php
 test_*.php
+get_token.php

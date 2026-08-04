@@ -118,6 +118,7 @@ const sendingEmail = ref(false);
 const statusMap = {
   draft: { class: 'bg-surface-tertiary text-text-secondary', label: 'Brouillon' },
   sent: { class: 'bg-blue-50 text-blue-700', label: 'Envoyée' },
+  partial: { class: 'bg-yellow-50 text-yellow-700', label: 'Partiellement payée' },
   paid: { class: 'bg-green-50 text-green-700', label: 'Payée' },
   cancelled: { class: 'bg-red-50 text-red-700', label: 'Annulée' },
   overdue: { class: 'bg-amber-50 text-amber-700', label: 'En retard' },

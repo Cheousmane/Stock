@@ -20,6 +20,10 @@ class CheckSubscriptionQuota
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (!$request->isMethod('POST')) {
+            return $next($request);
+        }
+
         $company = TenantContext::get();
         $companyId = $company->id;
 
@@ -46,9 +50,7 @@ class CheckSubscriptionQuota
             return $plan;
         });
 
-        if ($request->isMethod('POST')) {
-            $this->enforceQuotas($request, $plan, $companyId);
-        }
+        $this->enforceQuotas($request, $plan, $companyId);
 
         return $next($request);
     }

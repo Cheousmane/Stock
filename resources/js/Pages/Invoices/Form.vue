@@ -23,30 +23,37 @@
 
         <BaseCard>
           <div class="space-y-2">
-            <div v-for="(line, index) in form.items" :key="index" class="flex flex-wrap gap-2 items-start">
-              <select v-model="line.product_id" @change="selectProduct(index)"
-                class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-                <option value="">{{ $t('form.select') }}</option>
-                <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
-                <option value="other">{{ $t('common.other') }}</option>
-              </select>
-              <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
-                class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-else v-model="line.description" type="text" :placeholder="$t('form.description')"
-                class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
-                class="w-20 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
-                class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
-              <div class="flex items-center gap-1 py-1">
-                <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
-                  <PlusIcon class="w-4 h-4" />
-                </button>
-                <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
-                  <XMarkIcon class="w-4 h-4" />
-                </button>
+            <div v-for="(line, index) in form.items" :key="index">
+              <div class="flex flex-wrap gap-2 items-start">
+                <select v-model="line.product_id" @change="selectProduct(index)"
+                  class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
+                  <option value="">{{ $t('form.select') }}</option>
+                  <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  <option value="other">{{ $t('common.other') }}</option>
+                </select>
+                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
+                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                <input v-else v-model="line.description" type="text" :placeholder="$t('form.description')"
+                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
+                  class="w-20 bg-surface border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-2"
+                  :class="stockError(line) ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-primary-500/20'" />
+                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
+                  class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
+                <span v-if="line.product_id && line.product_id !== 'other'" class="py-2 text-xs text-text-tertiary">{{ $t('page.invoices.stock_available', { count: stockFor(line) }) }}</span>
+                <div class="flex items-center gap-1 py-1">
+                  <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
+                    <PlusIcon class="w-4 h-4" />
+                  </button>
+                  <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+              <p v-if="stockError(line)" class="mt-1 text-xs font-medium text-red-500">
+                {{ $t('page.invoices.stock_insufficient') }} ({{ $t('page.invoices.stock_available', { count: stockFor(line) }) }})
+              </p>
             </div>
           </div>
         </BaseCard>
@@ -154,6 +161,28 @@ function removeLine(index) {
   if (form.items.length > 1) form.items.splice(index, 1);
 }
 
+function productFor(id) {
+  return products.value.find(p => String(p.id) === String(id));
+}
+
+function stockFor(line) {
+  if (!line.product_id || line.product_id === 'other') return Infinity;
+  const prod = productFor(line.product_id);
+  return prod ? (Number(prod.quantity) || 0) : Infinity;
+}
+
+function usedQty(line) {
+  if (!line.product_id || line.product_id === 'other') return 0;
+  return form.items.reduce((sum, l) => sum + (String(l.product_id) === String(line.product_id) ? (Number(l.quantity) || 0) : 0), 0);
+}
+
+function stockError(line) {
+  if (!line.product_id || line.product_id === 'other') return false;
+  const available = stockFor(line);
+  const needed = usedQty(line);
+  return needed > 0 && needed > available;
+}
+
 onMounted(async () => {
   try {
     const [cRes, pRes] = await Promise.all([axios.get('/customers?limit=1000'), axios.get('/products?limit=1000')]);
@@ -197,6 +226,9 @@ function validate() {
     }
     if (line.unit_price === undefined || line.unit_price === null || line.unit_price < 0) {
       errors[`items.${i}.unit_price_xof`] = [t('form.required')]; valid = false;
+    }
+    if (stockError(line)) {
+      errors[`items.${i}.quantity`] = [t('page.invoices.stock_insufficient')]; valid = false;
     }
   });
   return valid;

@@ -11,6 +11,7 @@ final readonly class ProductDTO
         public string $sku,
         public int $priceXof,
         public ?string $description = null,
+        public ?int $purchasePriceXof = null,
         public ?int $costPriceXof = null,
         public ?int $wholesalePriceXof = null,
         public ?int $quantity = null,
@@ -23,14 +24,14 @@ final readonly class ProductDTO
     public static function fromArray(array $data): self
     {
         $price = (int) ($data['price_xof'] ?? $data['price'] ?? 0);
-        $costPrice = isset($data['cost_price_xof']) ? (int) $data['cost_price_xof'] : (isset($data['purchase_price_xof']) ? (int) $data['purchase_price_xof'] : null);
 
         return new self(
             name: $data['name'],
             sku: $data['sku'],
             priceXof: $price,
             description: $data['description'] ?? null,
-            costPriceXof: $costPrice,
+            purchasePriceXof: isset($data['purchase_price_xof']) ? (int) $data['purchase_price_xof'] : null,
+            costPriceXof: isset($data['cost_price_xof']) ? (int) $data['cost_price_xof'] : null,
             wholesalePriceXof: isset($data['wholesale_price_xof']) ? (int) $data['wholesale_price_xof'] : null,
             quantity: isset($data['quantity']) ? (int) $data['quantity'] : null,
             minStock: isset($data['min_stock']) ? (int) $data['min_stock'] : null,

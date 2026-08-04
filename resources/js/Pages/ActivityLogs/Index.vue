@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.activity_logs.title')" :subtitle="meta ? $t('page.activity_logs.total_count', { count: meta.total }) : undefined" />
 
       <div class="flex flex-col sm:flex-row gap-3">

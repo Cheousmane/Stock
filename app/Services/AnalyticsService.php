@@ -27,7 +27,7 @@ class AnalyticsService
 
         return Cache::remember(self::CACHE_PREFIX . ".{$companyId}.overview", self::CACHE_TTL, function () use ($companyId) {
             $totalRevenue = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
+                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
                 ->sum('total_xof');
 
             $paidRevenue = Invoice::where('company_id', $companyId)
@@ -35,7 +35,7 @@ class AnalyticsService
                 ->sum('total_xof');
 
             $outstanding = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue])
+                ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue, InvoiceStatus::Partial])
                 ->sum('balance_due_xof');
 
             $totalExpenses = Expense::where('company_id', $companyId)->sum('amount');
@@ -58,13 +58,13 @@ class AnalyticsService
             $profitData = app(ProfitService::class)->getSummary($companyId);
 
             $thisMonth = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
+                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
                 ->whereYear('issue_date', now()->year)
                 ->whereMonth('issue_date', now()->month)
                 ->sum('total_xof');
 
             $lastMonth = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
+                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
                 ->whereYear('issue_date', now()->subMonth()->year)
                 ->whereMonth('issue_date', now()->subMonth()->month)
                 ->sum('total_xof');
@@ -111,7 +111,7 @@ class AnalyticsService
             $startDate = now()->subMonths($months - 1)->startOfMonth();
 
             $grouped = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
+                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
                 ->where('issue_date', '>=', $startDate)
                 ->selectRaw("DATE_FORMAT(issue_date, '%Y-%m') as month, SUM(total_xof) as total_xof, COUNT(*) as invoice_count")
                 ->groupBy(DB::raw("DATE_FORMAT(issue_date, '%Y-%m')"))

@@ -9,25 +9,28 @@ use App\Models\CreditNote;
 use App\Models\Expense;
 use App\Models\PosSale;
 use App\Models\PurchaseOrder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CapitalService
 {
     public function calculate(Company $company): array
     {
-        $revenue = $this->revenue($company->id);
-        $outflows = $this->outflows($company->id);
-        $initialCapital = $company->manual_capital ?? 0;
-        $calculated = $initialCapital + $revenue - $outflows;
+        return Cache::remember("capital.{$company->id}", 120, function () use ($company) {
+            $revenue = $this->revenue($company->id);
+            $outflows = $this->outflows($company->id);
+            $initialCapital = $company->manual_capital ?? 0;
+            $calculated = $initialCapital + $revenue - $outflows;
 
-        return [
-            'initial_capital' => (int) $initialCapital,
-            'revenue' => (int) $revenue,
-            'outflows' => (int) $outflows,
-            'calculated' => max(0, (int) $calculated),
-            'is_manual' => $company->manual_capital !== null,
-            'capital_updated_at' => $company->capital_updated_at?->toIso8601String(),
-        ];
+            return [
+                'initial_capital' => (int) $initialCapital,
+                'revenue' => (int) $revenue,
+                'outflows' => (int) $outflows,
+                'calculated' => max(0, (int) $calculated),
+                'is_manual' => $company->manual_capital !== null,
+                'capital_updated_at' => $company->capital_updated_at?->toIso8601String(),
+            ];
+        });
     }
 
     private function revenue(int $companyId): int

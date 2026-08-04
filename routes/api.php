@@ -36,6 +36,11 @@ use App\Http\Controllers\Api\v1\AnalyticsController;
 use App\Http\Controllers\Api\v1\CapitalController;
 use App\Http\Controllers\Api\v1\PosController;
 use App\Http\Controllers\Api\v1\RoleAndPermissionController;
+use App\Http\Controllers\Api\v1\Admin\SuperAdminDashboardController;
+use App\Http\Controllers\Api\v1\Admin\AdminCompanyController;
+use App\Http\Controllers\Api\v1\Admin\AdminLoginLogController;
+use App\Http\Controllers\Api\v1\Admin\AdminUserController;
+use App\Http\Controllers\Api\v1\Admin\AdminActivityLogController;
 use App\Http\Controllers\Api\WebhookController;
 
 // Stripe webhooks (no auth, no CSRF)
@@ -234,5 +239,21 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         Route::post('exports/async/{type}', [ExportController::class, 'exportAsync'])->name('exports.async');
         Route::get('exports/async/{export}/status', [ExportController::class, 'status'])->name('exports.async.status');
         Route::get('exports/async/{export}/download', [ExportController::class, 'download'])->name('exports.async.download');
+    });
+
+    // Super admin routes (global, no tenant scope)
+    Route::middleware(['auth:sanctum', 'admin', 'bindings'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/companies/stats', [AdminCompanyController::class, 'stats'])->name('companies.stats');
+        Route::get('/companies', [AdminCompanyController::class, 'index'])->name('companies.index');
+        Route::get('/companies/{company}', [AdminCompanyController::class, 'show'])->name('companies.show');
+        Route::put('/companies/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
+        Route::post('/companies/{company}/suspend', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
+        Route::post('/companies/{company}/activate', [AdminCompanyController::class, 'activate'])->name('companies.activate');
+        Route::get('/login-logs', [AdminLoginLogController::class, 'index'])->name('login-logs');
+        Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::post('/users/{id}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+        Route::post('/users/{id}/activate', [AdminUserController::class, 'activate'])->name('users.activate');
     });
 });

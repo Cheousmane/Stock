@@ -17,7 +17,7 @@ class ActivityLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $logs = Activity::query()
-            ->with('causer')
+            ->with(['causer', 'subject'])
             ->orderBy('created_at', 'desc')
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {

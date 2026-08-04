@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Traits\BelongsToTenant;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -31,6 +32,8 @@ class User extends Authenticatable
         'company_id',
         'last_login_at',
         'last_seen_at',
+        'is_super_admin',
+        'is_active',
     ];
 
     /**
@@ -68,7 +71,14 @@ class User extends Authenticatable
             'trial_ends_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'is_super_admin' => 'boolean',
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function loginLogs(): HasMany
+    {
+        return $this->hasMany(LoginLog::class);
     }
 
     public function isOnline(): bool

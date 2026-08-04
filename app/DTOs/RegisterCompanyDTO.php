@@ -15,7 +15,9 @@ final readonly class RegisterCompanyDTO
         public string $companySlug,
         public string $userName,
         public string $userEmail,
-        public string $userPassword
+        public string $userPassword,
+        public ?string $companyIndustry = null,
+        public ?string $companySize = null
     ) {}
 
     /**
@@ -28,7 +30,9 @@ final readonly class RegisterCompanyDTO
             companySlug: $data['company_slug'],
             userName: $data['name'],
             userEmail: $data['email'],
-            userPassword: $data['password']
+            userPassword: $data['password'],
+            companyIndustry: $data['industry'] ?? null,
+            companySize: $data['size'] ?? null
         );
     }
 }

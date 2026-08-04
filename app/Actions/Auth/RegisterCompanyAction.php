@@ -22,6 +22,8 @@ class RegisterCompanyAction
             $company = Company::create([
                 'name' => $dto->companyName,
                 'slug' => $dto->companySlug,
+                'industry' => $dto->companyIndustry,
+                'size' => $dto->companySize,
             ]);
 
             app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);

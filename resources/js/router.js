@@ -63,12 +63,27 @@ const routes = [
   { path: '/pos', name: 'PosIndex', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, title: 'Caisse (POS)' } },
   { path: '/pos/session', name: 'PosSession', component: () => import('./Pages/POS/Session.vue'), meta: { requiresAuth: true, title: 'Session caisse' } },
   { path: '/pos/sessions', name: 'PosSessions', component: () => import('./Pages/POS/Sessions.vue'), meta: { requiresAuth: true, title: 'Sessions caisse' } },
+
+  // Super Admin routes
+  { path: '/admin/dashboard', name: 'AdminDashboard', component: () => import('./Pages/Admin/Dashboard.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Tableau de bord' } },
+  { path: '/admin/companies', name: 'AdminCompanies', component: () => import('./Pages/Admin/Companies.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Entreprises' } },
+  { path: '/admin/login-logs', name: 'AdminLoginLogs', component: () => import('./Pages/Admin/LoginLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Connexions' } },
+  { path: '/admin/activity-logs', name: 'AdminActivityLogs', component: () => import('./Pages/Admin/ActivityLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Interférences' } },
+  { path: '/admin/users', name: 'AdminUsers', component: () => import('./Pages/Admin/Users.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Utilisateurs' } },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  } catch {
+    return {};
+  }
+}
 
 function getUserPermissions() {
   try {
@@ -81,6 +96,7 @@ function getUserPermissions() {
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
+  const user = getUser();
 
   // Set document title
   const companyName = (localStorage.getItem('companyName') || '').trim();
@@ -99,9 +115,16 @@ router.beforeEach((to, from, next) => {
     return next({ name: 'Dashboard' });
   }
 
-  if (to.meta.permission) {
+  if (to.meta.requiresSuperAdmin && !user?.is_super_admin) {
+    return next({ name: 'Dashboard' });
+  }
+
+  if (to.meta.permission && !user?.is_super_admin) {
     const permissions = getUserPermissions();
     if (permissions.length === 0) {
+      // Évite la boucle infinie Login ↔ Dashboard :
+      // si authentifié, on laisse passer (le serveur gère l'autorisation)
+      if (token) return next();
       return next({ name: 'Login' });
     }
     if (!permissions.includes(to.meta.permission)) {

@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.events.title')" :subtitle="meta ? $t('common.total') + ': ' + meta.total : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'EventCreate' }">

@@ -32,6 +32,7 @@ class UserResource extends JsonResource
             'locale' => $this->locale ?? 'fr',
             'roles' => $this->relationLoaded('roles') ? $this->roles->pluck('name') : [],
             'permissions' => $this->getAllPermissions()->pluck('name'),
+            'is_super_admin' => $this->is_super_admin ?? false,
             'company' => $this->when($this->relationLoaded('company'), fn () => [
                 'uuid' => $this->company->uuid,
                 'name' => $this->company->name,

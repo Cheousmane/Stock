@@ -18,6 +18,10 @@ class TenantMiddleware
         $user = $request->user();
 
         if ($user) {
+            if (!$user->is_active || ($user->company && $user->company->status === 'suspended')) {
+                abort(Response::HTTP_FORBIDDEN, 'Votre compte a été suspendu.');
+            }
+
             $company = $user->company;
             TenantContext::set($company);
             app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);

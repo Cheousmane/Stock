@@ -60,6 +60,31 @@
                 class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary"></textarea>
             </div>
             <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Secteur d'activité</label>
+              <select v-model="form.industry"
+                class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary">
+                <option value="">Non défini</option>
+                <option v-for="s in industryOptions" :key="s" :value="s">{{ s }}</option>
+              </select>
+              <input
+                v-if="form.industry === 'Autre'"
+                v-model="form.otherIndustry"
+                type="text"
+                placeholder="Précisez le secteur..."
+                class="mt-2 block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Taille de l'entreprise</label>
+              <select v-model="form.size"
+                class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary">
+                <option value="">Non définie</option>
+                <option value="petite">Petite</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="grande">Grande</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-sm font-medium text-text-secondary mb-1">Devise</label>
               <select v-model="form.currency"
                 class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary">
@@ -167,8 +192,24 @@ const uploadingLogo = ref(false);
 const deletingLogo = ref(false);
 
 const form = reactive({
-  company_name: '', slug: '', email: '', phone: '', address: '', currency: 'XOF',
+  company_name: '', slug: '', email: '', phone: '', address: '', currency: 'XOF', industry: '', size: '', otherIndustry: '',
 });
+
+const industryOptions = [
+  'Agriculture & Agroalimentaire',
+  'Commerce & Distribution',
+  'BTP & Immobilier',
+  'Industrie & Manufacture',
+  'Services & Consulting',
+  'Transport & Logistique',
+  'Santé & Pharmacie',
+  'Éducation & Formation',
+  'Technologie & Télécoms',
+  'Finance & Assurance',
+  'Hôtellerie & Restauration',
+  'Énergie & Environnement',
+  'Autre',
+];
 
 const mailForm = reactive({
   mail_host: '', mail_port: '587', mail_username: '', mail_password: '',
@@ -182,6 +223,8 @@ onMounted(async () => {
   try {
     const { data } = await axios.get('/company');
     const c = data.data ?? data;
+    const industry = (c.industry || '') || '';
+    const customIndustry = !!industry && !industryOptions.includes(industry);
     Object.assign(form, {
       company_name: c.company_name || c.name || '',
       slug: c.slug || '',
@@ -189,6 +232,9 @@ onMounted(async () => {
       phone: (c.phone || (c.metadata?.phone)) || '',
       address: (c.address || (c.metadata?.address)) || '',
       currency: c.currency || (c.metadata?.currency) || 'XOF',
+      industry: customIndustry ? 'Autre' : industry,
+      size: c.size || '',
+      otherIndustry: customIndustry ? industry : '',
     });
     const meta = c.metadata || {};
     if (meta.logo) {
@@ -211,7 +257,12 @@ onMounted(async () => {
 async function submit() {
   submitting.value = true;
   try {
-    await axios.put('/company', form);
+    const payload = { ...form };
+    if (payload.industry === 'Autre') {
+      payload.industry = payload.otherIndustry.trim() || 'Autre';
+    }
+    delete payload.otherIndustry;
+    await axios.put('/company', payload);
     showToast('Paramètres mis à jour', 'success');
   } catch { showToast('Erreur lors de la mise à jour', 'error'); } finally { submitting.value = false; }
 }

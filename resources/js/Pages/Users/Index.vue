@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.users.title')" :subtitle="meta ? $t('page.users.title') + ' · ' + meta.total : undefined">
         <template #actions>
           <BaseButton v-if="canManage" variant="primary" size="sm" :to="{ name: 'UserCreate' }">

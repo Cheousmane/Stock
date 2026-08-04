@@ -47,7 +47,9 @@ class CreatePaymentAction
             $invoice->update([
                 'paid_xof' => $newPaid,
                 'balance_due_xof' => $newBalance,
-                'status' => $newBalance === 0 ? InvoiceStatus::Paid : $invoice->status,
+                'status' => $newBalance === 0
+                    ? InvoiceStatus::Paid
+                    : ($newPaid > 0 ? InvoiceStatus::Partial : $invoice->status),
             ]);
 
             $customer = $invoice->customer;

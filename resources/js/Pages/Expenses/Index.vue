@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto space-y-4">
+    <div class="space-y-4">
       <BasePageHeader :title="$t('page.expenses.title')" :subtitle="meta ? $t('page.expenses.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
