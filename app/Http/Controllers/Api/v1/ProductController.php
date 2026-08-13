@@ -59,7 +59,7 @@ class ProductController extends Controller
 
         $products = $query->paginate($perPage);
 
-        return response()->json(ProductResource::collection($products), Response::HTTP_OK);
+        return ProductResource::collection($products)->response();
     }
 
     /**

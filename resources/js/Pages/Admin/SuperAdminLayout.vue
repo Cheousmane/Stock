@@ -1,13 +1,11 @@
 <template>
   <div class="flex h-screen bg-surface-secondary text-text-primary antialiased">
     <!-- Mobile backdrop -->
-    <Transition name="fade">
-      <div v-if="sidebarOpen" class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="sidebarOpen = false" />
-    </Transition>
+    <div v-if="sidebarOpen" class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="sidebarOpen = false" />
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar-surface border-r border-sidebar-border transition-[width,transform] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar-surface border-r border-sidebar-border transition-[width,transform] duration-200 ease-out lg:translate-x-0"
       :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-64', 'w-64']"
     >
       <div class="flex items-center h-14 px-3 border-b border-sidebar-border shrink-0">
@@ -24,7 +22,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           </span>
-          <div class="overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">
+          <div class="overflow-hidden ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">
             <div class="min-w-0 whitespace-nowrap">
               <p class="text-sm font-semibold text-sidebar-text truncate">Super Admin</p>
               <p class="text-[10px] font-medium text-sidebar-text-secondary truncate tracking-wider">SIDIBE CORPORATE</p>
@@ -33,10 +31,10 @@
         </router-link>
         <button
           @click="sidebarCollapsed = !sidebarCollapsed"
-          class="hidden lg:flex items-center justify-center ml-auto w-6 h-6 rounded-md text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover transition-transform duration-300"
+          class="hidden lg:flex items-center justify-center ml-auto w-6 h-6 rounded-md text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover"
           :class="{ 'rotate-180': sidebarCollapsed }"
         >
-          <svg class="w-3.5 h-3.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5" />
           </svg>
         </button>
@@ -48,13 +46,13 @@
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150"
-            :class="isActive(item.to) ? 'bg-sidebar-surface-active text-sidebar-text-active' : 'text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover'"
+            class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium"
+            :class="isActive(item.to) ? 'nav-item--active text-sidebar-text-active' : 'text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover'"
           >
             <span class="flex items-center justify-center w-5 h-5 shrink-0">
               <component :is="item.icon" class="w-5 h-5" />
             </span>
-            <span class="truncate overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">{{ item.label }}</span>
+            <span class="truncate overflow-hidden ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">{{ item.label }}</span>
           </router-link>
         </div>
       </nav>
@@ -64,13 +62,13 @@
           <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
           </svg>
-          <span class="truncate overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">Retour app</span>
+          <span class="truncate overflow-hidden ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">Retour app</span>
         </router-link>
         <button @click="logout" class="flex items-center gap-3 w-full px-3 py-2 mt-1 rounded-lg text-sm font-medium text-sidebar-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors">
           <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
           </svg>
-          <span class="truncate overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">Déconnexion</span>
+          <span class="truncate overflow-hidden ease-[cubic-bezier(0.25,0.1,0.25,1)]" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">Déconnexion</span>
         </button>
       </div>
     </aside>
@@ -90,7 +88,7 @@
       </header>
 
       <div class="flex-1 overflow-y-auto">
-        <main class="p-6 animate-fade-in">
+        <main class="p-6">
           <slot />
         </main>
       </div>

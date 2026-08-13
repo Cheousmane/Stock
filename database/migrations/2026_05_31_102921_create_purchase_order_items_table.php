@@ -14,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('purchase_order_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained();
+            $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('product_variant_id')->nullable()->constrained();
             $table->string('name'); // snapshot of product name
             $table->string('description')->nullable();

@@ -11,12 +11,32 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreditNoteRequest;
 use App\Http\Resources\CreditNoteResource;
 use App\Models\CreditNote;
+use App\Support\CreditNoteQuantities;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CreditNoteController extends Controller
 {
+    public function creditableQuantities(Request $request): JsonResponse
+    {
+        $customerId = (int) $request->input('customer_id');
+        $invoiceId = $request->input('invoice_id') ? (int) $request->input('invoice_id') : null;
+
+        if ($customerId <= 0) {
+            return response()->json(['message' => 'customer_id is required.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $available = CreditNoteQuantities::available(
+            TenantContext::getCompanyId(),
+            $customerId,
+            $invoiceId,
+            $request->integer('exclude_credit_note_id') ?: null
+        );
+
+        return response()->json($available);
+    }
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', CreditNote::class);
@@ -31,7 +51,19 @@ class CreditNoteController extends Controller
                 $query->where('status', $status);
             })
             ->paginate($request->integer('per_page', 15));
-        return response()->json(CreditNoteResource::collection($creditNotes));
+        return CreditNoteResource::collection($creditNotes)->response();
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $this->authorize('delete', CreditNote::class);
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:credit_notes,id',
+        ]);
+        $count = CreditNote::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 
     public function store(CreditNoteRequest $request, CreateCreditNoteAction $action): JsonResponse

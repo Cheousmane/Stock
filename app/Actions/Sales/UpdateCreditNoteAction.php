@@ -37,8 +37,8 @@ class UpdateCreditNoteAction
                     $taxTotal += $item['tax_amount_xof'];
 
                     if (!isset($item['name'])) {
-                        $product = Product::find($item['product_id']);
-                        $item['name'] = $product ? $product->name : 'Unknown Product';
+                        $product = $item['product_id'] ? Product::find($item['product_id']) : null;
+                        $item['name'] = $product ? $product->name : ($item['description'] ?? 'Unknown Product');
                     }
                 }
 

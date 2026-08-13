@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\TenantContext;
+use App\Support\TenantMailConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,19 +48,7 @@ class SettingController extends Controller
     {
         $this->authorize('manage_settings');
         try {
-            $companyId = TenantContext::getCompanyId();
-            $settings = Setting::where('company_id', $companyId)->pluck('value', 'key')->toArray();
-
-            config([
-                'mail.default' => 'smtp',
-                'mail.mailers.smtp.host' => $settings['mail_host'] ?? '',
-                'mail.mailers.smtp.port' => $settings['mail_port'] ?? '587',
-                'mail.mailers.smtp.username' => $settings['mail_username'] ?? '',
-                'mail.mailers.smtp.password' => $settings['mail_password'] ?? '',
-                'mail.mailers.smtp.encryption' => $settings['mail_encryption'] ?? 'tls',
-                'mail.from.address' => $settings['mail_from_address'] ?? '',
-                'mail.from.name' => $settings['mail_from_name'] ?? '',
-            ]);
+            TenantMailConfig::apply(TenantContext::get());
 
             \Illuminate\Support\Facades\Mail::raw('Test de configuration email réussi', function ($msg) {
                 $msg->to(config('mail.from.address'))->subject('Test de configuration');

@@ -24,13 +24,26 @@ class InvoiceController extends Controller
         $this->authorize('viewAny', Invoice::class);
 
         $perPage = (int) $request->input('per_page', 15);
-        $query = Invoice::with(['customer', 'items']);
+        $query = Invoice::query()
+            ->with('customer:id,company_id,name,email,phone')
+            ->select([
+                'id', 'uuid', 'number', 'customer_id', 'status',
+                'issue_date', 'due_date',
+                'subtotal_xof', 'tax_xof', 'discount_xof', 'discount_type',
+                'total_xof', 'paid_xof', 'balance_due_xof',
+                'created_at', 'updated_at',
+            ]);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%");
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
+        }
+
+        if ($customerId = $request->integer('customer_id')) {
+            $query->where('customer_id', $customerId);
         }
 
         if ($status = $request->input('status')) {
@@ -43,7 +56,7 @@ class InvoiceController extends Controller
             return response()->json(InvoiceResource::collection($query->limit($limit)->get()), Response::HTTP_OK);
         }
 
-        return response()->json(InvoiceResource::collection($query->paginate($perPage)), Response::HTTP_OK);
+        return InvoiceResource::collection($query->paginate($perPage))->response();
     }
 
     public function store(InvoiceRequest $request, CreateInvoiceAction $action): JsonResponse

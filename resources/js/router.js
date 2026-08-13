@@ -1,9 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { ref } from 'vue';
+
+export const navigationInProgress = ref(false);
 
 const routes = [
   { path: '/', name: 'Landing', component: () => import('./Pages/Landing.vue'), meta: { guest: true, title: 'Accueil' } },
   { path: '/login', name: 'Login', component: () => import('./Pages/Auth/Login.vue'), meta: { guest: true, title: 'Connexion' } },
   { path: '/register', name: 'Register', component: () => import('./Pages/Auth/Register.vue'), meta: { guest: true, title: 'Inscription' } },
+  { path: '/verify-email', name: 'VerifyEmail', component: () => import('./Pages/Auth/VerifyEmail.vue'), meta: { guest: true, title: 'Vérification e-mail' } },
   { path: '/forgot-password', name: 'ForgotPassword', component: () => import('./Pages/Auth/ForgotPassword.vue'), meta: { guest: true, title: 'Mot de passe oublié' } },
   { path: '/reset-password', name: 'ResetPassword', component: () => import('./Pages/Auth/ResetPassword.vue'), meta: { guest: true, title: 'Réinitialisation' } },
   { path: '/dashboard', name: 'Dashboard', component: () => import('./Pages/Dashboard.vue'), meta: { requiresAuth: true, permission: 'view_dashboard', title: 'Tableau de bord' } },
@@ -30,6 +34,7 @@ const routes = [
   { path: '/delivery-notes', name: 'DeliveryNotes', component: () => import('./Pages/DeliveryNotes/Index.vue'), meta: { requiresAuth: true, permission: 'view_delivery_note', title: 'Bons de livraison' } },
   { path: '/delivery-notes/create', name: 'DeliveryNoteCreate', component: () => import('./Pages/DeliveryNotes/Form.vue'), meta: { requiresAuth: true, permission: 'create_delivery_note', title: 'Nouveau BL' } },
   { path: '/delivery-notes/:id', name: 'DeliveryNoteShow', component: () => import('./Pages/DeliveryNotes/Show.vue'), meta: { requiresAuth: true, permission: 'view_delivery_note', title: 'Bon de livraison' } },
+  { path: '/delivery-notes/:id/edit', name: 'DeliveryNoteEdit', component: () => import('./Pages/DeliveryNotes/Form.vue'), meta: { requiresAuth: true, permission: 'update_delivery_note', title: 'Modifier BL' } },
   { path: '/payments', name: 'Payments', component: () => import('./Pages/Payments/Index.vue'), meta: { requiresAuth: true, permission: 'view_payment', title: 'Paiements' } },
   { path: '/stock', name: 'Stock', component: () => import('./Pages/Stock/Index.vue'), meta: { requiresAuth: true, permission: 'view_stock', title: 'Stock' } },
   { path: '/stock/transfer', name: 'StockTransfer', component: () => import('./Pages/Stock/Transfer.vue'), meta: { requiresAuth: true, permission: 'transfer_stock', title: 'Transfert de stock' } },
@@ -54,6 +59,7 @@ const routes = [
   { path: '/units/:id/edit', name: 'UnitEdit', component: () => import('./Pages/Units/Form.vue'), meta: { requiresAuth: true, permission: 'update_unit', title: 'Modifier unité' } },
   { path: '/events', name: 'Events', component: () => import('./Pages/Events/Index.vue'), meta: { requiresAuth: true, permission: 'view_events', title: 'Événements' } },
   { path: '/events/create', name: 'EventCreate', component: () => import('./Pages/Events/Form.vue'), meta: { requiresAuth: true, permission: 'view_events', title: 'Nouvel événement' } },
+{ path: '/events/:id/edit', name: 'EventEdit', component: () => import('./Pages/Events/Form.vue'), meta: { requiresAuth: true, permission: 'view_events', title: 'Modifier événement' } },
   { path: '/users', name: 'Users', component: () => import('./Pages/Users/Index.vue'), meta: { requiresAuth: true, permission: 'manage_users', title: 'Utilisateurs' } },
   { path: '/users/create', name: 'UserCreate', component: () => import('./Pages/Users/Form.vue'), meta: { requiresAuth: true, permission: 'manage_users', title: 'Nouvel utilisateur' } },
   { path: '/users/:id/edit', name: 'UserEdit', component: () => import('./Pages/Users/Form.vue'), meta: { requiresAuth: true, permission: 'manage_users', title: 'Modifier utilisateur' } },
@@ -133,6 +139,11 @@ router.beforeEach((to, from, next) => {
   }
 
   next();
+});
+
+router.beforeEach(() => { navigationInProgress.value = true; });
+router.afterEach(() => {
+  setTimeout(() => { navigationInProgress.value = false; }, 220);
 });
 
 export default router;

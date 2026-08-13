@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.units.title')" :subtitle="meta ? $t('common.total') + ': ' + meta.total : undefined">
+      <BasePageHeader :title="$t('page.units.title')" :subtitle="meta ? $t('page.units.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'UnitCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.units.create') }}
@@ -10,13 +10,13 @@
       </BasePageHeader>
 
       <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" placeholder="Rechercher par nom..." clearable size="sm" class="flex-1 max-w-xs" />
-        <BaseButton v-if="hasActiveFilters" variant="ghost" size="sm" @click="resetFilters">{{ $t('common.clear') }}</BaseButton>
+        <BaseInput v-model="search" :placeholder="$t('page.units.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
       </div>
 
@@ -151,7 +151,7 @@ async function fetchUnits(page) {
     const { data } = await axios.get('/units', { params });
     units.value = data.data ?? data;
     meta.value = data.meta ?? null;
-  } catch {} finally { loading.value = false; }
+  } catch { showToast($t('page.units.load_error'), 'error'); } finally { loading.value = false; }
 }
 
 function resetFilters() { search.value = ''; }
@@ -171,11 +171,13 @@ function confirmDelete(unit) { deleteTarget.value = unit; }
 async function executeDelete() {
   if (!deleteTarget.value) return;
   const id = deleteTarget.value.id;
+  const currentPage = meta.value?.current_page || 1;
   deleteTarget.value = null;
   try {
     await axios.delete(`/units/${id}`);
     showToast($t('page.units.deleted'), 'success');
-    fetchUnits(meta.value?.current_page || 1);
+    const isLastItemOfLastPage = units.value.length === 1 && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
+    fetchUnits(isLastItemOfLastPage ? currentPage - 1 : currentPage);
   } catch { showToast($t('common.delete_error'), 'error'); }
 }
 </script>

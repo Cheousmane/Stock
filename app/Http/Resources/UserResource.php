@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'uuid' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
+            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'locale' => $this->locale ?? 'fr',
             'roles' => $this->relationLoaded('roles') ? $this->roles->pluck('name') : [],
             'permissions' => $this->getAllPermissions()->pluck('name'),

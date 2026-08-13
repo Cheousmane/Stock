@@ -7,6 +7,7 @@ namespace App\Actions\Sales;
 use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\StockMovement;
+use App\Models\Warehouse;
 use App\Models\WarehouseStock;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,13 @@ class ValidateCreditNoteAction
 
             // Restock items if a warehouse is provided
             if ($warehouseIdForRestock) {
+                $restockedLines = 0;
+
                 foreach ($creditNote->items as $item) {
+                    if (!$item->product_id) {
+                        continue;
+                    }
+
                     $stock = WarehouseStock::firstOrCreate(
                         [
                             'company_id' => $companyId,
@@ -69,7 +76,16 @@ class ValidateCreditNoteAction
                         'reference_id' => $creditNote->id,
                         'created_by' => auth()->id(),
                     ]);
+
+                    $restockedLines++;
                 }
+
+                $metadata = $creditNote->metadata ?? [];
+                $metadata['restock_warehouse_id'] = $warehouseIdForRestock;
+                $metadata['restock_warehouse_name'] = Warehouse::find($warehouseIdForRestock)?->name;
+                $metadata['restocked_lines'] = $restockedLines;
+                $metadata['restocked_at'] = now()->toDateTimeString();
+                $creditNote->update(['metadata' => $metadata]);
             }
 
             $creditNote->update(['status' => 'validated']);

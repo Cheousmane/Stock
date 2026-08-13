@@ -4,10 +4,10 @@
       <BasePageHeader :title="$t('page.expenses.title')" :subtitle="meta ? $t('page.expenses.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'ExpenseCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.expenses.create') }}
@@ -17,6 +17,7 @@
 
       <div class="flex flex-col sm:flex-row gap-3">
         <BaseInput v-model="search" :placeholder="$t('page.expenses.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+        <BaseSelect v-model="category" :options="categoryOptions" size="sm" class="w-52" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: '10 / page' },
           { value: 25, label: '25 / page' },
@@ -57,10 +58,26 @@
           @sort="toggleSort"
         >
           <template #cell-description="{ row }">
-            <p class="text-sm font-medium text-text-primary truncate max-w-[250px]">{{ row.description }}</p>
+            <template v-if="row.category === 'supplier_payment'">
+              <p class="text-sm font-medium text-text-primary truncate max-w-[250px]">{{ row.metadata?.supplier_name || row.description }}</p>
+              <div v-if="row.metadata?.purchase_order_id || row.metadata?.payment_method" class="flex items-center gap-1.5 mt-0.5">
+                <router-link
+                  v-if="row.metadata?.purchase_order_id"
+                  :to="{ name: 'PurchaseOrderEdit', params: { id: row.metadata.purchase_order_id } }"
+                  class="inline-flex items-center gap-1 text-xs text-primary-600 hover:underline"
+                >
+                  <span class="text-current"><DocumentTextIcon class="w-3 h-3" /></span>{{ row.metadata.purchase_order_number }}
+                </router-link>
+                <span v-if="row.metadata?.payment_method" class="text-xs text-text-tertiary">· {{ row.metadata.payment_method }}</span>
+              </div>
+            </template>
+            <p v-else class="text-sm font-medium text-text-primary truncate max-w-[250px]">{{ row.description }}</p>
           </template>
           <template #cell-category="{ row }">
-            <span class="text-sm text-text-secondary">{{ row.category || '—' }}</span>
+            <BaseBadge v-if="row.category" :variant="row.category === 'supplier_payment' ? 'success' : 'default'">
+              {{ categoryLabel(row.category) }}
+            </BaseBadge>
+            <span v-else class="text-sm text-text-secondary">—</span>
           </template>
           <template #cell-amount="{ row }">
             <span class="text-sm font-medium text-text-primary">{{ formatXOF(row.amount) }}</span>
@@ -124,9 +141,10 @@ import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseDropdown from '../../Components/ui/BaseDropdown.vue';
 import BaseModal from '../../Components/ui/BaseModal.vue';
+import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import {
   PlusIcon, ArrowDownTrayIcon, TrashIcon, PencilIcon,
-  EllipsisVerticalIcon,
+  EllipsisVerticalIcon, DocumentTextIcon,
 } from '@heroicons/vue/24/outline';
 
 const { t: $t } = useI18n();
@@ -135,6 +153,7 @@ const showToast = inject('showToast');
 const expenses = ref([]);
 const loading = ref(true);
 const search = ref('');
+const category = ref('');
 const perPage = ref(25);
 const meta = ref(null);
 const sortBy = ref('date');
@@ -143,8 +162,35 @@ const selectedIds = ref([]);
 const deleteTarget = ref(null);
 let debounceTimer = null;
 
-const hasActiveFilters = computed(() => search.value);
+const hasActiveFilters = computed(() => search.value || category.value);
 const allSelected = computed(() => expenses.value.length > 0 && selectedIds.value.length === expenses.value.length);
+
+const categoryOptions = computed(() => [
+  { value: '', label: $t('common.all') },
+  { value: 'fournitures', label: $t('page.expenses.category_fournitures') },
+  { value: 'loyer', label: $t('page.expenses.category_loyer') },
+  { value: 'utilities', label: $t('page.expenses.category_utilities') },
+  { value: 'salaire', label: $t('page.expenses.category_salaire') },
+  { value: 'transport', label: $t('page.expenses.category_transport') },
+  { value: 'marketing', label: $t('page.expenses.category_marketing') },
+  { value: 'supplier_payment', label: $t('page.expenses.category_supplier_payment') },
+  { value: 'autre', label: $t('page.expenses.category_autre') },
+]);
+
+const categoryLabels = {
+  fournitures: $t('page.expenses.category_fournitures'),
+  loyer: $t('page.expenses.category_loyer'),
+  utilities: $t('page.expenses.category_utilities'),
+  salaire: $t('page.expenses.category_salaire'),
+  transport: $t('page.expenses.category_transport'),
+  marketing: $t('page.expenses.category_marketing'),
+  supplier_payment: $t('page.expenses.category_supplier_payment'),
+  autre: $t('page.expenses.category_autre'),
+};
+
+function categoryLabel(cat) {
+  return categoryLabels[cat] || cat;
+}
 
 function isSelected(id) { return selectedIds.value.includes(id); }
 
@@ -195,9 +241,10 @@ function formatXOF(amount) {
 
 function resetFilters() {
   search.value = '';
+  category.value = '';
 }
 
-watch([search, perPage], () => {
+watch([search, category, perPage], () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(fetchExpenses, 300);
 });
@@ -215,6 +262,7 @@ async function fetchExpenses(page) {
   try {
     const params = { page: page || 1, per_page: perPage.value };
     if (search.value) params.search = search.value;
+    if (category.value) params.category = category.value;
     const { data } = await axios.get('/expenses', { params });
     expenses.value = data.data ?? data;
     meta.value = data.meta ?? null;

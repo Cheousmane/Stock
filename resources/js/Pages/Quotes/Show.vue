@@ -13,7 +13,7 @@
               <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Télécharger PDF
             </BaseButton>
             <button v-if="quote.status !== 'converted'" @click="convertToInvoice" :disabled="converting"
-              class="inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 rounded-lg px-2.5 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50">
+              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50">
               <span class="text-white"><DocumentTextIcon class="w-4 h-4" /></span>{{ converting ? 'Conversion...' : 'Convertir en facture' }}
             </button>
             <BaseButton variant="secondary" size="sm" :loading="sendingEmail" @click="sendEmail">
@@ -23,11 +23,11 @@
               <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Marquer envoyé
             </BaseButton>
             <button v-if="quote.status === 'sent' || quote.status === 'accepted'" @click="updateStatus('accepted')"
-              class="inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 rounded-lg px-2.5 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700">
+              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700">
               <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Accepter
             </button>
             <button v-if="quote.status === 'draft' || quote.status === 'sent'" @click="updateStatus('rejected')"
-              class="inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 rounded-lg px-2.5 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700">
+              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700">
               <span class="text-white"><XCircleIcon class="w-4 h-4" /></span>Rejeter
             </button>
             <BaseButton v-if="quote.status !== 'converted'" variant="danger-ghost" size="sm" @click="deleteQuote">

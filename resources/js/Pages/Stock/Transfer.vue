@@ -31,7 +31,7 @@
             <div class="space-y-1.5">
               <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.transfer.reason') }}</label>
               <textarea v-model="form.reason" rows="3" :placeholder="$t('page.transfer.reason_placeholder')"
-                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
             </div>
             <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
           </div>

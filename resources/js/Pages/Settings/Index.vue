@@ -100,6 +100,74 @@
           </form>
         </BaseCard>
 
+        <!-- Legal & Payment Info -->
+        <BaseCard title="Informations légales & paiement" subtitle="Affichées sur vos factures et devis (PDF)" padding="lg">
+          <form @submit.prevent="submit" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-text-secondary mb-1">Langue des documents</label>
+                <select v-model="form.locale"
+                  class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary">
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-text-secondary mb-1">Couleur d'accent (PDF)</label>
+                <div class="flex items-center gap-2">
+                  <input v-model="form.brand_color" type="color"
+                    class="w-10 h-9 rounded-lg border border-border bg-surface cursor-pointer" />
+                  <input v-model="form.brand_color" type="text" maxlength="7" placeholder="#2563eb"
+                    class="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-border">
+              <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">Identifiants légaux</div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">RC (Registre de commerce)</label>
+                  <input v-model="form.legal_rc" type="text"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">IFU / NIF</label>
+                  <input v-model="form.legal_ifu" type="text"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">RCCM</label>
+                  <input v-model="form.legal_rccm" type="text"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-border">
+              <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">Coordonnées bancaires (pour le règlement)</div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">Banque</label>
+                  <input v-model="form.bank_name" type="text" placeholder="Ex : Ecobank"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">Compte / IBAN</label>
+                  <input v-model="form.bank_account" type="text" placeholder="Ex : 00123456789"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1">Code SWIFT</label>
+                  <input v-model="form.bank_swift" type="text" placeholder="Ex : ECOCISAB"
+                    class="block w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-3 pt-4 border-t border-border">
+              <BaseButton type="submit" :loading="submitting">Enregistrer</BaseButton>
+            </div>
+          </form>
+        </BaseCard>
+
         <!-- Email Configuration -->
         <BaseCard title="Configuration email (SMTP)" padding="lg">
           <form @submit.prevent="saveEmailConfig" class="space-y-4">
@@ -193,6 +261,8 @@ const deletingLogo = ref(false);
 
 const form = reactive({
   company_name: '', slug: '', email: '', phone: '', address: '', currency: 'XOF', industry: '', size: '', otherIndustry: '',
+  locale: 'fr', brand_color: '#2563eb', legal_rc: '', legal_ifu: '', legal_rccm: '',
+  bank_name: '', bank_account: '', bank_swift: '',
 });
 
 const industryOptions = [
@@ -235,6 +305,14 @@ onMounted(async () => {
       industry: customIndustry ? 'Autre' : industry,
       size: c.size || '',
       otherIndustry: customIndustry ? industry : '',
+      locale: (c.metadata?.locale) || 'fr',
+      brand_color: (c.metadata?.brand_color) || '#2563eb',
+      legal_rc: (c.metadata?.legal_rc) || '',
+      legal_ifu: (c.metadata?.legal_ifu) || '',
+      legal_rccm: (c.metadata?.legal_rccm) || '',
+      bank_name: (c.metadata?.bank_name) || '',
+      bank_account: (c.metadata?.bank_account) || '',
+      bank_swift: (c.metadata?.bank_swift) || '',
     });
     const meta = c.metadata || {};
     if (meta.logo) {

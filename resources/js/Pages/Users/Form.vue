@@ -22,7 +22,7 @@
               </label>
               <div class="relative">
                 <input v-model="form.password" :type="showPassword ? 'text' : 'password'" :required="!isEdit" minlength="8"
-                  class="block w-full bg-surface border border-border rounded-lg px-3 py-2 pr-10 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                  class="block w-full bg-surface border border-border rounded-lg px-3 py-2 pr-10 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
                 <button type="button" @click="showPassword = !showPassword" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-tertiary hover:text-text-secondary">
                   <span class="text-current"><EyeIcon v-if="!showPassword" class="w-4 h-4" /><EyeSlashIcon v-else class="w-4 h-4" /></span>
                 </button>
@@ -34,7 +34,7 @@
               <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.password_confirm') }}</label>
               <div class="relative">
                 <input v-model="form.password_confirmation" :type="showConfirm ? 'text' : 'password'" :required="!isEdit && !!form.password"
-                  class="block w-full bg-surface border border-border rounded-lg px-3 py-2 pr-10 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                  class="block w-full bg-surface border border-border rounded-lg px-3 py-2 pr-10 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
                 <button type="button" @click="showConfirm = !showConfirm" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-tertiary hover:text-text-secondary">
                   <span class="text-current"><EyeIcon v-if="!showConfirm" class="w-4 h-4" /><EyeSlashIcon v-else class="w-4 h-4" /></span>
                 </button>

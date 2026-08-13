@@ -145,6 +145,10 @@ return [
     'url'                  => 'Le format de l\'URL de :attribute n\'est pas valide.',
     'ulid'                 => 'Le champ :attribute doit être un ULID valide.',
     'uuid'                 => 'Le champ :attribute doit être un UUID valide.',
+    'credit_note_quantity_exceeded' => 'La quantité excède le restant créditable de ce produit pour ce client (disponible : :max).',
+    'supplier_payment_order_mismatch' => 'Le bon de commande ne correspond pas au fournisseur sélectionné.',
+    'supplier_payment_exceeds_order' => 'Le montant dépasse le solde restant de ce bon de commande (reste : :max).',
+    'supplier_payment_exceeds_balance' => 'Le montant dépasse la dette actuelle du fournisseur (reste : :max).',
 
     'attributes' => [
         'name' => 'nom',

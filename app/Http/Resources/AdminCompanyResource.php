@@ -40,6 +40,10 @@ class AdminCompanyResource extends JsonResource
             'products_count' => $this->whenCounted('products'),
             'last_login' => $this->last_login,
             'metadata' => $metadata,
+            'invoiced_volume_30d' => $this->invoiced_volume_30d ?? null,
+            'invoices_count_30d' => $this->invoices_count_30d ?? null,
+            'timeline' => $this->timeline ?? [],
+            'suspended_until' => $metadata['suspended_until'] ?? null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

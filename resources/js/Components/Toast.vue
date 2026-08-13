@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="fixed top-4 right-4 z-50 transition-all duration-300" :class="[typeClass]">
+  <div v-if="visible" class="fixed top-4 right-4 z-50 transition-all duration-150" :class="[typeClass]">
     <div class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg" :class="bgClass">
       <component :is="icon" class="w-5 h-5" />
       <p class="text-sm font-medium">{{ message }}</p>

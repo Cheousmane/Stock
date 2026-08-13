@@ -6,10 +6,10 @@
       <div class="flex flex-col sm:flex-row gap-3">
         <BaseInput v-model="search" :placeholder="$t('page.activity_logs.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
       </div>
 
@@ -99,7 +99,7 @@ const columns = [
   { key: 'causer_name', label: $t('page.activity_logs.user'), sortable: true },
   { key: 'description', label: $t('page.activity_logs.action'), sortable: true },
   { key: 'subject_description', label: $t('page.activity_logs.description'), sortable: false },
-  { key: 'details', label: 'Détails', sortable: false },
+  { key: 'details', label: $t('page.activity_logs.details'), sortable: false },
 ]
 
 const sortedLogs = computed(() => {

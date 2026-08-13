@@ -19,6 +19,9 @@ class ExpenseController extends Controller
     {
         $this->authorize('viewAny', Expense::class);
         $expenses = Expense::orderByDesc('date')
+            ->when($category = $request->input('category'), function ($query) use ($category) {
+                $query->where('category', $category);
+            })
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('description', 'like', "%{$search}%")
@@ -27,7 +30,7 @@ class ExpenseController extends Controller
             })
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json(ExpenseResource::collection($expenses), Response::HTTP_OK);
+        return ExpenseResource::collection($expenses)->response();
     }
 
     public function store(ExpenseRequest $request): JsonResponse

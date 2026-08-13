@@ -40,7 +40,7 @@ class QuoteController extends Controller
             $query->where('status', $status);
         }
 
-        return response()->json(QuoteResource::collection($query->paginate($perPage)), Response::HTTP_OK);
+        return QuoteResource::collection($query->paginate($perPage))->response();
     }
 
     public function store(QuoteRequest $request, CreateQuoteAction $action): JsonResponse
@@ -74,6 +74,18 @@ class QuoteController extends Controller
         $this->authorize('delete', $quote);
         $quote->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $this->authorize('delete', Quote::class);
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:quotes,id',
+        ]);
+        $count = Quote::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 
     public function markAsSent(Quote $quote, UpdateQuoteStatusAction $action): JsonResponse

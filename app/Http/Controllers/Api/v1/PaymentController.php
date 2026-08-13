@@ -31,7 +31,7 @@ class PaymentController extends Controller
             })
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json(PaymentResource::collection($payments), Response::HTTP_OK);
+        return response()->json($payments, Response::HTTP_OK);
     }
 
     public function store(PaymentRequest $request, CreatePaymentAction $action): JsonResponse

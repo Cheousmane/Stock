@@ -68,4 +68,14 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(PurchaseOrderItem::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SupplierPayment::class);
+    }
+
+    public function getBalanceDueXofAttribute(): int
+    {
+        return max(0, (int) $this->total_xof - (int) $this->paid_xof);
+    }
 }

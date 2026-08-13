@@ -3,7 +3,7 @@
     <div class="space-y-4">
       <BasePageHeader :title="$t('page.stock.title')" :subtitle="meta ? $t('page.stock.total_count', { count: meta.total }) : undefined">
         <template #actions>
-          <BaseButton variant="ghost" size="sm" @click="fetchData(meta?.current_page || 1)" title="Rafraîchir">
+          <BaseButton variant="ghost" size="sm" @click="fetchData(meta?.current_page || 1)" :title="$t('common.refresh')">
             <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'StockTransfer' }">
@@ -15,10 +15,10 @@
       <div class="flex flex-col sm:flex-row gap-3">
         <BaseInput v-model="search" :placeholder="$t('page.stock.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
       </div>
 
@@ -223,7 +223,9 @@ async function fetchData(page = 1, { silent = false } = {}) {
     products.value = pRes.data.data ?? pRes.data;
     meta.value = pRes.data.meta ?? null;
     movements.value = mRes.data.data ?? mRes.data;
-  } catch {} finally { loading.value = false; }
+  } catch {
+    if (!silent) showToast($t('common.load_error'), 'error');
+  } finally { loading.value = false; }
 }
 
 function changePage(page) {

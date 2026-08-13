@@ -38,6 +38,14 @@
               <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Facture liée</p>
               <p class="mt-1 text-sm text-text-primary">{{ cn.invoice?.number || '—' }}</p>
             </div>
+            <div v-if="cn.metadata?.restock_warehouse_id">
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Retour de stock</p>
+              <p class="mt-1 text-sm text-text-primary">
+                {{ cn.metadata.restock_warehouse_name || cn.metadata.restock_warehouse_id }}
+                <span class="text-xs text-text-tertiary">({{ cn.metadata.restocked_lines || 0 }} ligne(s))</span>
+              </p>
+              <p v-if="cn.metadata.restocked_at" class="text-xs text-text-tertiary">le {{ cn.metadata.restocked_at }}</p>
+            </div>
           </div>
 
           <div class="mb-6">
@@ -85,7 +93,15 @@
           </div>
         </BaseCard>
 
-        <div class="flex gap-3">
+        <div class="flex flex-wrap items-end gap-3">
+          <div v-if="cn.status === 'draft'" class="space-y-1.5" style="flex: 1; min-width: 240px;">
+            <label class="block text-xs font-medium text-text-secondary tracking-wide">Entrepôt de réintégration stock</label>
+            <select v-model="warehouseId"
+              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
+              <option value="">Aucun (pas de retour de stock)</option>
+              <option v-for="w in warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
+            </select>
+          </div>
           <BaseButton v-if="cn.status === 'draft'" @click="validateCreditNote">
             <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Valider l'avoir
           </BaseButton>
@@ -117,6 +133,8 @@ const showToast = inject('showToast');
 
 const cn = ref(null);
 const loading = ref(true);
+const warehouses = ref([]);
+const warehouseId = ref('');
 
 const badgeVariant = computed(() => {
   const map = { draft: 'default', validated: 'info', refunded: 'success' };
@@ -134,7 +152,8 @@ function statusLabel(status) {
 
 async function validateCreditNote() {
   try {
-    const res = await axios.post(`/credit-notes/${cn.value.id}/validate`);
+    const payload = { warehouse_id: warehouseId.value || null };
+    const res = await axios.post(`/credit-notes/${cn.value.id}/validate`, payload);
     cn.value = res.data.credit_note;
     showToast(res.data.message || t('page.credit_notes.validated_success'), 'success');
   } catch (e) {
@@ -144,8 +163,12 @@ async function validateCreditNote() {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get(`/credit-notes/${route.params.id}`);
+    const [{ data }, wRes] = await Promise.all([
+      axios.get(`/credit-notes/${route.params.id}`),
+      axios.get('/warehouses', { params: { per_page: 1000 } }),
+    ]);
     cn.value = data.data ?? data;
+    warehouses.value = wRes.data.data ?? wRes.data;
   } catch {
     showToast(t('common.load_error'), 'error');
     router.push({ name: 'CreditNotes' });

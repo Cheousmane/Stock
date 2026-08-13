@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import PosLayout from './PosLayout.vue';
@@ -40,6 +40,7 @@ import BaseButton from '../../Components/ui/BaseButton.vue';
 import { BanknotesIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
+const showToast = inject('showToast');
 const openingCash = ref(0);
 const loading = ref(false);
 
@@ -49,9 +50,10 @@ const openSession = async () => {
     const res = await axios.post('/pos/session/open', {
       opening_cash_xof: openingCash.value
     });
+    showToast('Caisse ouverte avec succès.');
     router.push('/pos');
   } catch (err) {
-    alert(err.response?.data?.message || 'Erreur lors de l\'ouverture de caisse');
+    showToast(err.response?.data?.message || 'Erreur lors de l\'ouverture de caisse', 'error');
   } finally {
     loading.value = false;
   }

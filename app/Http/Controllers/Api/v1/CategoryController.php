@@ -32,7 +32,7 @@ class CategoryController extends Controller
             })
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json(CategoryResource::collection($categories), Response::HTTP_OK);
+        return CategoryResource::collection($categories)->response();
     }
 
     public function store(CategoryRequest $request, CreateCategoryAction $action): JsonResponse

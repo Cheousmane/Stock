@@ -25,7 +25,7 @@ class UnitController extends Controller
             })
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json(UnitResource::collection($units), Response::HTTP_OK);
+        return UnitResource::collection($units)->response();
     }
 
     public function show(Unit $unit): JsonResponse

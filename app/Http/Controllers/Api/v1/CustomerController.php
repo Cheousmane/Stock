@@ -38,7 +38,7 @@ class CustomerController extends Controller
             $query->where('is_active', $isActive === '1');
         }
 
-        return response()->json(CustomerResource::collection($query->paginate($perPage)), Response::HTTP_OK);
+        return CustomerResource::collection($query->paginate($perPage))->response();
     }
 
     public function store(CustomerRequest $request, CreateCustomerAction $action): JsonResponse
@@ -68,5 +68,17 @@ class CustomerController extends Controller
         $this->authorize('delete', $customer);
         $customer->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $this->authorize('delete', Customer::class);
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:customers,id',
+        ]);
+        $count = Customer::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 }

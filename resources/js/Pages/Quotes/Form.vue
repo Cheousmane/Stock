@@ -152,7 +152,7 @@ onMounted(async () => {
     const [cRes, pRes] = await Promise.all([axios.get('/customers?limit=1000'), axios.get('/products?limit=1000')]);
     customers.value = cRes.data.data ?? cRes.data;
     products.value = pRes.data.data ?? pRes.data;
-  } catch {}
+  } catch { showToast(t('common.load_error'), 'error'); }
 });
 
 function validate() {

@@ -21,6 +21,7 @@ class Expense extends Model
         'amount',
         'date',
         'created_by',
+        'metadata',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class Expense extends Model
         return [
             'amount' => 'integer',
             'date' => 'date',
+            'metadata' => 'array',
         ];
     }
 

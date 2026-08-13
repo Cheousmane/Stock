@@ -19,7 +19,7 @@
         @blur="$emit('blur', $event)"
         v-bind="$attrs"
         :class="[
-          'block w-full bg-surface border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none',
+          'block w-full bg-surface border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none',
           sizeClasses[size],
           { 'pl-9': $slots.prefix, 'pr-9': $slots.suffix || clearable },
           error ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
@@ -36,7 +36,7 @@
         v-if="clearable && modelValue"
         @click="$emit('update:modelValue', '')"
         type="button"
-        class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-text-tertiary hover:text-text-secondary transition-colors"
+        class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-text-tertiary hover:text-text-secondary"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />

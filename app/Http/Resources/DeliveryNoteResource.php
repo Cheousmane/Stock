@@ -21,6 +21,7 @@ class DeliveryNoteResource extends JsonResource
             'issue_date' => $this->issue_date?->toIso8601String(),
             'delivery_date' => $this->delivery_date?->toIso8601String(),
             'items' => DeliveryNoteItemResource::collection($this->whenLoaded('items')),
+            'items_count' => $this->whenCounted('items'),
             'notes' => $this->notes,
             'signature' => $this->signature,
             'created_at' => $this->created_at?->toIso8601String(),

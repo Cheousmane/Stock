@@ -4,10 +4,10 @@
       <BasePageHeader :title="$t('page.invoices.title')" :subtitle="meta ? $t('page.invoices.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'InvoiceCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.invoices.new') }}
@@ -27,10 +27,10 @@
           { value: 'cancelled', label: $t('status.cancelled') },
         ]" size="sm" class="w-40" />
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
         <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
       </div>
@@ -67,6 +67,9 @@
           @sort="toggleSort"
           clickable
           @row-click="viewInvoice"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selectedIds="selectedIds = $event"
         >
           <template #cell-number="{ row }">
             <p class="text-sm font-medium text-text-primary">{{ row.number }}</p>
@@ -180,23 +183,6 @@ function statusDotClass(s) { return statusMap[s]?.dot || 'bg-gray-400'; }
 function statusLabel(s) { return statusMap[s]?.label || s; }
 
 const hasActiveFilters = computed(() => search.value || statusFilter.value);
-const allSelected = computed(() => invoices.value.length > 0 && selectedIds.value.length === invoices.value.length);
-
-function isSelected(id) { return selectedIds.value.includes(id); }
-
-function toggleAll() {
-  if (allSelected.value) {
-    selectedIds.value = [];
-  } else {
-    selectedIds.value = invoices.value.map(p => p.id);
-  }
-}
-
-function toggleSelect(id) {
-  const idx = selectedIds.value.indexOf(id);
-  if (idx > -1) selectedIds.value.splice(idx, 1);
-  else selectedIds.value.push(id);
-}
 
 const sortedInvoices = computed(() => {
   if (!sortBy.value) return invoices.value;
@@ -253,7 +239,7 @@ async function exportExcel() {
     const url = URL.createObjectURL(new Blob([res.data]));
     const a = document.createElement('a'); a.href = url; a.download = exportName('xlsx');
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  } catch {}
+  } catch { showToast($t('common.export_excel_unavailable'), 'error'); }
 }
 
 async function exportCsv() {
@@ -262,7 +248,7 @@ async function exportCsv() {
     const url = URL.createObjectURL(new Blob([res.data]));
     const a = document.createElement('a'); a.href = url; a.download = exportName('csv');
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  } catch {}
+  } catch { showToast($t('common.export_csv_unavailable'), 'error'); }
 }
 
 async function fetchInvoices(page) {
@@ -275,7 +261,7 @@ async function fetchInvoices(page) {
     invoices.value = data.data ?? data;
     meta.value = data.meta ?? null;
     selectedIds.value = [];
-  } catch {} finally {
+  } catch { showToast($t('page.invoices.load_error'), 'error'); } finally {
     loading.value = false;
   }
 }
@@ -296,23 +282,27 @@ function confirmDelete(inv) {
 async function executeDelete() {
   if (!deleteTarget.value) return;
   const id = deleteTarget.value.id;
+  const currentPage = meta.value?.current_page || 1;
   deleteTarget.value = null;
   try {
     await axios.delete(`/invoices/${id}`);
     showToast($t('common.deleted'), 'success');
-    fetchInvoices(meta.value?.current_page || 1);
+    const isLastItemOfLastPage = invoices.value.length === 1 && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
+    fetchInvoices(isLastItemOfLastPage ? currentPage - 1 : currentPage);
   } catch {
-    showToast($t('common.error'), 'error');
+    showToast($t('common.delete_error'), 'error');
   }
 }
 
 async function bulkDelete() {
   if (!window.confirm($t('page.invoices.bulk_delete_confirm', { n: selectedIds.value.length }))) return;
+  const currentPage = meta.value?.current_page || 1;
   try {
     await axios.post('/invoices/bulk-delete', { ids: selectedIds.value });
     showToast($t('common.bulk_delete_success'), 'success');
+    const isLastPageCleared = selectedIds.value.length === invoices.value.length && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
     selectedIds.value = [];
-    fetchInvoices(meta.value?.current_page || 1);
+    fetchInvoices(isLastPageCleared ? currentPage - 1 : currentPage);
   } catch {
     showToast($t('common.error'), 'error');
   }

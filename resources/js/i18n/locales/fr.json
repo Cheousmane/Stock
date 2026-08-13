@@ -53,9 +53,8 @@
     }
   },
   "dashboard": {
-    "title": "Tableau de bord",
-    "subtitle": "Aperçu de votre activité",
     "refresh": "Actualiser",
+    "retry": "Réessayer",
     "retry": "Réessayer",
     "recent_activity": "Activité récente",
     "stats": {
@@ -183,15 +182,26 @@
     "send_email": "Envoyer par email",
     "sending": "Envoi...",
     "view": "Voir",
+    "per_page": "par page",
     "bulk_delete": "Suppression groupée",
     "bulk_delete_success": "Suppression groupée réussie",
     "clear_filters": "Effacer les filtres",
     "confirm_delete": "Confirmer la suppression ?",
     "deleted": "Supprimé avec succès",
     "deselect": "Désélectionner",
+    "status_updated": "Statut mis à jour avec succès",
+    "update_error": "Erreur lors de la mise à jour",
+    "download_error": "Erreur lors du téléchargement",
+    "selected": "sélectionné(s)",
+    "load_error": "Erreur de chargement",
+    "email_sent": "Email envoyé avec succès",
+    "email_error": "Erreur lors de l'envoi de l'email",
+    "remove_line": "Supprimer la ligne",
     "duplicate": "Dupliquer",
-    "export_csv_unavailable": "Export CSV non disponible",
-    "export_excel_unavailable": "Export Excel non disponible",
+"export_csv_unavailable": "Export CSV non disponible",
+  "export_excel_unavailable": "Export Excel non disponible",
+  "back_to_dashboard": "Retour au tableau de bord",
+  "clear": "Effacer",
     "showing_range": "Affichage de {from} à {to} sur {total}",
     "bulk_delete_confirm": "Confirmer la suppression de {n} élément(s) ?"
   },
@@ -223,7 +233,19 @@
     "size_moyenne": "Moyenne",
     "size_grande": "Grande",
     "invalid_credentials": "Email ou mot de passe invalide",
-    "register_error": "Erreur d'inscription"
+    "register_error": "Erreur d'inscription",
+    "verify_email": "Vérification e-mail",
+    "verify_email_title": "Un code de confirmation à 6 chiffres vous a été envoyé par e-mail.",
+    "verification_code": "Code de vérification",
+    "confirm_email": "Confirmer mon e-mail",
+    "verifying": "Vérification en cours...",
+    "no_code_received": "Vous n'avez pas reçu le code ?",
+    "resend_code": "Renvoyer le code",
+    "sending_code": "Envoi en cours...",
+    "resend_in": "Renvoyer dans {seconds}s",
+    "code_resent": "Un nouveau code de vérification a été envoyé.",
+    "resend_error": "Impossible d'envoyer le code. Réessayez dans quelques minutes.",
+    "verification_error": "Échec de la vérification. Veuillez réessayer."
   },
   "status": {
     "ok": "OK",
@@ -248,7 +270,10 @@
     "delivered": "Livré",
     "rejected": "Refusé",
     "returned": "Retourné",
-    "shipped": "Expédié"
+    "shipped": "Expédié",
+    "pending": "En attente",
+    "received": "Reçu",
+    "expired": "Expiré"
   },
   "roles": {
     "admin": "Administrateur",
@@ -327,6 +352,12 @@
     "expiration_date": "Date d'expiration",
     "issue_date": "Date d'émission"
   },
+  "payment": {
+    "cash": "Espèces",
+    "bank": "Banque",
+    "mobile_money": "Mobile Money",
+    "stripe": "Carte bancaire"
+  },
   "page": {
     "dashboard": {
       "title": "Tableau de bord",
@@ -395,8 +426,9 @@
       "bulk_delete_confirm": "Supprimer {n} client(s) ?",
       "total_count": "{count} client(s) au total",
       "n_selected": "{n} client(s) sélectionné(s)",
-      "updated": "Customer updated successfully",
-      "created": "Customer created successfully"
+      "updated": "Client modifié avec succès",
+      "created": "Client créé avec succès",
+      "load_error": "Erreur lors du chargement du client"
     },
     "invoices": {
       "title": "Factures",
@@ -426,7 +458,7 @@
       "bulk_delete_confirm": "Supprimer {n} facture(s) ?",
       "total_count": "{count} facture(s) au total",
       "n_selected": "{n} facture(s) sélectionnée(s)",
-      "title_show": "Invoice {number}",
+      "title_show": "Facture {number}",
       "created": "Facture créée avec succès",
       "updated": "Facture mise à jour avec succès",
       "load_error": "Erreur lors du chargement de la facture"
@@ -459,13 +491,19 @@
       "bulk_delete_confirm": "Supprimer {n} devis ?",
       "total_count": "{count} devis au total",
       "n_selected": "{n} devis sélectionné(s)",
-      "title_show": "Quote {number}"
+      "title_show": "Devis {number}",
+      "load_error": "Erreur lors du chargement du devis",
+      "converted_success": "Devis converti en facture avec succès",
+      "convert_error": "Erreur lors de la conversion",
+      "deleted_success": "Devis supprimé avec succès",
+      "delete_error": "Erreur lors de la suppression du devis"
     },
     "credit_notes": {
       "title": "Avoirs",
       "search_placeholder": "Rechercher un avoir...",
       "empty": "Aucun avoir",
       "number": "N° Avoir",
+      "number_auto": "généré automatiquement",
       "customer": "Client",
       "linked_invoice": "Facture liée",
       "date": "Date",
@@ -475,11 +513,20 @@
       "bulk_delete_confirm": "Supprimer {n} avoir(s) ?",
       "total_count": "{count} avoir(s) au total",
       "n_selected": "{n} avoir(s) sélectionné(s)",
-      "delete_confirm": "Delete credit note {number}?",
-      "no_credit_notes": "No credit notes found",
+      "delete_confirm": "Supprimer l'avoir {number} ?",
+      "no_credit_notes": "Aucun avoir",
       "new": "Nouvel avoir",
       "create": "Créer l'avoir",
       "created_success": "Avoir créé avec succès",
+      "no_results": "Aucun résultat",
+      "load_error": "Erreur lors du chargement de l'avoir",
+      "deleted_success": "Avoir supprimé avec succès",
+      "bulk_delete_success": "Suppression groupée réussie",
+      "excel_unavailable": "Export Excel indisponible",
+      "csv_unavailable": "Export CSV indisponible",
+      "items_required": "Ajoutez au moins une ligne d'article",
+      "creditable_available": "Restant créditable : {count}",
+      "quantity_exceeded": "La quantité dépasse le restant créditable de ce produit pour ce client",
       "validate": "Valider l'avoir",
       "validated_success": "Avoir validé avec succès",
       "lines_title": "Lignes de l'avoir"
@@ -514,8 +561,18 @@
       "bulk_delete_confirm": "Supprimer {n} BL ?",
       "total_count": "{count} BL au total",
       "n_selected": "{n} BL sélectionné(s)",
-      "delete_confirm": "Delete delivery note {number}?",
-      "title_show": "Delivery Note {number}"
+      "delete_confirm": "Supprimer le bon de livraison {number} ?",
+      "title_show": "Bon de livraison {number}",
+      "created": "Bon de livraison créé avec succès",
+      "updated": "Bon de livraison mis à jour avec succès",
+      "edit": "Modifier le bon de livraison",
+      "load_error": "Erreur lors du chargement du bon de livraison",
+      "created_with": "Créé le",
+      "detail": "Détail du bon de livraison",
+      "customer_label": "Client",
+      "linked_invoice_label": "Facture liée",
+      "description_col": "Description",
+      "status_pending": "En attente"
     },
     "purchase_orders": {
       "title": "Bons de commande",
@@ -523,6 +580,7 @@
       "create_order": "Nouvelle commande",
       "new": "Nouveau bon de commande",
       "new_order": "Nouvelle commande",
+      "edit_order": "Modifier la commande",
       "supplier": "Fournisseur",
       "warehouse": "Entrepôt",
       "expected_delivery": "Livraison prévue",
@@ -535,9 +593,31 @@
       "bulk_delete_confirm": "Supprimer {n} commande(s) ?",
       "total_count": "{count} commande(s) au total",
       "n_selected": "{n} commande(s) sélectionnée(s)",
-      "delete_confirm": "Delete PO {number}?",
-      "no_purchase_orders": "No purchase orders found",
-      "create_first": "Create your first purchase order"
+      "delete_confirm": "Supprimer le bon de commande {number} ?",
+      "no_purchase_orders": "Aucun bon de commande",
+      "create_first": "Créer votre premier bon de commande",
+      "no_results": "Aucun résultat",
+      "deleted": "Bon de commande supprimé avec succès",
+      "bulk_delete_success": "Suppression groupée réussie",
+      "created": "Commande créée avec succès",
+      "updated": "Commande mise à jour avec succès",
+      "load_error": "Erreur lors du chargement de la commande",
+      "load_data_error": "Erreur lors du chargement des données",
+      "validation_error": "Erreur de validation",
+      "create_error": "Erreur lors de la création",
+      "paid": "Payé : ",
+      "due": "Reste : ",
+      "receive": "Réceptionner",
+      "received_success": "Commande réceptionnée, stock mis à jour",
+      "pay": "Payer le fournisseur",
+      "pay_modal_title": "Paiement — {number}",
+      "total": "Total",
+      "payment_amount": "Montant du paiement",
+      "payment_method": "Moyen de paiement",
+      "payment_date": "Date du paiement",
+      "pay_confirm": "Enregistrer le paiement",
+      "payment_invalid": "Montant invalide (entre 1 et le reste dû)",
+      "payment_success": "Paiement enregistré"
     },
     "suppliers": {
       "title": "Fournisseurs",
@@ -545,6 +625,7 @@
       "new": "Nouveau fournisseur",
       "edit": "Modifier le fournisseur",
       "empty": "Aucun fournisseur",
+      "balance": "Solde",
       "registration_number": "N° Registre",
       "tax_number": "N° Taxe",
       "city_country": "Ville / Pays",
@@ -555,7 +636,10 @@
       "bulk_delete_confirm": "Supprimer {n} fournisseur(s) ?",
       "total_count": "{count} fournisseur(s) au total",
       "n_selected": "{n} fournisseur(s) sélectionné(s)",
-      "delete_confirm": "Delete supplier \"{name}\"?"
+      "delete_confirm": "Supprimer le fournisseur \"{name}\" ?",
+      "save_error": "Erreur lors de l'enregistrement du fournisseur",
+      "updated": "Fournisseur modifié avec succès",
+      "created": "Fournisseur créé avec succès"
     },
     "stock": {
       "title": "Stock",
@@ -595,6 +679,7 @@
     },
     "categories": {
       "title": "Catégories",
+      "search_placeholder": "Rechercher une catégorie...",
       "create": "Nouvelle catégorie",
       "edit": "Modifier la catégorie",
       "empty": "Aucune catégorie",
@@ -611,6 +696,7 @@
     },
     "units": {
       "title": "Unités",
+      "search_placeholder": "Rechercher une unité...",
       "create": "Nouvelle unité",
       "edit": "Modifier l'unité",
       "empty": "Aucune unité",
@@ -629,6 +715,7 @@
     },
     "warehouses": {
       "title": "Dépôts",
+      "search_placeholder": "Rechercher un dépôt...",
       "create": "Nouveau dépôt",
       "edit": "Modifier le dépôt",
       "empty": "Aucun dépôt",
@@ -645,7 +732,7 @@
       "bulk_delete_confirm": "Supprimer {n} dépôt(s) ?",
       "total_count": "{count} dépôt(s)",
       "n_selected": "{n} dépôt(s) sélectionné(s)",
-      "deleted": "Warehouse \"{name}\" deleted"
+      "deleted": "Dépôt \"{name}\" supprimé avec succès"
     },
     "payments": {
       "title": "Paiements",
@@ -657,6 +744,8 @@
       "method_bank": "Virement",
       "method_mobile_money": "Mobile Money",
       "method_card": "Carte bancaire",
+      "date": "Date du paiement",
+      "balance_hint": "Restant dû : {amount}",
       "empty": "Aucun paiement",
       "delete_confirm": "Supprimer ce paiement ?",
       "bulk_delete_confirm": "Supprimer {n} paiement(s) ?",
@@ -682,6 +771,7 @@
       "category_salaire": "Salaires",
       "category_transport": "Transport",
       "category_marketing": "Marketing",
+      "category_supplier_payment": "Paiement fournisseur",
       "category_autre": "Autre",
       "bulk_delete_success": "Suppression groupée réussie",
       "create_first": "Créer la première dépense",
@@ -697,6 +787,7 @@
     },
     "events": {
       "title": "Événements",
+      "search_placeholder": "Rechercher un événement...",
       "create": "Nouvel événement",
       "edit": "Modifier l'événement",
       "empty": "Aucun événement",
@@ -759,6 +850,85 @@
     "settings": {
       "title": "Paramètres",
       "subscription": "Abonnement"
+    },
+    "pos_sessions": {
+      "title": "Sessions de caisse",
+      "search_placeholder": "Rechercher un utilisateur...",
+      "all_statuses": "Tous les statuts",
+      "open": "Ouverte",
+      "closed": "Fermée",
+      "user": "Utilisateur",
+      "status": "Statut",
+      "opening": "Ouverture",
+      "closing": "Fermeture",
+      "opening_cash": "Fond de caisse",
+      "sales_count": "Ventes",
+      "total": "Total",
+      "cash_difference": "Écart de caisse",
+      "actions": "Actions",
+      "empty": "Aucune session de caisse",
+      "no_results": "Aucun résultat",
+      "total_count": "{count} session(s) de caisse",
+      "no_sales": "Aucune vente dans cette session.",
+      "sales_detail": "Ventes — {user}",
+      "sales_count_label": "{count} vente(s)",
+      "receipt": "Reçu",
+      "date": "Date",
+      "customer": "Client",
+      "payment": "Paiement",
+      "paid": "Payé",
+      "change": "Rendu",
+      "load_error": "Erreur lors du chargement des sessions"
+    },
+    "pos": {
+      "title": "Caisse",
+      "search_placeholder": "Rechercher un produit...",
+      "catalog_loading": "Chargement du catalogue...",
+      "no_products": "Aucun produit trouvé.",
+      "cart_empty": "Panier vide",
+      "cart_empty_hint": "Ajoutez des produits pour commencer",
+      "total_due": "Total à payer",
+      "pay_cash": "Espèces",
+      "pay_card": "Carte (TPE)",
+      "close_register": "Clôturer la Caisse",
+      "close_confirm": "Clôturer la session de caisse actuelle ?",
+      "payment_title_cash": "Paiement en espèces",
+      "payment_title_card": "Paiement par carte",
+      "amount_received": "Montant reçu",
+      "change_due": "Rendu",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "success_alert": "Encaissement réussi !",
+      "sale_error": "Erreur lors de l'encaissement",
+      "close_error": "Erreur lors de la clôture",
+      "stock_insufficient": "Stock insuffisant",
+      "stock_insufficient_hint": "Quantité demandée indisponible",
+      "open_label": "Caisse Ouverte",
+      "closed_label": "Caisse Fermée"
+    },
+    "pos_session": {
+      "open_title": "Ouvrir la Caisse",
+      "open_subtitle": "Démarrez une session de caisse pour commencer à vendre",
+      "opening_cash": "Fond de Caisse Initial (FCFA)",
+      "opening": "Ouverture en cours...",
+      "open_button": "Ouvrir la session",
+      "open_error": "Erreur lors de l'ouverture de la session"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Aperçu de votre activité",
+      "revenue_chart_title": "Revenus mensuels",
+      "revenue_chart_subtitle": "Évolution sur 6 mois",
+      "revenue_legend": "Revenus",
+      "top_products_title": "Top produits",
+      "top_products_subtitle": "Meilleurs revenus",
+      "recent_invoices_title": "Factures récentes",
+      "view_all": "Voir tout",
+      "no_recent_invoices": "Aucune facture récente",
+      "low_stock_title": "Stock faible",
+      "low_stock_subtitle": "Produits sous le seuil minimum",
+      "capital_title": "Capital",
+      "capital_subtitle": "Valeur nette estimée"
     }
   },
   "settings": {
@@ -834,7 +1004,11 @@
     "outflows": "Sorties",
     "outflows_desc": "Dépenses + Achats + Avoirs",
     "calculated": "Capital calculé",
-    "last_updated": "Dernière mise à jour"
+    "last_updated": "Dernière mise à jour",
+    "unauthorized": "Vous n'avez pas accès à cette partie.",
+    "load_error": "Erreur lors du chargement.",
+    "save_success": "Capital enregistré avec succès",
+    "save_error": "Erreur lors de l'enregistrement du capital"
   },
   "component": {
     "revenue_chart": {

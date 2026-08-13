@@ -12,15 +12,15 @@ use InvalidArgumentException;
  */
 final class Money
 {
-    private const CURRENCY_SUFFIX = ' XOF';
-
     /**
-     * Format a BigInt XOF value to a human-readable string.
-     * Example: 1500000 -> "1 500 000 XOF"
+     * Format a BigInt amount to a human-readable string with the given currency code.
+     * Example: 1500000 -> "1 500 000 XOF" (or any other code, e.g. "FCFA").
      */
-    public static function format(int $amount): string
+    public static function format(int $amount, ?string $currency = null): string
     {
-        return number_format((float) $amount, 0, '.', ' ') . self::CURRENCY_SUFFIX;
+        $currency ??= 'XOF';
+
+        return number_format((float) $amount, 0, '.', ' ').' '.$currency;
     }
 
     /**

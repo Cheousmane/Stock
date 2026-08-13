@@ -12,7 +12,11 @@
       <form @submit.prevent="submit" class="space-y-6">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <BaseInput v-model="form.number" :label="$t('page.credit_notes.number')" required :error="errors.number?.[0] || ''" />
+            <BaseInput :model-value="displayedNumber" :label="$t('page.credit_notes.number')" disabled :error="errors.number?.[0] || ''">
+              <template #suffix>
+                <span class="text-xs text-text-tertiary">{{ $t('page.credit_notes.number_auto') }}</span>
+              </template>
+            </BaseInput>
             <BaseInput v-model="form.issue_date" type="date" :label="$t('page.credit_notes.date')" required :error="errors.issue_date?.[0] || ''" />
             <BaseSelect v-model="form.customer_id" :label="$t('page.credit_notes.customer')" required
               :options="customers.map(c => ({ value: c.id, label: c.name }))"
@@ -25,28 +29,35 @@
 
         <BaseCard>
           <div class="space-y-2">
-            <div v-for="(line, index) in form.items" :key="index" class="flex flex-wrap gap-2 items-start">
-              <select v-model="line.product_id" @change="selectProduct(index)"
-                class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-                <option value="">{{ $t('form.select') }}</option>
-                <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
-                <option value="other">{{ $t('common.other') }}</option>
-              </select>
-              <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
-                class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
-                class="w-20 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.unit_price_xof" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
-                class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
-              <div class="flex items-center gap-1 py-1">
-                <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
-                  <PlusIcon class="w-4 h-4" />
-                </button>
-                <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
-                  <XMarkIcon class="w-4 h-4" />
-                </button>
+            <div v-for="(line, index) in form.items" :key="index">
+              <div class="flex flex-wrap gap-2 items-start">
+                <select v-model="line.product_id" @change="selectProduct(index)"
+                  class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
+                  <option value="">{{ $t('form.select') }}</option>
+                  <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  <option value="other">{{ $t('common.other') }}</option>
+                </select>
+                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
+                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
+                  class="w-20 bg-surface border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-2"
+                  :class="qtyExceeds(line) ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-primary-500/20'" />
+                <input v-model.number="line.unit_price_xof" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
+                  class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+                <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
+                <span v-if="creditableKnown(line)" class="py-2 text-xs text-text-tertiary">{{ $t('page.credit_notes.creditable_available', { count: creditableFor(line) }) }}</span>
+                <div class="flex items-center gap-1 py-1">
+                  <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
+                    <PlusIcon class="w-4 h-4" />
+                  </button>
+                  <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+              <p v-if="qtyExceeds(line)" class="mt-1 text-xs font-medium text-red-500">
+                {{ $t('page.credit_notes.quantity_exceeded', { max: creditableFor(line) }) }}
+              </p>
             </div>
           </div>
         </BaseCard>
@@ -75,7 +86,7 @@
           <div class="space-y-1.5">
             <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.notes') }}</label>
             <textarea v-model="form.notes" rows="3"
-              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
           </div>
         </BaseCard>
 
@@ -89,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, inject } from 'vue';
+import { ref, reactive, computed, watch, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -112,13 +123,20 @@ const invoices = ref([]);
 const products = ref([]);
 const submitting = ref(false);
 const errors = reactive({});
+const creditable = ref({});
 
 const form = reactive({
   number: '',
   customer_id: '', invoice_id: '',
   issue_date: new Date().toISOString().slice(0, 10),
-  discount_xof: 0, notes: '', items: [],
+  discount_xof: 0, notes: '', items: [emptyLine()],
 });
+
+const displayedNumber = computed(() => isEdit.value ? form.number : 'CN-******');
+
+function emptyLine() {
+  return { product_id: '', quantity: 1, unit_price_xof: 0, total: 0, custom_name: '' };
+}
 
 const subtotal = computed(() => form.items.reduce((sum, line) => sum + (line.total || 0), 0));
 const total = computed(() => Math.max(0, subtotal.value - (form.discount_xof || 0)));
@@ -128,7 +146,7 @@ function formatXOF(amount) {
 }
 
 function addLine() {
-  form.items.push({ product_id: '', quantity: 1, unit_price_xof: 0, total: 0, custom_name: '' });
+  form.items.push(emptyLine());
 }
 
 function removeLine(index) {
@@ -155,6 +173,59 @@ function calcLine(index) {
   const line = form.items[index];
   line.total = (line.quantity || 0) * (line.unit_price_xof || 0);
 }
+
+const creditableLoaded = ref(false);
+
+function creditableFor(line) {
+  if (!line.product_id || line.product_id === 'other') return Infinity;
+  if (!creditableLoaded.value) return Infinity;
+  return Number(creditable.value[line.product_id]) || 0;
+}
+
+function creditableKnown(line) {
+  return Number.isFinite(creditableFor(line));
+}
+
+function usedQtyFor(line) {
+  if (!line.product_id || line.product_id === 'other') return 0;
+  return form.items.reduce((sum, l) => sum + (String(l.product_id) === String(line.product_id) ? (Number(l.quantity) || 0) : 0), 0);
+}
+
+function qtyExceeds(line) {
+  if (!line.product_id || line.product_id === 'other') return false;
+  const used = usedQtyFor(line);
+  return used > 0 && used > creditableFor(line);
+}
+
+let creditableTimer = null;
+
+function loadCreditable() {
+  clearTimeout(creditableTimer);
+  creditableTimer = setTimeout(async () => {
+    creditableLoaded.value = false;
+    if (!form.customer_id) {
+      creditable.value = {};
+      creditableLoaded.value = true;
+      return;
+    }
+    try {
+      const { data } = await axios.get('/credit-notes/creditable-quantities', {
+        params: {
+          customer_id: form.customer_id,
+          invoice_id: form.invoice_id || undefined,
+          exclude_credit_note_id: isEdit.value ? route.params.id : undefined,
+        },
+      });
+      creditable.value = data;
+    } catch {
+      creditable.value = {};
+    } finally {
+      creditableLoaded.value = true;
+    }
+  }, 250);
+}
+
+watch([() => form.customer_id, () => form.invoice_id], loadCreditable);
 
 onMounted(async () => {
   try {
@@ -186,30 +257,41 @@ onMounted(async () => {
           quantity: i.quantity ?? 1,
           unit_price_xof: i.unit_price_xof ?? 0,
           total: (i.quantity ?? 0) * (i.unit_price_xof ?? 0),
-          custom_name: '',
+          custom_name: i.description ?? (i.product_id ? '' : (i.name ?? '')),
         }));
       }
     } catch {
       showToast(t('common.load_error'), 'error');
     }
-  } else if (!form.number) {
-    form.number = 'CN-' + Date.now();
   }
 });
 
 async function submit() {
   submitting.value = true;
   Object.assign(errors, {});
+  const items = form.items
+    .filter(line => line.product_id || (line.custom_name || '').trim())
+    .map(line => ({
+      product_id: line.product_id === 'other' || !line.product_id ? null : line.product_id,
+      description: line.product_id === 'other' ? line.custom_name : '',
+      quantity: line.quantity, unit_price_xof: line.unit_price_xof,
+    }));
+  if (!items.length) {
+    showToast(t('page.credit_notes.items_required'), 'error');
+    submitting.value = false;
+    return;
+  }
+  if (form.items.some(line => qtyExceeds(line))) {
+    showToast(t('page.credit_notes.quantity_exceeded'), 'error');
+    submitting.value = false;
+    return;
+  }
   try {
     const payload = {
-      number: form.number, customer_id: form.customer_id,
+      number: form.number || undefined, customer_id: form.customer_id,
       invoice_id: form.invoice_id || undefined, issue_date: form.issue_date,
       discount_xof: form.discount_xof || 0, notes: form.notes || undefined,
-      items: form.items.map(line => ({
-        product_id: line.product_id === 'other' ? null : line.product_id,
-        description: line.product_id === 'other' ? line.custom_name : '',
-        quantity: line.quantity, unit_price_xof: line.unit_price_xof,
-      })),
+      items,
     };
     if (isEdit.value) {
       await axios.put(`/credit-notes/${route.params.id}`, payload);
@@ -222,7 +304,8 @@ async function submit() {
   } catch (e) {
     if (e.response?.status === 422) {
       Object.assign(errors, e.response.data.errors || {});
-      showToast(e.response.data?.message || t('common.validation_error'), 'error');
+      const first = Object.values(e.response.data.errors || {}).flat()[0];
+      showToast(first || e.response.data?.message || t('common.validation_error'), 'error');
     } else {
       showToast(e.response?.data?.message || t('common.error'), 'error');
     }

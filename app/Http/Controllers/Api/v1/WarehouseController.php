@@ -34,7 +34,7 @@ class WarehouseController extends Controller
             })
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json(WarehouseResource::collection($warehouses), Response::HTTP_OK);
+        return WarehouseResource::collection($warehouses)->response();
     }
 
     public function store(WarehouseRequest $request, CreateWarehouseAction $action): JsonResponse

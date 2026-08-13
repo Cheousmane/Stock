@@ -108,7 +108,7 @@
           <template #cell-is_active="{ row }">
             <div class="flex justify-center" @click.stop>
               <button @click="toggleStatus(row)"
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-all duration-200"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border"
                 :class="row.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 hover:bg-emerald-100' : 'bg-surface-tertiary text-text-tertiary border-border hover:bg-surface-secondary'">
                 <span class="w-1.5 h-1.5 rounded-full" :class="row.is_active ? 'bg-emerald-500' : 'bg-text-tertiary'"></span>
                 {{ row.is_active ? $t('status.active') : $t('status.inactive') }}

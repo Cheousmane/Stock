@@ -18,6 +18,7 @@ class ActivityLogController extends Controller
     {
         $logs = Activity::query()
             ->with(['causer', 'subject'])
+            ->when(TenantContext::getCompanyId(), fn ($query) => $query->where('activity_log.company_id', TenantContext::getCompanyId()))
             ->orderBy('created_at', 'desc')
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -28,6 +29,6 @@ class ActivityLogController extends Controller
             })
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json(ActivityLogResource::collection($logs), Response::HTTP_OK);
+        return ActivityLogResource::collection($logs)->response();
     }
 }

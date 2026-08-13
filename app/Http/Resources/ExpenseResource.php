@@ -17,6 +17,7 @@ class ExpenseResource extends JsonResource
             'category' => $this->category,
             'amount' => $this->amount,
             'date' => $this->date?->toDateString(),
+            'metadata' => $this->metadata ?? null,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

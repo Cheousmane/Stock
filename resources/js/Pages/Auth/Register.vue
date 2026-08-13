@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen animate-fade-in">
+  <div class="flex min-h-screen">
     <!-- Left Panel - Branding -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div class="absolute inset-0 animate-[bgShift_20s_ease-in-out_infinite_alternate]"></div>
@@ -33,7 +33,7 @@
 
     <!-- Right Panel - Form -->
     <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--color-surface-secondary)]">
-      <div class="w-full max-w-sm animate-slide-up">
+      <div class="w-full max-w-sm">
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
             <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
@@ -62,7 +62,7 @@
                 type="text"
                 required
                 placeholder="Le nom de votre entreprise"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
               <p v-if="errors.name" class="mt-1.5 text-xs text-red-500">{{ errors.name[0] }}</p>
             </div>
@@ -73,7 +73,7 @@
                 type="email"
                 required
                 placeholder="vous@exemple.com"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
               <p v-if="errors.email" class="mt-1.5 text-xs text-red-500">{{ errors.email[0] }}</p>
             </div>
@@ -81,7 +81,7 @@
               <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.industry') }}</label>
               <select
                 v-model="form.industry"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               >
                 <option value="">{{ $t('auth.industry_placeholder') }}</option>
                 <option v-for="sector in industryOptions" :key="sector" :value="sector">{{ sector }}</option>
@@ -91,7 +91,7 @@
                 v-model="form.otherIndustry"
                 type="text"
                 :placeholder="$t('auth.other_industry_placeholder')"
-                class="mt-2 block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="mt-2 block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
               <p v-if="errors.industry" class="mt-1.5 text-xs text-red-500">{{ errors.industry[0] }}</p>
             </div>
@@ -99,7 +99,7 @@
               <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.company_size') }}</label>
               <select
                 v-model="form.size"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               >
                 <option value="">{{ $t('auth.company_size_placeholder') }}</option>
                 <option value="petite">{{ $t('auth.size_petite') }}</option>
@@ -116,7 +116,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   required
                   placeholder="••••••••"
-                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -139,7 +139,7 @@
                   :type="showConfirm ? 'text' : 'password'"
                   required
                   placeholder="••••••••"
-                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -157,7 +157,7 @@
               <button
                 type="submit"
                 :disabled="loading"
-                class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20 animate-ctaPulse transition-all duration-200 active:scale-[0.98]"
+                class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20"
               >
                 <span v-if="loading" class="flex items-center justify-center gap-2">
                   <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -245,10 +245,9 @@ async function register() {
       form.industry = form.otherIndustry.trim() || 'Autre';
     }
     const { data } = await axios.post('/auth/register', form);
-    localStorage.setItem('token', data.access_token);
     localStorage.setItem('user', JSON.stringify(data.user));
     if (data.user?.locale) switchLocale(data.user.locale);
-    router.push({ name: 'Dashboard' });
+    router.push({ name: 'VerifyEmail', query: { email: form.email } });
   } catch (err) {
     if (err.response?.status === 422) Object.assign(errors, err.response.data.errors || {});
     error.value = err.response?.data?.message || t('auth.register_error');
@@ -275,21 +274,5 @@ async function register() {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
-}
-/* Glow pulsé sur le bouton (mode clair) */
-@keyframes ctaPulseLight {
-  0%, 100% { box-shadow: 0 0 20px rgba(5,150,105,0.2); }
-  50% { box-shadow: 0 0 40px rgba(5,150,105,0.4); }
-}
-/* Glow pulsé sur le bouton (mode sombre) */
-@keyframes ctaPulseDark {
-  0%, 100% { box-shadow: 0 0 20px rgba(52,211,153,0.25); }
-  50% { box-shadow: 0 0 40px rgba(52,211,153,0.5); }
-}
-.animate-ctaPulse {
-  animation: ctaPulseLight 3s ease-in-out infinite;
-}
-.dark .animate-ctaPulse {
-  animation-name: ctaPulseDark;
 }
 </style>

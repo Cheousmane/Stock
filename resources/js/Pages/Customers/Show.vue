@@ -8,34 +8,34 @@
       <div v-else-if="error" class="py-12 text-center text-text-tertiary">{{ error }}</div>
 
       <template v-else-if="customer">
-        <BasePageHeader :title="customer.name" subtitle="Détail du client">
+        <BasePageHeader :title="customer.name" :subtitle="$t('page.customers.show')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'CustomerEdit', params: { id: customer.id } }">
-              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>Modifier
+              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Customers' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>Retour
+              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
 
-        <BaseCard title="Informations" padding="lg">
+        <BaseCard :title="$t('page.customers.info')" padding="lg">
           <div class="grid grid-cols-2 gap-4 text-sm">
-            <div><span class="text-text-tertiary">Société</span><p class="font-medium text-text-primary">{{ customer.company || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Nom</span><p class="font-medium text-text-primary">{{ customer.name }}</p></div>
-            <div><span class="text-text-tertiary">Email</span><p class="text-text-primary">{{ customer.email || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Téléphone</span><p class="text-text-primary">{{ customer.phone || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Adresse</span><p class="text-text-primary">{{ customer.address || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Ville</span><p class="text-text-primary">{{ customer.city || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Code postal</span><p class="text-text-primary">{{ customer.postal_code || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Pays</span><p class="text-text-primary">{{ customer.country || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.company_name') }}</span><p class="font-medium text-text-primary">{{ customer.company || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.name') }}</span><p class="font-medium text-text-primary">{{ customer.name }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.email') }}</span><p class="text-text-primary">{{ customer.email || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.phone') }}</span><p class="text-text-primary">{{ customer.phone || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.address') }}</span><p class="text-text-primary">{{ customer.address || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.city') }}</span><p class="text-text-primary">{{ customer.city || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.postal_code') }}</span><p class="text-text-primary">{{ customer.postal_code || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('form.country') }}</span><p class="text-text-primary">{{ customer.country || '—' }}</p></div>
           </div>
         </BaseCard>
 
         <!-- Tabs -->
         <div class="border-b border-border">
-          <button @click="tab = 'invoices'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'invoices' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">Factures</button>
-          <button @click="tab = 'quotes'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'quotes' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">Devis</button>
+          <button @click="tab = 'invoices'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'invoices' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.invoices_tab') }}</button>
+          <button @click="tab = 'quotes'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'quotes' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.quotes_tab') }}</button>
         </div>
 
         <div v-if="tabLoading" class="flex justify-center py-8">
@@ -43,16 +43,16 @@
         </div>
 
         <div v-else-if="tab === 'invoices'">
-          <div v-if="invoices.length === 0" class="py-8 text-center text-text-tertiary">Aucune facture</div>
+          <div v-if="invoices.length === 0" class="py-8 text-center text-text-tertiary">{{ $t('page.invoices.no_invoices') }}</div>
           <div v-else class="bg-surface border border-border rounded-xl overflow-hidden">
             <table class="min-w-full divide-y divide-border">
               <thead class="bg-surface-secondary">
                 <tr>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Numéro</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Date</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Total</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">Statut</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Actions</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.invoices.number') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.invoices.date') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('invoice.total') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">{{ $t('common.status') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('page.invoices.actions') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
@@ -61,10 +61,10 @@
                   <td class="px-6 py-4 text-sm text-text-tertiary">{{ inv.issue_date }}</td>
                   <td class="px-6 py-4 text-sm text-right font-medium text-text-primary">{{ formatXOF(inv.total) }}</td>
                   <td class="px-6 py-4 text-center">
-                    <BaseBadge :variant="invoiceBadgeVariant(inv.status)" size="sm">{{ invoiceStatusLabel(inv.status) }}</BaseBadge>
+                    <BaseBadge :variant="invoiceBadgeVariant(inv.status)" size="sm">{{ $t(invoiceStatusLabel(inv.status)) }}</BaseBadge>
                   </td>
                   <td class="px-6 py-4 text-right">
-                    <BaseButton variant="ghost" size="sm" :to="{ name: 'InvoiceShow', params: { id: inv.id } }">Voir</BaseButton>
+                    <BaseButton variant="ghost" size="sm" :to="{ name: 'InvoiceShow', params: { id: inv.id } }">{{ $t('common.view') }}</BaseButton>
                   </td>
                 </tr>
               </tbody>
@@ -73,16 +73,16 @@
         </div>
 
         <div v-else-if="tab === 'quotes'">
-          <div v-if="quotes.length === 0" class="py-8 text-center text-text-tertiary">Aucun devis</div>
+          <div v-if="quotes.length === 0" class="py-8 text-center text-text-tertiary">{{ $t('page.quotes.no_quotes') }}</div>
           <div v-else class="bg-surface border border-border rounded-xl overflow-hidden">
             <table class="min-w-full divide-y divide-border">
               <thead class="bg-surface-secondary">
                 <tr>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Numéro</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Date</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Total</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">Statut</th>
-                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Actions</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.quotes.number') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.quotes.date') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('common.total') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">{{ $t('common.status') }}</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('page.quotes.actions') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
@@ -91,10 +91,10 @@
                   <td class="px-6 py-4 text-sm text-text-tertiary">{{ q.issue_date }}</td>
                   <td class="px-6 py-4 text-sm text-right font-medium text-text-primary">{{ formatXOF(q.total) }}</td>
                   <td class="px-6 py-4 text-center">
-                    <BaseBadge :variant="quoteBadgeVariant(q.status)" size="sm">{{ quoteStatusLabel(q.status) }}</BaseBadge>
+                    <BaseBadge :variant="quoteBadgeVariant(q.status)" size="sm">{{ $t(quoteStatusLabel(q.status)) }}</BaseBadge>
                   </td>
                   <td class="px-6 py-4 text-right">
-                    <BaseButton variant="ghost" size="sm" :to="{ name: 'QuoteShow', params: { id: q.id } }">Voir</BaseButton>
+                    <BaseButton variant="ghost" size="sm" :to="{ name: 'QuoteShow', params: { id: q.id } }">{{ $t('common.view') }}</BaseButton>
                   </td>
                 </tr>
               </tbody>
@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -119,6 +119,7 @@ import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import { PencilIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const showToast = inject('showToast');
 const route = useRoute();
 const customer = ref(null);
 const loading = ref(true);
@@ -129,19 +130,19 @@ const quotes = ref([]);
 const tabLoading = ref(false);
 
 const invoiceStatusMap = {
-  draft: { variant: 'default', label: 'Brouillon' },
-  sent: { variant: 'info', label: 'Envoyée' },
-  paid: { variant: 'success', label: 'Payée' },
-  cancelled: { variant: 'danger', label: 'Annulée' },
-  overdue: { variant: 'warning', label: 'En retard' },
+  draft: { variant: 'default', label: 'status.draft' },
+  sent: { variant: 'info', label: 'status.sent' },
+  paid: { variant: 'success', label: 'status.paid' },
+  cancelled: { variant: 'danger', label: 'status.cancelled' },
+  overdue: { variant: 'warning', label: 'status.overdue' },
 };
 
 const quoteStatusMap = {
-  draft: { variant: 'default', label: 'Brouillon' },
-  sent: { variant: 'info', label: 'Envoyé' },
-  accepted: { variant: 'success', label: 'Accepté' },
-  rejected: { variant: 'danger', label: 'Rejeté' },
-  converted: { variant: 'purple', label: 'Converti' },
+  draft: { variant: 'default', label: 'status.draft' },
+  sent: { variant: 'info', label: 'status.sent' },
+  accepted: { variant: 'success', label: 'status.accepted' },
+  rejected: { variant: 'danger', label: 'status.rejected' },
+  converted: { variant: 'purple', label: 'status.converted' },
 };
 
 function invoiceBadgeVariant(s) { return invoiceStatusMap[s]?.variant || 'default'; }
@@ -171,7 +172,7 @@ async function fetchInvoices() {
   try {
     const { data } = await axios.get('/invoices', { params: { customer_id: route.params.id, limit: 50 } });
     invoices.value = data.data ?? data;
-  } catch {} finally { tabLoading.value = false; }
+  } catch { showToast(t('common.load_error'), 'error'); } finally { tabLoading.value = false; }
 }
 
 async function fetchQuotes() {
@@ -179,7 +180,7 @@ async function fetchQuotes() {
   try {
     const { data } = await axios.get('/quotes', { params: { customer_id: route.params.id, limit: 50 } });
     quotes.value = data.data ?? data;
-  } catch {} finally { tabLoading.value = false; }
+  } catch { showToast(t('common.load_error'), 'error'); } finally { tabLoading.value = false; }
 }
 
 onMounted(fetchCustomer);

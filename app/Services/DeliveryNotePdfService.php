@@ -6,25 +6,42 @@ namespace App\Services;
 
 use App\Models\DeliveryNote;
 use App\Support\TenantContext;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 final class DeliveryNotePdfService
 {
+    public function __construct(private readonly DocumentPdfService $documents) {}
+
     public function generate(DeliveryNote $deliveryNote): string
     {
-        $deliveryNote->loadMissing(['customer', 'items']);
+        $deliveryNote->loadMissing(['customer', 'items', 'invoice']);
+        $deliveryNote->loadMissing('items.product.unit');
 
         $company = TenantContext::get();
 
-        $data = [
+        return $this->documents->render('pdf.delivery-note', [
             'company' => $company,
             'deliveryNote' => $deliveryNote,
             'customer' => $deliveryNote->customer,
             'items' => $deliveryNote->items,
-        ];
+            'docTypeKey' => 'delivery_note',
+            'docNumber' => $deliveryNote->number,
+            'statusValue' => $deliveryNote->status->value,
+            'verificationUrl' => url('/verify/delivery-note/'.$deliveryNote->uuid),
+            'accent' => '#059669',
+            'signatureImage' => $this->signatureSource($deliveryNote),
+            'signatureDate' => $deliveryNote->delivery_date?->format('d/m/Y'),
+            'invoiceNumber' => $deliveryNote->invoice?->number,
+        ]);
+    }
 
-        $pdf = Pdf::loadView('pdf.delivery-note', $data);
+    private function signatureSource(DeliveryNote $deliveryNote): ?string
+    {
+        $signature = $deliveryNote->signature;
 
-        return $pdf->output();
+        if (! $signature) {
+            return null;
+        }
+
+        return str_starts_with($signature, 'data:image') ? $signature : null;
     }
 }

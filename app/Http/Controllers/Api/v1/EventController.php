@@ -27,7 +27,7 @@ class EventController extends Controller
             })
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json(EventResource::collection($events), Response::HTTP_OK);
+        return EventResource::collection($events)->response();
     }
 
     public function show(Event $event): JsonResponse

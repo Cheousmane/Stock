@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Purchases;
 
-use App\Models\Expense;
 use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use App\Models\WarehouseStock;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -71,15 +71,11 @@ class MarkPurchaseOrderAsReceivedAction
 
             $purchaseOrder->update(['status' => 'received']);
 
-            if ($purchaseOrder->total_xof > 0) {
-                Expense::create([
-                    'company_id' => $companyId,
-                    'description' => 'Bon de commande reçu : ' . $purchaseOrder->number,
-                    'category' => 'purchase',
-                    'amount' => $purchaseOrder->total_xof,
-                    'date' => now(),
-                    'created_by' => auth()->id(),
-                ]);
+            if ($purchaseOrder->supplier_id && $purchaseOrder->total_xof > 0) {
+                $supplier = Supplier::find($purchaseOrder->supplier_id);
+                if ($supplier) {
+                    $supplier->increment('balance_xof', $purchaseOrder->total_xof);
+                }
             }
         });
 

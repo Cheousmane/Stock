@@ -81,6 +81,12 @@
                 </button>
               </template>
               <template #menu>
+                <router-link :to="{ name: 'CreditNoteShow', params: { id: row.id } }" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors">
+                  <span class="text-text-tertiary"><EyeIcon class="w-4 h-4" /></span>{{ $t('common.view') }}
+                </router-link>
+                <router-link :to="{ name: 'CreditNoteEdit', params: { id: row.id } }" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors">
+                  <span class="text-text-tertiary"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
+                </router-link>
                 <button v-if="canDelete && row.status === 'draft'" @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
                 </button>
@@ -126,7 +132,7 @@ import BaseDropdown from '../../Components/ui/BaseDropdown.vue';
 import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import {
-  PlusIcon, ArrowDownTrayIcon, TrashIcon, EllipsisVerticalIcon,
+  PlusIcon, ArrowDownTrayIcon, TrashIcon, EllipsisVerticalIcon, EyeIcon, PencilIcon,
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();

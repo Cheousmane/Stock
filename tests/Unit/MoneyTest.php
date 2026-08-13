@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Support\Money;
-use PHPUnit\Framework\Attributes\Test;
 
 describe('Money', function () {
 
@@ -15,6 +14,10 @@ describe('Money', function () {
 
     it('formats zero', function () {
         expect(Money::format(0))->toBe('0 XOF');
+    });
+
+    it('formats with a custom currency code', function () {
+        expect(Money::format(1_500_000, 'FCFA'))->toBe('1 500 000 FCFA');
     });
 
     it('adds multiple amounts correctly', function () {

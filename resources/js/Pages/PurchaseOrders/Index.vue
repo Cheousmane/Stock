@@ -67,7 +67,12 @@
             <span class="text-sm text-text-secondary">{{ formatDate(row.issue_date) }}</span>
           </template>
           <template #cell-total_xof="{ row }">
-            <span class="text-sm font-medium text-text-primary">{{ formatXOF(row.total_xof) }}</span>
+            <div class="text-right">
+              <p class="text-sm font-medium text-text-primary">{{ formatXOF(row.total_xof) }}</p>
+              <p v-if="row.status === 'received'" class="text-xs" :class="balanceDue(row) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-text-tertiary'">
+                {{ $t('page.purchase_orders.paid') }}{{ formatXOF(row.paid_xof || 0) }} · {{ $t('page.purchase_orders.due') }}{{ formatXOF(balanceDue(row)) }}
+              </p>
+            </div>
           </template>
           <template #cell-status="{ row }">
             <BaseBadge :variant="row.status === 'draft' ? 'default' : row.status === 'validated' ? 'info' : row.status === 'received' ? 'success' : 'error'">{{ statusLabel(row.status) }}</BaseBadge>
@@ -83,6 +88,12 @@
                 <router-link :to="{ name: 'PurchaseOrderEdit', params: { id: row.id } }" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors">
                   <span class="text-text-tertiary"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
                 </router-link>
+                <button v-if="row.status !== 'received' && row.status !== 'cancelled'" @click="receivePurchaseOrder(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors text-left">
+                  <span class="text-text-tertiary"><CheckCircleIcon class="w-4 h-4" /></span>{{ $t('page.purchase_orders.receive') }}
+                </button>
+                <button v-if="row.status === 'received' && balanceDue(row) > 0" @click="openPayment(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors text-left">
+                  <span class="text-emerald-600 dark:text-emerald-400"><BanknotesIcon class="w-4 h-4" /></span>{{ $t('page.purchase_orders.pay') }}
+                </button>
                 <hr v-if="canDelete && row.status === 'draft'" class="my-1 border-border" />
                 <button v-if="canDelete && row.status === 'draft'" @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
@@ -109,11 +120,53 @@
         <BaseButton variant="danger" @click="executeDelete()">{{ $t('common.delete') }}</BaseButton>
       </template>
     </BaseModal>
+
+    <BaseModal v-model="paymentTarget" :title="$t('page.purchase_orders.pay_modal_title', { number: paymentTarget?.number })" size="sm">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-text-tertiary">{{ $t('page.purchase_orders.total') }}</span>
+          <span class="font-medium text-text-primary">{{ formatXOF(paymentTarget?.total_xof) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-text-tertiary">{{ $t('page.purchase_orders.paid') }}</span>
+          <span class="font-medium text-text-primary">{{ formatXOF(paymentTarget?.paid_xof || 0) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm font-medium">
+          <span class="text-text-tertiary">{{ $t('page.purchase_orders.due') }}</span>
+          <span class="text-amber-600 dark:text-amber-400">{{ formatXOF(paymentTarget ? balanceDue(paymentTarget) : 0) }}</span>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_amount') }}</label>
+          <input v-model.number="paymentForm.amount_xof" type="number" min="1" :max="paymentTarget ? balanceDue(paymentTarget) : undefined"
+            class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_method') }}</label>
+            <select v-model="paymentForm.method"
+              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
+              <option value="cash">{{ $t('payment.cash') }}</option>
+              <option value="bank">{{ $t('payment.bank') }}</option>
+              <option value="mobile_money">{{ $t('payment.mobile_money') }}</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_date') }}</label>
+            <input v-model="paymentForm.payment_date" type="date"
+              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <BaseButton variant="ghost" @click="paymentTarget = null">{{ $t('common.cancel') }}</BaseButton>
+        <BaseButton variant="primary" :loading="paying" @click="executePayment()">{{ $t('page.purchase_orders.pay_confirm') }}</BaseButton>
+      </template>
+    </BaseModal>
   </AdminLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, onBeforeUnmount, watch } from 'vue';
+import { ref, reactive, computed, onMounted, inject, onBeforeUnmount, watch } from 'vue';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
@@ -129,7 +182,7 @@ import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseDropdown from '../../Components/ui/BaseDropdown.vue';
 import BaseModal from '../../Components/ui/BaseModal.vue';
 import {
-  PlusIcon, ArrowDownTrayIcon, TrashIcon, PencilIcon,
+  PlusIcon, ArrowDownTrayIcon, TrashIcon, PencilIcon, CheckCircleIcon, BanknotesIcon,
   EllipsisVerticalIcon,
 } from '@heroicons/vue/24/outline';
 
@@ -145,6 +198,13 @@ const sortBy = ref('issue_date');
 const sortOrder = ref('desc');
 const selectedIds = ref([]);
 const deleteTarget = ref(null);
+const paymentTarget = ref(null);
+const paying = ref(false);
+const paymentForm = reactive({
+  amount_xof: 0,
+  method: 'cash',
+  payment_date: new Date().toISOString().slice(0, 10),
+});
 let debounceTimer = null;
 
 const canCreate = computed(() => {
@@ -242,6 +302,54 @@ function changePage(page) {
 }
 
 function confirmDelete(po) { deleteTarget.value = po; }
+
+function balanceDue(po) {
+  return Math.max(0, (Number(po?.total_xof) || 0) - (Number(po?.paid_xof) || 0));
+}
+
+async function receivePurchaseOrder(po) {
+  try {
+    await axios.post(`/purchase-orders/${po.id}/receive`);
+    showToast(t('page.purchase_orders.received_success'), 'success');
+    fetchPurchaseOrders(meta.value?.current_page || 1);
+  } catch (e) {
+    showToast(e.response?.data?.message || t('common.error'), 'error');
+  }
+}
+
+function openPayment(po) {
+  paymentTarget.value = po;
+  paymentForm.amount_xof = balanceDue(po);
+  paymentForm.payment_date = new Date().toISOString().slice(0, 10);
+}
+
+async function executePayment() {
+  if (!paymentTarget.value) return;
+  const amount = Number(paymentForm.amount_xof) || 0;
+  const max = balanceDue(paymentTarget.value);
+  if (amount < 1 || amount > max) {
+    showToast(t('page.purchase_orders.payment_invalid'), 'error');
+    return;
+  }
+  paying.value = true;
+  try {
+    await axios.post('/supplier-payments', {
+      supplier_id: paymentTarget.value.supplier_id,
+      purchase_order_id: paymentTarget.value.id,
+      amount_xof: amount,
+      method: paymentForm.method,
+      payment_date: paymentForm.payment_date,
+    });
+    paymentTarget.value = null;
+    showToast(t('page.purchase_orders.payment_success'), 'success');
+    fetchPurchaseOrders(meta.value?.current_page || 1);
+  } catch (e) {
+    const first = Object.values(e.response?.data?.errors || {}).flat()[0];
+    showToast(first || e.response?.data?.message || t('common.error'), 'error');
+  } finally {
+    paying.value = false;
+  }
+}
 
 async function executeDelete() {
   if (!deleteTarget.value) return;

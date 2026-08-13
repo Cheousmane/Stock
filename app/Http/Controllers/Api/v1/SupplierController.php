@@ -63,4 +63,16 @@ class SupplierController extends Controller
         $supplier->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $this->authorize('delete', Supplier::class);
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:suppliers,id',
+        ]);
+        $count = Supplier::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json(['deleted' => $count], Response::HTTP_OK);
+    }
 }

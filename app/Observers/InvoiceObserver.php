@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Models\Invoice;
+use App\Support\AdminDashboardCache;
+use App\Support\DashboardCache;
 
 final class InvoiceObserver
 {
     public function created(Invoice $invoice): void
     {
+        DashboardCache::forget($invoice->company_id);
+        AdminDashboardCache::bump();
+
         activity()
             ->performedOn($invoice)
             ->withProperties([
@@ -23,6 +28,9 @@ final class InvoiceObserver
 
     public function updated(Invoice $invoice): void
     {
+        DashboardCache::forget($invoice->company_id);
+        AdminDashboardCache::bump();
+
         if ($invoice->isDirty('status')) {
             $originalStatus = $invoice->getOriginal('status');
 
@@ -40,6 +48,9 @@ final class InvoiceObserver
 
     public function deleted(Invoice $invoice): void
     {
+        DashboardCache::forget($invoice->company_id);
+        AdminDashboardCache::bump();
+
         activity()
             ->performedOn($invoice)
             ->withProperties([

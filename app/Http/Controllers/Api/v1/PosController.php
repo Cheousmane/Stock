@@ -21,7 +21,8 @@ class PosController extends Controller
     {
         $this->authorize('viewAny', PosSession::class);
 
-        $session = PosSession::where('user_id', $request->user()->id)
+        $session = PosSession::where('company_id', TenantContext::getCompanyId())
+            ->where('user_id', $request->user()->id)
             ->where('status', 'open')
             ->first();
 
@@ -36,7 +37,8 @@ class PosController extends Controller
             'opening_cash_xof' => 'required|integer|min:0',
         ]);
 
-        $existing = PosSession::where('user_id', $request->user()->id)
+        $existing = PosSession::where('company_id', TenantContext::getCompanyId())
+            ->where('user_id', $request->user()->id)
             ->where('status', 'open')
             ->first();
 
@@ -68,22 +70,55 @@ class PosController extends Controller
             'notes' => 'nullable|string'
         ]);
 
+        $closingCash = $request->integer('closing_cash_xof');
+
+        $cashSales = $session->sales()
+            ->where('payment_method', 'cash')
+            ->where('status', 'completed')
+            ->get();
+
+        $cashCollected = $cashSales->sum(fn ($sale) => $sale->amount_paid_xof - $sale->change_returned_xof);
+        $expectedClosingCash = $session->opening_cash_xof + $cashCollected;
+        $cashDifference = $closingCash - $expectedClosingCash;
+
         $session->update([
             'status' => 'closed',
-            'closing_cash_xof' => $request->input('closing_cash_xof'),
+            'closing_cash_xof' => $closingCash,
+            'expected_closing_cash_xof' => $expectedClosingCash,
+            'cash_difference_xof' => $cashDifference,
             'closed_at' => now(),
             'notes' => $request->input('notes'),
         ]);
 
-        return response()->json(['data' => $session]);
+        $summary = [
+            'sales_count' => $session->sales()->count(),
+            'total_xof' => (int) $session->sales()->sum('total_xof'),
+            'cash_total_xof' => (int) $session->sales()->where('payment_method', 'cash')->sum('total_xof'),
+            'card_total_xof' => (int) $session->sales()->where('payment_method', 'card')->sum('total_xof'),
+            'mobile_money_total_xof' => (int) $session->sales()->where('payment_method', 'mobile_money')->sum('total_xof'),
+            'opening_cash_xof' => $session->opening_cash_xof,
+            'expected_closing_cash_xof' => $expectedClosingCash,
+            'cash_difference_xof' => $cashDifference,
+        ];
+
+        return response()->json([
+            'data' => $session,
+            'summary' => $summary,
+        ]);
     }
 
     public function catalog(Request $request)
     {
         $this->authorize('viewAny', Product::class);
 
-        $products = Product::with(['category', 'variants', 'taxes'])
+        // Catalogue léger pour la caisse : colonnes strictement nécessaires,
+        // relations éliminées (category/taxes non utilisées à l'encaissement).
+        $products = Product::query()
+            ->where('company_id', TenantContext::getCompanyId())
             ->where('is_active', true)
+            ->select(['id', 'name', 'sku', 'barcode', 'image', 'price_xof'])
+            ->with(['variants:id,product_id,price_xof'])
+            ->orderBy('name')
             ->get();
 
         return response()->json(['data' => $products]);
@@ -105,14 +140,28 @@ class PosController extends Controller
             'items.*.unit_price_xof' => 'required|integer|min:0',
         ]);
 
+        $user = $request->user();
+        $companyId = $user->company_id;
+
         $session = PosSession::findOrFail($request->input('pos_session_id'));
+        if ($session->company_id !== $companyId) {
+            abort(403, 'Session de caisse invalide pour cette entreprise.');
+        }
         if ($session->status !== 'open') {
             return response()->json(['message' => 'Session is not open'], 400);
         }
 
-        $user = $request->user();
-        $companyId = $user->company_id;
         $items = $request->input('items');
+
+        if ($request->filled('customer_id')) {
+            $customerExists = \App\Models\Customer::where('company_id', $companyId)
+                ->where('id', $request->input('customer_id'))
+                ->exists();
+
+            if (! $customerExists) {
+                abort(403, 'Client invalide pour cette entreprise.');
+            }
+        }
 
         $warehouse = Warehouse::where('company_id', $companyId)->first();
         if (!$warehouse) {
@@ -219,7 +268,7 @@ class PosController extends Controller
             }
 
             DB::commit();
-            return response()->json(['data' => $sale->load('items')]);
+            return response()->json(['data' => $sale->load(['items', 'customer', 'session'])]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -232,12 +281,28 @@ class PosController extends Controller
         $this->authorize('viewAny', PosSession::class);
 
         $companyId = TenantContext::getCompanyId();
-        $sessions = PosSession::with('user')
+
+        $query = PosSession::with('user:id,name,email')
             ->where('company_id', $companyId)
             ->withCount('sales')
-            ->withSum('sales', 'total_xof')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->withSum('sales', 'total_xof');
+
+        if ($request->filled('search')) {
+            $search = '%' . $request->input('search') . '%';
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', $search)
+                    ->orWhere('email', 'like', $search);
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $perPage = $request->integer('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 25, 50, 100]) ? $perPage : 20;
+
+        $sessions = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json($sessions);
     }
@@ -251,7 +316,7 @@ class PosController extends Controller
         }
 
         $sales = $session->sales()
-            ->with(['user', 'items'])
+            ->with(['user', 'items', 'customer'])
             ->orderBy('created_at', 'desc')
             ->get();
 

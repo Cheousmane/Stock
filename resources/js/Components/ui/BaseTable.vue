@@ -4,12 +4,21 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-border">
+            <th v-if="selectable" class="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                class="size-4 rounded border-border text-primary-600 focus:ring-primary-500 cursor-pointer"
+                :checked="selectedCount > 0"
+                :indeterminate="selectedCount > 0 && selectedCount < rows.length"
+                @click.stop="toggleAll"
+              />
+            </th>
             <th
               v-for="col in columns"
               :key="col.key"
               @click="col.sortable !== false && col.key && $emit('sort', col.key)"
               :class="[
-                'px-4 py-3 text-xs font-medium tracking-wider text-text-tertiary whitespace-nowrap transition-colors',
+                'px-4 py-3 text-xs font-medium tracking-wider text-text-tertiary whitespace-nowrap',
                 col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left',
                 { 'cursor-pointer select-none hover:text-text-secondary': col.sortable !== false && col.key },
               ]"
@@ -35,12 +44,20 @@
             :key="row.id ?? i"
             @click="$emit('rowClick', row)"
             :class="[
-              'transition-colors duration-100',
               clickable ? 'cursor-pointer' : '',
               striped && i % 2 ? 'bg-surface-secondary/50' : 'bg-surface',
-              hover && 'hover:bg-surface-tertiary/50',
+              hover && 'transition-all duration-200 hover:bg-surface-tertiary/50 hover:translate-x-0.5',
+              selectedIds && isRowSelected(row) ? 'bg-primary-50/50 dark:bg-primary-500/5' : '',
             ]"
           >
+            <td v-if="selectable" class="px-4 py-3">
+              <input
+                type="checkbox"
+                class="size-4 rounded border-border text-primary-600 focus:ring-primary-500 cursor-pointer"
+                :checked="isRowSelected(row)"
+                @click.stop="toggleRow(row)"
+              />
+            </td>
             <td
               v-for="col in columns"
               :key="col.key"
@@ -80,7 +97,9 @@
 </style>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   columns: { type: Array, required: true },
   rows: { type: Array, default: () => [] },
   sortBy: { type: String, default: '' },
@@ -88,8 +107,26 @@ defineProps({
   striped: { type: Boolean, default: false },
   hover: { type: Boolean, default: true },
   clickable: { type: Boolean, default: false },
+  selectable: { type: Boolean, default: false },
+  selectedIds: { type: Array, default: () => [] },
   emptyText: { type: String, default: 'Aucune donnée' },
 })
 
-defineEmits(['sort', 'rowClick'])
+const emit = defineEmits(['sort', 'rowClick', 'update:selectedIds'])
+
+const selectedCount = computed(() => props.selectedIds.length)
+
+function isRowSelected(row) {
+  return props.selectedIds.includes(row.id)
+}
+
+function toggleAll() {
+  const all = props.rows.length > 0 && selectedCount.value === props.rows.length
+  emit('update:selectedIds', all ? [] : props.rows.map(r => r.id))
+}
+
+function toggleRow(row) {
+  const current = isRowSelected(row)
+  emit('update:selectedIds', current ? props.selectedIds.filter(id => id !== row.id) : [...props.selectedIds, row.id])
+}
 </script>

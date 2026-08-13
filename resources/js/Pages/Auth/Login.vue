@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen animate-fade-in">
+  <div class="flex min-h-screen">
     <!-- Left Panel - Branding -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <!-- Calque de fond animé (gradient qui se déplace lentement) -->
@@ -35,7 +35,7 @@
 
     <!-- Right Panel - Form -->
     <div class="flex-1 flex items-center justify-center px-4 sm:px-6 bg-[var(--color-surface-secondary)]">
-      <div class="w-full max-w-sm animate-slide-up">
+      <div class="w-full max-w-sm">
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
             <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
@@ -66,7 +66,7 @@
                 autocomplete="email"
                 placeholder="vous@exemple.com"
                 list="login-email-list"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
               <datalist id="login-email-list">
                 <option v-for="email in emailSuggestions" :key="email" :value="email" />
@@ -81,7 +81,7 @@
                   required
                   autocomplete="current-password"
                   placeholder="••••••••"
-                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -106,7 +106,7 @@
               <button
                 type="submit"
                 :disabled="loading"
-                class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20 animate-ctaPulse transition-all duration-200 active:scale-[0.98]"
+                class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20"
               >
                 <span v-if="loading" class="flex items-center justify-center gap-2">
                   <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -198,6 +198,12 @@ async function login() {
     if (data.user?.locale) switchLocale(data.user.locale);
     router.push({ name: 'Dashboard' });
   } catch (err) {
+    const errors = err.response?.data?.errors;
+    if (errors?.email_verification) {
+      await axios.post('/auth/resend-verification', { email: form.email }).catch(() => {});
+      router.push({ name: 'VerifyEmail', query: { email: form.email } });
+      return;
+    }
     error.value = err.response?.data?.message || t('auth.invalid_credentials');
   } finally {
     loading.value = false;
@@ -222,22 +228,5 @@ async function login() {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
-}
-/* Effet de glow pulsé sur le bouton de connexion (mode clair) */
-@keyframes ctaPulseLight {
-  0%, 100% { box-shadow: 0 0 20px rgba(5,150,105,0.2); }
-  50% { box-shadow: 0 0 40px rgba(5,150,105,0.4); }
-}
-/* Effet de glow pulsé sur le bouton (mode sombre) */
-@keyframes ctaPulseDark {
-  0%, 100% { box-shadow: 0 0 20px rgba(52,211,153,0.25); }
-  50% { box-shadow: 0 0 40px rgba(52,211,153,0.5); }
-}
-/* Classe utilitaire pour le glow vert permanent */
-.animate-ctaPulse {
-  animation: ctaPulseLight 3s ease-in-out infinite;
-}
-.dark .animate-ctaPulse {
-  animation-name: ctaPulseDark;
 }
 </style>

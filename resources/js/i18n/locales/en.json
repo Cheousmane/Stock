@@ -53,8 +53,6 @@
     }
   },
   "dashboard": {
-    "title": "Dashboard",
-    "subtitle": "Overview of your activity",
     "refresh": "Refresh",
     "retry": "Retry",
     "recent_activity": "Recent activity",
@@ -167,6 +165,7 @@
     "send_email": "Send email",
     "sending": "Sending...",
     "view": "View",
+    "per_page": "per page",
     "no_data": "No data",
     "select": "Select",
     "select_role": "Select a role",
@@ -189,9 +188,19 @@
     "confirm_delete": "Confirm delete?",
     "deleted": "Deleted successfully",
     "deselect": "Deselect",
+    "status_updated": "Status updated successfully",
+    "update_error": "Error while updating",
+    "download_error": "Error while downloading",
+    "selected": "selected",
+    "load_error": "Load error",
+    "email_sent": "Email sent successfully",
+    "email_error": "Error sending email",
+    "remove_line": "Remove line",
     "duplicate": "Duplicate",
     "export_csv_unavailable": "CSV export unavailable",
     "export_excel_unavailable": "Excel export unavailable",
+    "back_to_dashboard": "Back to dashboard",
+    "clear": "Clear",
     "showing_range": "Showing {from} to {to} of {total}",
     "bulk_delete_confirm": "Confirm deletion of {n} item(s)?"
   },
@@ -223,7 +232,19 @@
     "size_moyenne": "Medium",
     "size_grande": "Large",
     "invalid_credentials": "Invalid email or password",
-    "register_error": "Registration error"
+    "register_error": "Registration error",
+    "verify_email": "Email verification",
+    "verify_email_title": "A 6-digit confirmation code was sent to your email.",
+    "verification_code": "Verification code",
+    "confirm_email": "Confirm my email",
+    "verifying": "Verifying...",
+    "no_code_received": "Didn't receive the code?",
+    "resend_code": "Resend code",
+    "sending_code": "Sending...",
+    "resend_in": "Resend in {seconds}s",
+    "code_resent": "A new verification code has been sent.",
+    "resend_error": "Unable to send the code. Try again in a few minutes.",
+    "verification_error": "Verification failed. Please try again."
   },
   "status": {
     "ok": "OK",
@@ -248,7 +269,10 @@
     "delivered": "Delivered",
     "rejected": "Rejected",
     "returned": "Returned",
-    "shipped": "Shipped"
+    "shipped": "Shipped",
+    "pending": "Pending",
+    "received": "Received",
+    "expired": "Expired"
   },
   "roles": {
     "admin": "Administrator",
@@ -327,11 +351,13 @@
     "expiration_date": "Expiration date",
     "issue_date": "Issue date"
   },
+  "payment": {
+    "cash": "Cash",
+    "bank": "Bank",
+    "mobile_money": "Mobile Money",
+    "stripe": "Card"
+  },
   "page": {
-    "dashboard": {
-      "title": "Dashboard",
-      "welcome": "Welcome"
-    },
     "products": {
       "title": "Products",
       "search_placeholder": "Search for a product...",
@@ -396,7 +422,8 @@
       "total_count": "{count} customer(s) total",
       "bulk_delete_confirm": "Delete {n} customer(s)?",
       "created": "Customer created successfully",
-      "updated": "Customer updated successfully"
+      "updated": "Customer updated successfully",
+      "load_error": "Error loading customer"
     },
     "invoices": {
       "title": "Invoices",
@@ -459,13 +486,19 @@
       "n_selected": "{n} quote(s) selected",
       "total_count": "{count} quote(s) total",
       "bulk_delete_confirm": "Delete {n} quote(s)?",
-      "title_show": "Quote {number}"
+      "title_show": "Quote {number}",
+      "load_error": "Error loading quote",
+      "converted_success": "Quote converted to invoice successfully",
+      "convert_error": "Error converting quote",
+      "deleted_success": "Quote deleted successfully",
+      "delete_error": "Error deleting quote"
     },
     "credit_notes": {
       "title": "Credit Notes",
       "search_placeholder": "Search for a credit note...",
       "empty": "No credit notes",
       "number": "Credit Note #",
+      "number_auto": "auto-generated",
       "customer": "Customer",
       "linked_invoice": "Linked Invoice",
       "date": "Date",
@@ -480,9 +513,18 @@
       "new": "New credit note",
       "create": "Create credit note",
       "created_success": "Credit note created successfully",
+      "items_required": "Add at least one item line",
+      "creditable_available": "Creditable remaining: {count}",
+      "quantity_exceeded": "The quantity exceeds the remaining creditable amount of this product for this customer",
       "validate": "Validate credit note",
       "validated_success": "Credit note validated successfully",
-      "lines_title": "Credit note lines"
+      "lines_title": "Credit note lines",
+      "no_results": "No results",
+      "load_error": "Error loading credit note",
+      "deleted_success": "Credit note deleted successfully",
+      "bulk_delete_success": "Bulk delete successful",
+      "excel_unavailable": "Excel export unavailable",
+      "csv_unavailable": "CSV export unavailable"
     },
     "delivery_notes": {
       "title": "Delivery Notes",
@@ -515,7 +557,17 @@
       "total_count": "{count} DN(s) total",
       "bulk_delete_confirm": "Delete {n} DN(s)?",
       "delete_confirm": "Delete delivery note {number}?",
-      "title_show": "Delivery Note {number}"
+      "title_show": "Delivery Note {number}",
+      "created": "Delivery note created successfully",
+      "updated": "Delivery note updated successfully",
+      "edit": "Edit delivery note",
+      "load_error": "Error loading delivery note",
+      "created_with": "Created on",
+      "detail": "Delivery note details",
+      "customer_label": "Customer",
+      "linked_invoice_label": "Linked Invoice",
+      "description_col": "Description",
+      "status_pending": "Pending"
     },
     "purchase_orders": {
       "title": "Purchase Orders",
@@ -523,6 +575,7 @@
       "create_order": "New Order",
       "new": "New Purchase Order",
       "new_order": "New Order",
+      "edit_order": "Edit Order",
       "supplier": "Supplier",
       "warehouse": "Warehouse",
       "expected_delivery": "Expected Delivery",
@@ -537,7 +590,29 @@
       "bulk_delete_confirm": "Delete {n} PO(s)?",
       "delete_confirm": "Delete PO {number}?",
       "create_first": "Create your first purchase order",
-      "no_purchase_orders": "No purchase orders found"
+      "no_purchase_orders": "No purchase orders found",
+      "no_results": "No results",
+      "deleted": "Purchase order deleted successfully",
+      "bulk_delete_success": "Bulk delete successful",
+      "created": "Purchase order created successfully",
+      "updated": "Purchase order updated successfully",
+      "load_error": "Error loading purchase order",
+      "load_data_error": "Error loading data",
+      "validation_error": "Validation error",
+      "create_error": "Error creating purchase order",
+      "paid": "Paid: ",
+      "due": "Due: ",
+      "receive": "Receive stock",
+      "received_success": "Purchase order received, stock updated",
+      "pay": "Pay supplier",
+      "pay_modal_title": "Payment — {number}",
+      "total": "Total",
+      "payment_amount": "Payment amount",
+      "payment_method": "Payment method",
+      "payment_date": "Payment date",
+      "pay_confirm": "Record payment",
+      "payment_invalid": "Invalid amount (between 1 and the amount due)",
+      "payment_success": "Payment recorded"
     },
     "suppliers": {
       "title": "Suppliers",
@@ -545,17 +620,21 @@
       "new": "New Supplier",
       "edit": "Edit Supplier",
       "empty": "No suppliers",
-      "registration_number": "Registration #",
-      "tax_number": "Tax #",
+      "balance": "Balance",
+      "registration_number": "Registration Number",
+      "tax_number": "Tax Number",
       "city_country": "City / Country",
       "active_label": "Active supplier",
       "code_auto": "Auto-generated",
       "deleted": "Supplier deleted successfully",
-      "load_error": "Error loading",
-      "n_selected": "{n} supplier(s) selected",
-      "total_count": "{count} supplier(s) total",
+      "load_error": "Load error",
       "bulk_delete_confirm": "Delete {n} supplier(s)?",
-      "delete_confirm": "Delete supplier \"{name}\"?"
+      "total_count": "{count} supplier(s) total",
+      "n_selected": "{n} supplier(s) selected",
+      "delete_confirm": "Delete supplier \"{name}\"?",
+      "save_error": "Error saving supplier",
+      "updated": "Supplier updated successfully",
+      "created": "Supplier created successfully"
     },
     "stock": {
       "title": "Stock",
@@ -607,7 +686,8 @@
       "load_error": "Could not load category",
       "n_selected": "{n} categor(ies) selected",
       "total_count": "{count} categor(ies)",
-      "bulk_delete_confirm": "Delete {n} categor(ies)?"
+      "bulk_delete_confirm": "Delete {n} categor(ies)?",
+      "search_placeholder": "Search categories..."
     },
     "units": {
       "title": "Units",
@@ -625,7 +705,8 @@
       "code_placeholder": "e.g. kg",
       "n_selected": "{n} unit(s) selected",
       "total_count": "{count} unit(s)",
-      "bulk_delete_confirm": "Delete {n} unit(s)?"
+      "bulk_delete_confirm": "Delete {n} unit(s)?",
+      "search_placeholder": "Search units..."
     },
     "warehouses": {
       "title": "Warehouses",
@@ -645,7 +726,8 @@
       "n_selected": "{n} warehouse(s) selected",
       "total_count": "{count} warehouse(s)",
       "bulk_delete_confirm": "Delete {n} warehouse(s)?",
-      "deleted": "Warehouse \"{name}\" deleted"
+      "deleted": "Warehouse \"{name}\" deleted",
+      "search_placeholder": "Search warehouses..."
     },
     "payments": {
       "title": "Payments",
@@ -657,6 +739,8 @@
       "method_bank": "Bank transfer",
       "method_mobile_money": "Mobile Money",
       "method_card": "Credit card",
+      "date": "Payment date",
+      "balance_hint": "Balance due: {amount}",
       "empty": "No payments",
       "delete_confirm": "Delete this payment?",
       "n_selected": "{n} payment(s) selected",
@@ -682,6 +766,7 @@
       "category_salaire": "Salaries",
       "category_transport": "Transport",
       "category_marketing": "Marketing",
+      "category_supplier_payment": "Supplier payment",
       "category_autre": "Other",
       "bulk_delete_success": "Bulk delete successful",
       "create_first": "Create first expense",
@@ -715,7 +800,8 @@
       "load_error": "Could not load event",
       "n_selected": "{n} event(s) selected",
       "total_count": "{count} event(s)",
-      "bulk_delete_confirm": "Delete {n} event(s)?"
+      "bulk_delete_confirm": "Delete {n} event(s)?",
+      "search_placeholder": "Search events..."
     },
     "users": {
       "title": "Users",
@@ -759,6 +845,85 @@
     "settings": {
       "title": "Settings",
       "subscription": "Subscription"
+    },
+    "pos_sessions": {
+      "title": "Cash Sessions",
+      "search_placeholder": "Search by user...",
+      "all_statuses": "All statuses",
+      "open": "Open",
+      "closed": "Closed",
+      "user": "User",
+      "status": "Status",
+      "opening": "Opening",
+      "closing": "Closing",
+      "opening_cash": "Opening cash",
+      "sales_count": "Sales",
+      "total": "Total",
+      "cash_difference": "Cash difference",
+      "actions": "Actions",
+      "empty": "No cash sessions",
+      "no_results": "No results",
+      "total_count": "{count} cash session(s)",
+      "no_sales": "No sales in this session.",
+      "sales_detail": "Sales — {user}",
+      "sales_count_label": "{count} sale(s)",
+      "receipt": "Receipt",
+      "date": "Date",
+      "customer": "Customer",
+      "payment": "Payment",
+      "paid": "Paid",
+      "change": "Change",
+      "load_error": "Error loading sessions"
+    },
+    "pos": {
+      "title": "Cash Register",
+      "search_placeholder": "Search products...",
+      "catalog_loading": "Loading catalog...",
+      "no_products": "No products found.",
+      "cart_empty": "Empty cart",
+      "cart_empty_hint": "Add products to start",
+      "total_due": "Total due",
+      "pay_cash": "Cash",
+      "pay_card": "Card (POS terminal)",
+      "close_register": "Close Register",
+      "close_confirm": "Close the current cash session?",
+      "payment_title_cash": "Cash payment",
+      "payment_title_card": "Card payment",
+      "amount_received": "Amount received",
+      "change_due": "Change",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "success_alert": "Payment successful!",
+      "sale_error": "Error processing payment",
+      "close_error": "Error closing the session",
+      "stock_insufficient": "Insufficient stock",
+      "stock_insufficient_hint": "Requested quantity unavailable",
+      "open_label": "Register Open",
+      "closed_label": "Register Closed"
+    },
+    "pos_session": {
+      "open_title": "Open Register",
+      "open_subtitle": "Start a cash session to begin selling",
+      "opening_cash": "Initial Opening Cash (FCFA)",
+      "opening": "Opening...",
+      "open_button": "Open session",
+      "open_error": "Error opening the session"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of your activity",
+      "revenue_chart_title": "Monthly revenue",
+      "revenue_chart_subtitle": "6-month trend",
+      "revenue_legend": "Revenue",
+      "top_products_title": "Top products",
+      "top_products_subtitle": "Best revenue",
+      "recent_invoices_title": "Recent invoices",
+      "view_all": "View all",
+      "no_recent_invoices": "No recent invoices",
+      "low_stock_title": "Low stock",
+      "low_stock_subtitle": "Products below minimum threshold",
+      "capital_title": "Capital",
+      "capital_subtitle": "Estimated net value"
     }
   },
   "settings": {
@@ -834,7 +999,11 @@
     "outflows": "Outflows",
     "outflows_desc": "Expenses + Purchases + Credit Notes",
     "calculated": "Calculated Capital",
-    "last_updated": "Last updated"
+    "last_updated": "Last updated",
+    "unauthorized": "You do not have access to this section.",
+    "load_error": "Could not load.",
+    "save_success": "Capital saved successfully",
+    "save_error": "Error saving capital"
   },
   "component": {
     "revenue_chart": {
@@ -870,4 +1039,3 @@
     "hi": "हिन्दी"
   }
 }
-

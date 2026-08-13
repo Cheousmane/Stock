@@ -13,17 +13,22 @@
       </BasePageHeader>
 
       <BaseCard :title="$t('page.payments.record_title')">
-        <form @submit.prevent="recordPayment" class="grid grid-cols-1 sm:grid-cols-5 gap-4">
-          <BaseSelect v-model="paymentForm.invoice_id" :options="unpaidInvoices.map(i => ({ value: i.id, label: i.number }))" :placeholder="$t('page.payments.invoice')" required />
-          <BaseInput v-model.number="paymentForm.amount_xof" type="number" min="1" step="1" :placeholder="$t('page.payments.amount')" required />
-          <BaseSelect v-model="paymentForm.method" :options="[
+        <form @submit.prevent="recordPayment" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <BaseSelect v-model="paymentForm.invoice_id" :label="$t('page.payments.invoice')"
+            :options="unpaidInvoices.map(i => ({ value: i.id, label: `${i.number} · ${formatXOF(i.balance_due_xof ?? i.total_xof ?? 0)}` }))"
+            :placeholder="$t('page.payments.invoice')" required />
+          <BaseInput v-model.number="paymentForm.amount_xof" type="number" min="1" step="1"
+            :label="$t('page.payments.amount')" :hint="selectedInvoiceBalance" required />
+          <BaseSelect v-model="paymentForm.method" :label="$t('page.payments.method')" :options="[
             { value: 'cash', label: $t('page.payments.method_cash') },
             { value: 'bank', label: $t('page.payments.method_bank') },
             { value: 'mobile_money', label: $t('page.payments.method_mobile_money') },
             { value: 'stripe', label: $t('page.payments.method_card') },
-          ]" />
-          <BaseInput v-model="paymentForm.payment_date" type="date" required />
-          <BaseButton variant="primary" type="submit" :loading="paying">{{ $t('common.pay') }}</BaseButton>
+          ]" required />
+          <BaseInput v-model="paymentForm.payment_date" type="date" :label="$t('page.payments.date')" required />
+          <div class="flex items-end">
+            <BaseButton variant="primary" type="submit" :loading="paying" class="w-full justify-center">{{ $t('common.pay') }}</BaseButton>
+          </div>
         </form>
       </BaseCard>
 
@@ -72,7 +77,9 @@
             <span class="text-sm font-medium text-text-primary">{{ formatXOF(row.amount_xof) }}</span>
           </template>
           <template #cell-method="{ row }">
-            <span class="text-sm text-text-secondary">{{ methodLabel(row.method) }}</span>
+            <BaseBadge :variant="methodVariant(row.method)" size="xs">
+              {{ $t(methodLabel(row.method)) }}
+            </BaseBadge>
           </template>
           <template #cell-payment_date="{ row }">
             <span class="text-sm text-text-secondary">{{ row.payment_date }}</span>
@@ -124,6 +131,7 @@ import BaseSelect from '../../Components/ui/BaseSelect.vue';
 import BaseTable from '../../Components/ui/BaseTable.vue';
 import BasePagination from '../../Components/ui/BasePagination.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import BaseSkeleton from '../../Components/ui/BaseSkeleton.vue';
 import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
@@ -214,6 +222,16 @@ function methodLabel(m) {
   return labels[m] || m;
 }
 
+function methodVariant(m) {
+  const variants = { cash: 'success', bank: 'info', mobile_money: 'warning', stripe: 'purple' };
+  return variants[m] || 'default';
+}
+
+const selectedInvoiceBalance = computed(() => {
+  const inv = unpaidInvoices.value.find(i => String(i.id) === String(paymentForm.invoice_id));
+  return inv ? t('page.payments.balance_hint', { amount: formatXOF(inv.balance_due_xof ?? inv.total_xof ?? 0) }) : '';
+});
+
 function formatXOF(amount) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount || 0);
 }
@@ -244,8 +262,14 @@ async function fetchData(page) {
       axios.get('/payments', { params }),
       axios.get('/invoices?status=sent,overdue,partial&limit=1000'),
     ]);
-    payments.value = pRes.data.data ?? pRes.data;
-    meta.value = pRes.data.meta ?? null;
+    const pData = pRes.data ?? {};
+    payments.value = pData.data ?? pData;
+    meta.value = pData.meta ?? {
+      current_page: pData.current_page,
+      last_page: pData.last_page,
+      per_page: pData.per_page,
+      total: pData.total,
+    };
     unpaidInvoices.value = iRes.data.data ?? iRes.data;
     selectedIds.value = [];
   } catch {} finally { loading.value = false; }

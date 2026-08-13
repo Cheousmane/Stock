@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'bg-surface border border-border rounded-xl',
+      'bg-surface border border-border rounded-xl card-hover',
       paddingClasses[padding],
       { 'card-hover cursor-pointer': hoverable },
     ]"

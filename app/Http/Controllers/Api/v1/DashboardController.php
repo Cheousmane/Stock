@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DashboardResource;
 use App\Models\Invoice;
 use App\Services\CapitalService;
+use App\Support\DashboardCache;
 use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -22,7 +23,7 @@ class DashboardController extends Controller
         $this->authorize('view_dashboard');
         $companyId = TenantContext::getCompanyId();
 
-        $data = Cache::remember("dashboard.{$companyId}", 120, function () use ($companyId) {
+        $data = Cache::remember(DashboardCache::key($companyId), DashboardCache::TTL, function () use ($companyId) {
             $company = TenantContext::get();
             $capitalService = app(CapitalService::class);
             $capital = $capitalService->calculate($company);

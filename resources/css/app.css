@@ -78,92 +78,132 @@
     --color-sidebar-logo-bg: linear-gradient(135deg, #10b981, #059669);
 
     /* ── Animations ── */
-    --animate-fade-in: fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    --animate-scale-in: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    --animate-slide-right: slide-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    --animate-slide-down: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     --animate-shimmer: shimmer 1.5s ease-in-out infinite;
-    --animate-pulse-soft: pulse-soft 2.5s ease-in-out infinite;
     --animate-spin-slow: spin 2.5s linear infinite;
-    --animate-float: float 8s ease-in-out infinite;
 }
 
 /* ── Keyframes ── */
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes slide-up {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes scale-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-@keyframes slide-right {
-    from { opacity: 0; transform: translateX(-12px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slide-down {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
 }
-@keyframes pulse-soft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+
+@keyframes modal-pop {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: none; }
 }
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+@keyframes modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes tooltip-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes dropdown-in {
+    from { opacity: 0; scale: 0.98; }
+    to { opacity: 1; scale: 1; }
+}
+@keyframes slide-indicator {
+    from { opacity: 0; transform: translateY(-50%) scaleY(0.4); }
+    to { opacity: 1; transform: translateY(-50%) scaleY(1); }
 }
 
-/* ── Page transitions ── */
-.page-enter-active {
-    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Typography premium ── */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
 }
-.page-leave-active {
-    transition: opacity 0.12s ease, transform 0.12s ease;
+h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
 }
-.page-enter-from {
-    opacity: 0;
-    transform: translateY(6px);
-}
-.page-leave-to {
-    opacity: 0;
-    transform: translateY(-3px);
+table td {
+    font-variant-numeric: tabular-nums;
 }
 
-/* ── Staggered list animations ── */
-.stagger-enter-active {
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Selection ── */
+::selection {
+    background: var(--color-primary-500);
+    color: #fff;
 }
-.stagger-enter-active:nth-child(1) { transition-delay: 0ms; }
-.stagger-enter-active:nth-child(2) { transition-delay: 40ms; }
-.stagger-enter-active:nth-child(3) { transition-delay: 80ms; }
-.stagger-enter-active:nth-child(4) { transition-delay: 120ms; }
-.stagger-enter-active:nth-child(5) { transition-delay: 160ms; }
-.stagger-enter-active:nth-child(6) { transition-delay: 200ms; }
-.stagger-enter-active:nth-child(7) { transition-delay: 240ms; }
-.stagger-enter-active:nth-child(8) { transition-delay: 280ms; }
-.stagger-enter-from {
-    opacity: 0;
-    transform: translateY(12px);
+
+/* ── Global focus (premium emerald ring) ── */
+:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* ── Card hover effect ── */
 .card-hover {
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    will-change: transform;
 }
+
 .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
+    box-shadow: var(--shadow-card-hover), 0 6px 24px -10px rgb(16 185 129 / 0.18);
+    border-color: var(--color-primary-300);
+}
+
+/* ── Nav item (sidebar) ── */
+.nav-item {
+    position: relative;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.nav-item:hover {
+    transform: translateX(2px);
+}
+.nav-item--active::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    border-radius: 9999px;
+    background: linear-gradient(to bottom, #34d399, #059669);
+    animation: slide-indicator 0.25s ease-out;
+}
+.nav-item--active {
+    background: linear-gradient(to right, rgb(16 185 129 / 0.14), rgb(16 185 129 / 0.02));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* ── Modal & tooltip animations ── */
+.modal-pop-enter-active { animation: modal-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+.modal-pop-leave-active { animation: modal-pop 0.15s ease-in reverse; }
+.modal-fade-enter-active { animation: modal-fade 0.2s ease-out; }
+.modal-fade-leave-active { animation: modal-fade 0.15s ease-in reverse; }
+.tooltip-in-enter-active { animation: tooltip-in 0.15s ease-out; }
+.dropdown-in-enter-active { animation: dropdown-in 0.15s ease-out; }
+
+/* ── Dropdown menu items (motion project-wide) ── */
+.base-dropdown > * {
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.base-dropdown > *:hover {
+    transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card-hover {
+        transition: none;
+    }
+    tbody tr {
+        transition: none;
+    }
+    tbody tr:hover {
+        transform: none;
+    }
+    .modal-pop-enter-active, .modal-pop-leave-active, .modal-fade-enter-active, .modal-fade-leave-active,
+    .tooltip-in-enter-active, .dropdown-in-enter-active, .nav-item, .nav-item--active::before, .base-dropdown > * {
+        animation: none;
+        transition: none;
+    }
 }
 
 /* ── Text gradient ── */
@@ -184,7 +224,7 @@
 
 /* ── Sidebar transition for theme switching ── */
 .sidebar-transition, .sidebar-transition * {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 /* ── Focus ring ── */
@@ -375,4 +415,86 @@
 
 .dark .skeleton {
     background: linear-gradient(90deg, #262626 25%, #333333 50%, #262626 75%);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MICRO-INTERACTIONS — uniquement transform/opacity
+   (aucun backdrop-filter, aucun reflow, one-shot)
+   ═══════════════════════════════════════════════════════ */
+
+/* Entrée en cascade des lignes de tableaux (≤ 12 lignes) */
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+tbody tr {
+    animation: fade-up 0.28s ease-out both;
+}
+tbody tr:nth-child(2) { animation-delay: 25ms; }
+tbody tr:nth-child(3) { animation-delay: 50ms; }
+tbody tr:nth-child(4) { animation-delay: 75ms; }
+tbody tr:nth-child(5) { animation-delay: 100ms; }
+tbody tr:nth-child(6) { animation-delay: 125ms; }
+tbody tr:nth-child(7) { animation-delay: 150ms; }
+tbody tr:nth-child(8) { animation-delay: 175ms; }
+tbody tr:nth-child(9) { animation-delay: 200ms; }
+tbody tr:nth-child(10) { animation-delay: 225ms; }
+tbody tr:nth-child(11) { animation-delay: 250ms; }
+tbody tr:nth-child(12) { animation-delay: 275ms; }
+
+tbody tr {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+tbody tr:hover {
+    transform: translateX(2px);
+}
+tbody tr:nth-child(n+13) { animation-delay: 0ms; }
+
+/* Transition de route (150ms, out-in) */
+.page-enter-active { transition: opacity 0.18s ease-out, transform 0.18s ease-out; }
+.page-enter-from { opacity: 0; transform: translateY(4px); }
+.page-leave-active { transition: opacity 0.1s ease-in; }
+.page-leave-to { opacity: 0; }
+
+/* Balayage lumineux sur les cartes KPI (pseudo-élément, un seul layer) */
+.card-sweep {
+    position: relative;
+    overflow: hidden;
+}
+.card-sweep::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(105deg, transparent 0%, rgb(255 255 255 / 0.45) 50%, transparent 100%);
+    transform: translateX(-150%);
+    transition: transform 0.65s ease;
+    pointer-events: none;
+}
+.card-sweep:hover::after {
+    transform: translateX(320%);
+}
+.dark .card-sweep::after {
+    background: linear-gradient(105deg, transparent 0%, rgb(255 255 255 / 0.06) 50%, transparent 100%);
+}
+
+/* Barre de progression de navigation */
+.progress-track {
+    background: linear-gradient(90deg, transparent 0%, var(--color-primary-500) 40%, var(--color-primary-400) 60%, transparent 100%);
+    background-size: 200% 100%;
+    animation: progress-slide 1s linear infinite;
+}
+@keyframes progress-slide {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    tbody tr, .page-enter-active, .page-leave-active, .card-sweep::after, .progress-track {
+        animation: none !important;
+        transition: none !important;
+    }
 }

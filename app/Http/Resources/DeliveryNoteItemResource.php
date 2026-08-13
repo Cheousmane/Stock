@@ -13,6 +13,10 @@ class DeliveryNoteItemResource extends JsonResource
         return [
             'id' => $this->id,
             'product_id' => $this->product_id,
+            'product' => $this->whenLoaded('product', fn () => [
+                'id' => $this->product->id,
+                'name' => $this->product->name,
+            ]),
             'description' => $this->description,
             'quantity' => $this->quantity,
         ];

@@ -12,6 +12,7 @@ use App\Enums\DeliveryNoteStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DeliveryNoteRequest;
 use App\Http\Resources\DeliveryNoteResource;
+use App\Models\Customer;
 use App\Models\DeliveryNote;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,19 +23,37 @@ class DeliveryNoteController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', DeliveryNote::class);
+
+        $sortable = [
+            'number', 'customer_name', 'issue_date', 'delivery_date', 'status', 'created_at', 'id',
+        ];
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = strtolower($request->input('sort_order', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (!in_array($sortBy, $sortable, true)) {
+            $sortBy = 'id';
+        }
+
         $deliveryNotes = DeliveryNote::query()
-            ->with(['customer', 'items', 'invoice'])
+            ->with(['customer:id,company_id,name,email,phone', 'invoice:id,company_id,number,total_xof'])
+            ->withCount('items')
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('number', 'like', "%{$search}%");
+                    $q->where('number', 'like', "%{$search}%")
+                      ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($status = $request->input('status'), function ($query) use ($status) {
                 $query->where('status', $status);
             })
-            ->paginate($request->integer('per_page', 15));
+            ->when($sortBy === 'customer_name', function ($query) use ($sortOrder) {
+                $query->orderBy(Customer::select('name')->whereColumn('customers.id', 'delivery_notes.customer_id'), $sortOrder);
+            }, function ($query) use ($sortBy, $sortOrder) {
+                $query->orderBy($sortBy, $sortOrder);
+            })
+            ->paginate(min($request->integer('per_page', 15), 100));
 
-        return response()->json(DeliveryNoteResource::collection($deliveryNotes), Response::HTTP_OK);
+        return DeliveryNoteResource::collection($deliveryNotes)->response();
     }
 
     public function store(DeliveryNoteRequest $request, CreateDeliveryNoteAction $action): JsonResponse
@@ -49,7 +68,7 @@ class DeliveryNoteController extends Controller
     public function show(DeliveryNote $deliveryNote): JsonResponse
     {
         $this->authorize('view', $deliveryNote);
-        $deliveryNote->load(['customer', 'items', 'invoice']);
+        $deliveryNote->load(['customer', 'items.product:id,name', 'invoice']);
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 
@@ -66,6 +85,18 @@ class DeliveryNoteController extends Controller
         $this->authorize('delete', $deliveryNote);
         $deliveryNote->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $this->authorize('delete', DeliveryNote::class);
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:delivery_notes,id',
+        ]);
+        $count = DeliveryNote::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 
     public function markAsShipped(DeliveryNote $deliveryNote, UpdateDeliveryNoteStatusAction $action): JsonResponse

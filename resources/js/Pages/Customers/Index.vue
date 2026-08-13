@@ -4,10 +4,10 @@
       <BasePageHeader :title="$t('page.customers.title')" :subtitle="meta ? $t('page.customers.title') + ' · ' + meta.total : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.excel') }}
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.csv') }}
+            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'CustomerCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.customers.new') }}
@@ -18,16 +18,16 @@
       <div class="flex flex-col sm:flex-row gap-3">
         <BaseInput v-model="search" :placeholder="$t('page.customers.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
         <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
       </div>
 
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
-        <span class="text-sm font-medium text-text-primary">{{ selectedIds.length }} {{ $t('common.selected') }}</span>
+        <span class="text-sm font-medium text-text-primary">{{ $t('page.customers.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
       </div>
@@ -57,6 +57,9 @@
           @sort="toggleSort"
           clickable
           @row-click="viewCustomer"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selectedIds="selectedIds = $event"
         >
           <template #cell-name="{ row }">
             <div class="flex items-center gap-3">
@@ -157,23 +160,6 @@ const deleteTarget = ref(null);
 let debounceTimer = null;
 
 const hasActiveFilters = computed(() => search.value);
-const allSelected = computed(() => customers.value.length > 0 && selectedIds.value.length === customers.value.length);
-
-function isSelected(id) { return selectedIds.value.includes(id); }
-
-function toggleAll() {
-  if (allSelected.value) {
-    selectedIds.value = [];
-  } else {
-    selectedIds.value = customers.value.map(p => p.id);
-  }
-}
-
-function toggleSelect(id) {
-  const idx = selectedIds.value.indexOf(id);
-  if (idx > -1) selectedIds.value.splice(idx, 1);
-  else selectedIds.value.push(id);
-}
 
 const sortedCustomers = computed(() => {
   if (!sortBy.value) return customers.value;
@@ -224,7 +210,7 @@ async function fetchCustomers(page) {
     meta.value = data.meta ?? null;
     selectedIds.value = [];
   } catch {
-    showToast($t('common.error'), 'error');
+    showToast($t('page.customers.load_error'), 'error');
   } finally {
     loading.value = false;
   }
@@ -246,23 +232,27 @@ function confirmDelete(customer) {
 async function executeDelete() {
   if (!deleteTarget.value) return;
   const id = deleteTarget.value.id;
+  const currentPage = meta.value?.current_page || 1;
   deleteTarget.value = null;
   try {
     await axios.delete(`/customers/${id}`);
     showToast($t('page.customers.deleted'), 'success');
-    fetchCustomers(meta.value?.current_page || 1);
+    const isLastItemOfLastPage = customers.value.length === 1 && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
+    fetchCustomers(isLastItemOfLastPage ? currentPage - 1 : currentPage);
   } catch {
     showToast($t('page.customers.delete_error'), 'error');
   }
 }
 
 async function bulkDelete() {
-  if (!window.confirm(`Delete ${selectedIds.value.length} customers?`)) return;
+  if (!window.confirm($t('page.customers.bulk_delete_confirm', { n: selectedIds.value.length }))) return;
+  const currentPage = meta.value?.current_page || 1;
   try {
     await axios.post('/customers/bulk-delete', { ids: selectedIds.value });
-    showToast('Customers deleted successfully', 'success');
+    showToast($t('common.bulk_delete_success'), 'success');
+    const isLastPageCleared = selectedIds.value.length === customers.value.length && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
     selectedIds.value = [];
-    fetchCustomers(meta.value?.current_page || 1);
+    fetchCustomers(isLastPageCleared ? currentPage - 1 : currentPage);
   } catch {
     showToast($t('common.error'), 'error');
   }
@@ -279,7 +269,7 @@ async function exportExcel() {
     const url = URL.createObjectURL(new Blob([res.data]));
     const a = document.createElement('a'); a.href = url; a.download = exportName('xlsx');
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  } catch {}
+  } catch { showToast($t('common.export_excel_unavailable'), 'error'); }
 }
 
 async function exportCsv() {
@@ -288,6 +278,6 @@ async function exportCsv() {
     const url = URL.createObjectURL(new Blob([res.data]));
     const a = document.createElement('a'); a.href = url; a.download = exportName('csv');
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  } catch {}
+  } catch { showToast($t('common.export_csv_unavailable'), 'error'); }
 }
 </script>

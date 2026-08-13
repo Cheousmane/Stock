@@ -55,6 +55,8 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
 
     // Registration does not require tenant context (creates new tenant)
     Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register')->middleware('throttle:10,10');
+Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->name('auth.verify-email')->middleware('throttle:10,10');
+Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->name('auth.resend-verification')->middleware('throttle:3,5');
 
     // Login detects tenant from user email (no tenant middleware required)
     Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:10,60');
@@ -85,16 +87,24 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         Route::apiResource('warehouses', WarehouseController::class);
 
         // Customers
+        Route::post('customers/bulk-delete', [CustomerController::class, 'bulkDelete'])->name('customers.bulk-delete');
         Route::apiResource('customers', CustomerController::class);
 
         // Suppliers
+        Route::post('suppliers/bulk-delete', [\App\Http\Controllers\Api\v1\SupplierController::class, 'bulkDelete'])->name('suppliers.bulk-delete');
         Route::apiResource('suppliers', \App\Http\Controllers\Api\v1\SupplierController::class);
 
         // Purchase Orders
+        Route::post('purchase-orders/bulk-delete', [\App\Http\Controllers\Api\v1\PurchaseOrderController::class, 'bulkDelete'])->name('purchase-orders.bulk-delete');
         Route::apiResource('purchase-orders', \App\Http\Controllers\Api\v1\PurchaseOrderController::class);
         Route::post('purchase-orders/{purchase_order}/receive', [\App\Http\Controllers\Api\v1\PurchaseOrderController::class, 'markAsReceived'])->name('purchase-orders.receive');
 
+        // Supplier Payments
+        Route::apiResource('supplier-payments', \App\Http\Controllers\Api\v1\SupplierPaymentController::class)->only(['index', 'store']);
+
         // Credit Notes
+        Route::get('credit-notes/creditable-quantities', [\App\Http\Controllers\Api\v1\CreditNoteController::class, 'creditableQuantities'])->name('credit-notes.creditable-quantities');
+        Route::post('credit-notes/bulk-delete', [\App\Http\Controllers\Api\v1\CreditNoteController::class, 'bulkDelete'])->name('credit-notes.bulk-delete');
         Route::apiResource('credit-notes', \App\Http\Controllers\Api\v1\CreditNoteController::class);
         Route::post('credit-notes/{credit_note}/validate', [\App\Http\Controllers\Api\v1\CreditNoteController::class, 'validateCreditNote'])->name('credit-notes.validate');
 
@@ -127,6 +137,7 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         });
 
         // Delivery Notes
+        Route::post('delivery-notes/bulk-delete', [DeliveryNoteController::class, 'bulkDelete'])->name('delivery-notes.bulk-delete');
         Route::apiResource('delivery-notes', DeliveryNoteController::class);
         Route::patch('delivery-notes/{delivery_note}/mark-as-shipped', [DeliveryNoteController::class, 'markAsShipped'])->name('delivery-notes.mark-as-shipped');
         Route::patch('delivery-notes/{delivery_note}/mark-as-delivered', [DeliveryNoteController::class, 'markAsDelivered'])->name('delivery-notes.mark-as-delivered');
@@ -139,6 +150,7 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         Route::apiResource('taxes', TaxController::class);
 
         // Quotes
+        Route::post('quotes/bulk-delete', [QuoteController::class, 'bulkDelete'])->name('quotes.bulk-delete');
         Route::apiResource('quotes', QuoteController::class);
         Route::patch('quotes/{quote}/mark-as-sent', [QuoteController::class, 'markAsSent'])->name('quotes.mark-as-sent');
         Route::patch('quotes/{quote}/mark-as-accepted', [QuoteController::class, 'markAsAccepted'])->name('quotes.mark-as-accepted');
@@ -234,6 +246,18 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         Route::get('exports/invoices', [ExportController::class, 'exportInvoices'])->name('exports.invoices');
         Route::get('exports/invoices/csv', [ExportController::class, 'exportInvoicesCsv'])->name('exports.invoices.csv');
         Route::get('exports/stock', [ExportController::class, 'exportStock'])->name('exports.stock');
+        Route::get('exports/delivery-notes', [ExportController::class, 'exportDeliveryNotes'])->name('exports.delivery-notes');
+        Route::get('exports/delivery-notes/csv', [ExportController::class, 'exportDeliveryNotesCsv'])->name('exports.delivery-notes.csv');
+        Route::get('exports/expenses', [ExportController::class, 'exportExpenses'])->name('exports.expenses');
+        Route::get('exports/expenses/csv', [ExportController::class, 'exportExpensesCsv'])->name('exports.expenses.csv');
+        Route::get('exports/quotes', [ExportController::class, 'exportQuotes'])->name('exports.quotes');
+        Route::get('exports/quotes/csv', [ExportController::class, 'exportQuotesCsv'])->name('exports.quotes.csv');
+        Route::get('exports/credit-notes', [ExportController::class, 'exportCreditNotes'])->name('exports.credit-notes');
+        Route::get('exports/credit-notes/csv', [ExportController::class, 'exportCreditNotesCsv'])->name('exports.credit-notes.csv');
+        Route::get('exports/suppliers', [ExportController::class, 'exportSuppliers'])->name('exports.suppliers');
+        Route::get('exports/suppliers/csv', [ExportController::class, 'exportSuppliersCsv'])->name('exports.suppliers.csv');
+        Route::get('exports/purchase-orders', [ExportController::class, 'exportPurchaseOrders'])->name('exports.purchase-orders');
+        Route::get('exports/purchase-orders/csv', [ExportController::class, 'exportPurchaseOrdersCsv'])->name('exports.purchase-orders.csv');
 
         // Exports (async - queued)
         Route::post('exports/async/{type}', [ExportController::class, 'exportAsync'])->name('exports.async');
@@ -245,13 +269,17 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'admin', 'bindings'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/companies/stats', [AdminCompanyController::class, 'stats'])->name('companies.stats');
+        Route::get('/companies/export', [AdminCompanyController::class, 'export'])->name('companies.export');
         Route::get('/companies', [AdminCompanyController::class, 'index'])->name('companies.index');
         Route::get('/companies/{company}', [AdminCompanyController::class, 'show'])->name('companies.show');
         Route::put('/companies/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
         Route::post('/companies/{company}/suspend', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
         Route::post('/companies/{company}/activate', [AdminCompanyController::class, 'activate'])->name('companies.activate');
         Route::get('/login-logs', [AdminLoginLogController::class, 'index'])->name('login-logs');
+        Route::get('/login-logs/export', [AdminLoginLogController::class, 'export'])->name('login-logs.export');
+        Route::get('/login-logs/summary', [AdminLoginLogController::class, 'summary'])->name('login-logs.summary');
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/activity-logs/export', [AdminActivityLogController::class, 'export'])->name('activity-logs.export');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users/{id}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
         Route::post('/users/{id}/activate', [AdminUserController::class, 'activate'])->name('users.activate');

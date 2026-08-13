@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->removeFromGroup('api', \Illuminate\Routing\Middleware\SubstituteBindings::class);
     })
+->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule): void {
+        $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping();
+        $schedule->command('stock:alerts')->dailyAt('08:05')->withoutOverlapping();
+        $schedule->command('companies:manage-statuses')->dailyAt('08:10')->withoutOverlapping();
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

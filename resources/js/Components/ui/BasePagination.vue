@@ -7,7 +7,7 @@
       <button
         @click="$emit('change', 1)"
         :disabled="currentPage <= 1"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
@@ -16,7 +16,7 @@
       <button
         @click="$emit('change', currentPage - 1)"
         :disabled="currentPage <= 1"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -27,7 +27,7 @@
         <button
           v-else
           @click="$emit('change', p)"
-          class="min-w-[32px] h-8 text-xs font-medium rounded-lg transition-all duration-150"
+          class="min-w-[32px] h-8 text-xs font-medium rounded-lg transition-all duration-150 active:scale-90"
           :class="p === currentPage ? 'bg-primary-600 text-white shadow-sm' : 'text-text-secondary hover:bg-surface-tertiary'"
         >
           {{ p }}
@@ -36,7 +36,7 @@
       <button
         @click="$emit('change', currentPage + 1)"
         :disabled="currentPage >= lastPage"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -45,7 +45,7 @@
       <button
         @click="$emit('change', lastPage)"
         :disabled="currentPage >= lastPage"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 4.5l7.5 7.5-7.5 7.5m6-15l7.5 7.5-7.5 7.5" />

@@ -18,7 +18,7 @@ class TaxController extends Controller
     {
         $this->authorize('viewAny', Tax::class);
         $taxes = Tax::query()->paginate(15);
-        return response()->json(TaxResource::collection($taxes), Response::HTTP_OK);
+        return TaxResource::collection($taxes)->response();
     }
 
     public function store(TaxRequest $request): JsonResponse

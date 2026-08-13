@@ -13,7 +13,7 @@ uses(RefreshDatabase::class);
 
 describe('Auth', function () {
 
-    it('can register a company, user, and return a token', function () {
+    it('can register a company and user, and requires email verification', function () {
         $payload = [
             'company_name' => 'Acme Corp',
             'company_slug' => 'acme-corp',
@@ -26,10 +26,11 @@ describe('Auth', function () {
         $response = $this->postJson('/api/v1/auth/register', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED)
+            ->assertJsonPath('requires_verification', true)
             ->assertJsonStructure([
                 'user' => ['uuid', 'name', 'email', 'company'],
-                'access_token',
-                'token_type',
+                'requires_verification',
+                'message',
             ]);
 
         $this->assertDatabaseHas('companies', ['slug' => 'acme-corp']);

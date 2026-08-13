@@ -56,7 +56,7 @@ describe('Tenant Isolation', function () {
         ])->getJson('/api/v1/products');
 
         $indexResponse->assertStatus(Response::HTTP_OK);
-        $ids = collect($indexResponse->json())->pluck('id');
+        $ids = collect($indexResponse->json('data'))->pluck('id');
         expect($ids)->toContain($productA->id);
     });
 

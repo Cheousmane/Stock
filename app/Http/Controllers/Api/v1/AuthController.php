@@ -12,8 +12,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterCompanyRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
@@ -26,20 +30,117 @@ class AuthController extends Controller
     /**
      * Register a new company (tenant) and its owner.
      */
-    public function register(RegisterCompanyRequest $request, RegisterCompanyAction $action): JsonResponse
-    {
+    public function register(
+        RegisterCompanyRequest $request,
+        RegisterCompanyAction $action,
+        EmailVerificationService $verification,
+    ): JsonResponse {
         $dto = RegisterCompanyDTO::fromRequest($request->validated());
 
         $result = $action->execute($dto);
 
-        // Generate Sanctum API token
-        $token = $result['user']->createToken('auth_token')->plainTextToken;
+        // Envoi du code de vérification e-mail (anti-bots) : pas de token tant que l'e-mail n'est pas confirmé
+        $verification->sendCode($result['user']->email, $result['user']->name);
 
         return response()->json([
             'user' => new UserResource($result['user']->load('company', 'roles')),
+            'requires_verification' => true,
+            'message' => 'Compte créé. Un code de vérification a été envoyé à votre adresse e-mail.',
+        ], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Confirm the registered account with the emailed code.
+     */
+    public function verifyEmail(Request $request, EmailVerificationService $verification): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'code' => ['required', 'string', 'size:6'],
+        ]);
+
+        $user = User::withoutGlobalScopes()
+            ->where('email', $validated['email'])
+            ->first();
+
+        if ($user === null) {
+            throw ValidationException::withMessages([
+                'email' => ['Aucun compte ne correspond à cette adresse e-mail.'],
+            ]);
+        }
+
+        if ($user->email_verified_at !== null) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse e-mail est déjà vérifiée.'],
+            ]);
+        }
+
+        $result = $verification->verify($validated['email'], $validated['code']);
+
+        if ($result['status'] !== 'ok') {
+            throw ValidationException::withMessages([
+                'code' => [$result['message']],
+            ]);
+        }
+
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        // Generate Sanctum API token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user' => new UserResource($user->load('company', 'roles')),
             'access_token' => $token,
             'token_type' => 'Bearer',
-        ], Response::HTTP_CREATED);
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Resend the verification code (rate-limited per email).
+     */
+    public function resendVerification(Request $request, EmailVerificationService $verification): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:255'],
+        ]);
+
+        $key = 'resend-verification:' . strtolower($validated['email']);
+
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            throw ValidationException::withMessages([
+                'email' => ['Trop de demandes. Réessayez dans quelques minutes.'],
+            ]);
+        }
+
+        RateLimiter::hit($key, 300);
+
+        if (! $verification->canResend($validated['email'])) {
+            throw ValidationException::withMessages([
+                'email' => ['Un code a déjà été envoyé récemment. Attendez quelques secondes.'],
+            ]);
+        }
+
+        $user = User::withoutGlobalScopes()
+            ->where('email', $validated['email'])
+            ->first();
+
+        if ($user === null) {
+            throw ValidationException::withMessages([
+                'email' => ['Aucun compte ne correspond à cette adresse e-mail.'],
+            ]);
+        }
+
+        if ($user->email_verified_at !== null) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse e-mail est déjà vérifiée.'],
+            ]);
+        }
+
+        $verification->sendCode($user->email, $user->name);
+
+        return response()->json([
+            'message' => 'Un nouveau code de vérification a été envoyé.',
+        ], Response::HTTP_OK);
     }
 
     /**

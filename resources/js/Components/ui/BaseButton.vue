@@ -2,7 +2,7 @@
   <component
     :is="tag"
     :class="[
-      'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus:outline-none select-none',
+      'inline-flex items-center justify-center gap-2 font-medium focus:outline-none select-none transition-transform duration-150 active:scale-[0.97]',
       variantClasses[variant],
       sizeClasses[size],
       { 'opacity-50 pointer-events-none': loading || disabled },
@@ -35,13 +35,13 @@ const tag = computed(() => props.loading || props.disabled ? 'button' : (attrs.t
 
 const variantClasses = {
   primary:
-    'bg-gradient-to-b from-primary-500 to-primary-700 text-white shadow-sm shadow-primary-500/20 dark:from-primary-600 dark:to-primary-800 dark:text-gray-50 dark:shadow-primary-500/5 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary-500/30 dark:hover:shadow-primary-500/20 active:shadow-inner focus-visible:ring-2 focus-visible:ring-primary-500/30 rounded-xl',
+    'bg-gradient-to-b from-primary-500 to-primary-700 text-white shadow-sm shadow-primary-500/20 dark:from-primary-600 dark:to-primary-800 dark:text-gray-50 dark:shadow-primary-500/5 hover:brightness-110 hover:shadow-md hover:shadow-primary-500/25 dark:hover:brightness-110 active:shadow-inner focus-visible:ring-2 focus-visible:ring-primary-500/30 rounded-xl',
   secondary:
-    'bg-white border border-neutral-200 text-neutral-700 shadow-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-neutral-50 hover:border-neutral-300 dark:hover:bg-neutral-700 dark:hover:border-neutral-600 dark:hover:text-neutral-100 active:bg-neutral-100 dark:active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-400/30 rounded-xl',
+    'bg-white border border-neutral-200 text-neutral-700 shadow-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 hover:border-neutral-300 dark:hover:bg-neutral-700 dark:hover:border-neutral-600 dark:hover:text-neutral-100 active:bg-neutral-100 dark:active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-400/30 rounded-xl',
   ghost:
     'text-neutral-600 hover:text-primary-700 hover:bg-primary-50 dark:text-neutral-400 dark:hover:text-primary-300 dark:hover:bg-primary-500/10 active:bg-primary-100 dark:active:bg-primary-500/20 rounded-xl',
   danger:
-    'bg-gradient-to-b from-red-500 to-red-700 text-white shadow-sm shadow-red-500/20 dark:from-red-600 dark:to-red-800 dark:text-gray-50 dark:shadow-red-500/5 hover:-translate-y-0.5 hover:shadow-md hover:shadow-red-500/30 dark:hover:shadow-red-500/20 active:shadow-inner focus-visible:ring-2 focus-visible:ring-red-500/30 rounded-xl',
+    'bg-gradient-to-b from-red-500 to-red-700 text-white shadow-sm shadow-red-500/20 dark:from-red-600 dark:to-red-800 dark:text-gray-50 dark:shadow-red-500/5 hover:brightness-110 hover:shadow-md hover:shadow-red-500/25 dark:hover:brightness-110 active:shadow-inner focus-visible:ring-2 focus-visible:ring-red-500/30 rounded-xl',
   'danger-ghost':
     'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/20 active:bg-red-100 dark:active:bg-red-500/30 rounded-xl',
 }

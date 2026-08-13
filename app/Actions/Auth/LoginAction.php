@@ -46,6 +46,12 @@ class LoginAction
             ]);
         }
 
+        if ($user->email_verified_at === null) {
+            throw ValidationException::withMessages([
+                'email_verification' => ['Votre adresse e-mail n\'a pas été vérifiée. Un code de confirmation vous a été envoyé.'],
+            ]);
+        }
+
         if ($user->company && $user->company->status === 'suspended') {
             throw ValidationException::withMessages([
                 'email' => ['Le compte de votre entreprise a été suspendu.'],

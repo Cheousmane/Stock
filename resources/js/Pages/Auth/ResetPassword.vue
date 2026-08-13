@@ -1,6 +1,6 @@
 <template>
   <!-- Page de réinitialisation du mot de passe avec token -->
-  <div class="flex min-h-screen animate-fade-in">
+  <div class="flex min-h-screen">
     <!-- Panneau gauche - Marque et présentation -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -25,7 +25,7 @@
 
     <!-- Panneau droit - Formulaire de réinitialisation -->
     <div class="flex-1 flex items-center justify-center px-4 sm:px-6 bg-[var(--color-surface-secondary)]">
-      <div class="w-full max-w-sm animate-slide-up">
+      <div class="w-full max-w-sm">
         <!-- Logo mobile (caché sur desktop) -->
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
@@ -66,7 +66,7 @@
                   required
                   autocomplete="new-password"
                   placeholder="••••••••"
-                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -89,14 +89,14 @@
                 required
                 autocomplete="new-password"
                 placeholder="••••••••"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] transition-all duration-200 focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
             </div>
             <!-- Bouton de soumission -->
             <button
               type="submit"
               :disabled="loading"
-              class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20 transition-all duration-200 active:scale-[0.98]"
+              class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-500/20"
             >
               <span v-if="loading" class="flex items-center justify-center gap-2">
                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -162,17 +162,3 @@ async function submit() {
   }
 }
 </script>
-
-<style scoped>
-/* Animations d'entrée */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in { animation: fade-in 0.4s ease-out; }
-.animate-slide-up { animation: slide-up 0.4s ease-out; }
-</style>

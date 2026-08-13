@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.events.title')" :subtitle="meta ? $t('common.total') + ': ' + meta.total : undefined">
+      <BasePageHeader :title="$t('page.events.title')" :subtitle="meta ? $t('page.events.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'EventCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.events.create') }}
@@ -10,13 +10,13 @@
       </BasePageHeader>
 
       <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" placeholder="Rechercher par titre..." clearable size="sm" class="flex-1 max-w-xs" />
-        <BaseButton v-if="hasActiveFilters" variant="ghost" size="sm" @click="resetFilters">{{ $t('common.clear') }}</BaseButton>
+        <BaseInput v-model="search" :placeholder="$t('page.events.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
         <BaseSelect v-model="perPage" :options="[
-          { value: 10, label: '10 / page' },
-          { value: 25, label: '25 / page' },
-          { value: 50, label: '50 / page' },
-          { value: 100, label: '100 / page' },
+          { value: 10, label: `10 ${$t('common.per_page')}` },
+          { value: 25, label: `25 ${$t('common.per_page')}` },
+          { value: 50, label: `50 ${$t('common.per_page')}` },
+          { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
       </div>
 
@@ -48,13 +48,13 @@
             <p class="text-sm font-medium text-text-primary truncate max-w-[250px]">{{ row.title }}</p>
           </template>
           <template #cell-type="{ row }">
-            <span class="text-sm text-text-secondary">{{ row.type }}</span>
+            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', 'bg-gray-100 text-gray-700 border-gray-200']">{{ $t(typeMap[row.type] || 'page.events.type_other') }}</span>
           </template>
           <template #cell-start_date="{ row }">
-            <span class="text-sm text-text-secondary">{{ row.start_date }}</span>
+            <span class="text-sm text-text-secondary">{{ formatDate(row.start_date) }}</span>
           </template>
           <template #cell-end_date="{ row }">
-            <span class="text-sm text-text-secondary">{{ row.end_date || '—' }}</span>
+            <span class="text-sm text-text-secondary">{{ formatDate(row.end_date) }}</span>
           </template>
           <template #cell-description="{ row }">
             <span class="text-sm text-text-secondary truncate max-w-xs block">{{ row.description || '—' }}</span>
@@ -67,6 +67,10 @@
                 </button>
               </template>
               <template #menu>
+                <router-link :to="{ name: 'EventEdit', params: { id: row.id } }" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors">
+                  <span class="text-text-tertiary"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
+                </router-link>
+                <hr class="my-1 border-border" />
                 <button @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
                 </button>
@@ -111,7 +115,7 @@ import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseDropdown from '../../Components/ui/BaseDropdown.vue';
 import BaseModal from '../../Components/ui/BaseModal.vue';
 import {
-  PlusIcon, TrashIcon,
+  PlusIcon, TrashIcon, PencilIcon,
   EllipsisVerticalIcon,
 } from '@heroicons/vue/24/outline';
 
@@ -129,6 +133,18 @@ const search = ref('');
 let debounceTimer = null;
 
 const hasActiveFilters = computed(() => search.value);
+
+const typeMap = {
+  meeting: 'page.events.type_meeting',
+  appointment: 'page.events.type_appointment',
+  call: 'page.events.type_call',
+  task: 'page.events.type_task',
+  other: 'page.events.type_other',
+};
+
+function formatDate(value) {
+  return value ? value.slice(0, 10) : '—';
+}
 
 const sortedEvents = computed(() => {
   if (!sortBy.value) return events.value;
@@ -159,7 +175,7 @@ async function fetchEvents(page) {
     const { data } = await axios.get('/events', { params });
     events.value = data.data ?? data;
     meta.value = data.meta ?? null;
-  } catch {} finally { loading.value = false; }
+  } catch { showToast($t('page.events.load_error'), 'error'); } finally { loading.value = false; }
 }
 
 function resetFilters() { search.value = ''; }
@@ -179,11 +195,13 @@ function confirmDelete(e) { deleteTarget.value = e; }
 async function executeDelete() {
   if (!deleteTarget.value) return;
   const id = deleteTarget.value.id;
+  const currentPage = meta.value?.current_page || 1;
   deleteTarget.value = null;
   try {
     await axios.delete(`/events/${id}`);
     showToast($t('page.events.deleted'), 'success');
-    fetchEvents(meta.value?.current_page || 1);
+    const isLastItemOfLastPage = events.value.length === 1 && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
+    fetchEvents(isLastItemOfLastPage ? currentPage - 1 : currentPage);
   } catch { showToast($t('common.delete_error'), 'error'); }
 }
 </script>

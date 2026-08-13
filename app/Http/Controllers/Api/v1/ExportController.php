@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\v1;
 
 use App\Exports\CustomersExport;
+use App\Exports\CreditNotesExport;
+use App\Exports\DeliveryNotesExport;
+use App\Exports\ExpensesExport;
 use App\Exports\InvoicesExport;
 use App\Exports\ProductsExport;
+use App\Exports\PurchaseOrdersExport;
+use App\Exports\QuotesExport;
 use App\Exports\StockExport;
+use App\Exports\SuppliersExport;
 use App\Http\Controllers\Controller;
 use App\Jobs\ExportJob;
 use App\Models\Export;
@@ -95,6 +101,120 @@ class ExportController extends Controller
         return Excel::download(
             new StockExport(),
             $this->fileName('stock')
+        );
+    }
+
+    public function exportDeliveryNotes(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new DeliveryNotesExport(),
+            $this->fileName('delivery-notes')
+        );
+    }
+
+    public function exportDeliveryNotesCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new DeliveryNotesExport(),
+            $this->fileName('delivery-notes', 'csv'),
+            ExcelType::CSV
+        );
+    }
+
+    public function exportExpenses(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new ExpensesExport(),
+            $this->fileName('expenses')
+        );
+    }
+
+    public function exportExpensesCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new ExpensesExport(),
+            $this->fileName('expenses', 'csv'),
+            ExcelType::CSV
+        );
+    }
+
+    public function exportQuotes(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new QuotesExport(),
+            $this->fileName('quotes')
+        );
+    }
+
+    public function exportQuotesCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new QuotesExport(),
+            $this->fileName('quotes', 'csv'),
+            ExcelType::CSV
+        );
+    }
+
+    public function exportCreditNotes(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new CreditNotesExport(),
+            $this->fileName('credit-notes')
+        );
+    }
+
+    public function exportCreditNotesCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new CreditNotesExport(),
+            $this->fileName('credit-notes', 'csv'),
+            ExcelType::CSV
+        );
+    }
+
+    public function exportSuppliers(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new SuppliersExport(),
+            $this->fileName('suppliers')
+        );
+    }
+
+    public function exportSuppliersCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new SuppliersExport(),
+            $this->fileName('suppliers', 'csv'),
+            ExcelType::CSV
+        );
+    }
+
+    public function exportPurchaseOrders(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new PurchaseOrdersExport(),
+            $this->fileName('purchase-orders')
+        );
+    }
+
+    public function exportPurchaseOrdersCsv(): BinaryFileResponse
+    {
+        $this->authorize('export_data');
+        return Excel::download(
+            new PurchaseOrdersExport(),
+            $this->fileName('purchase-orders', 'csv'),
+            ExcelType::CSV
         );
     }
 

@@ -4,11 +4,14 @@ namespace App\Observers;
 
 use App\Models\Payment;
 use App\Models\PosSale;
+use App\Support\DashboardCache;
 
 class PosSaleObserver
 {
     public function created(PosSale $posSale): void
     {
+        DashboardCache::forget($posSale->company_id);
+
         if ($posSale->status !== 'completed') {
             return;
         }

@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, inject } from 'vue';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
@@ -89,6 +89,7 @@ import BaseButton from '../../Components/ui/BaseButton.vue';
 import { XMarkIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 
 const { t: $t } = useI18n();
+const showToast = inject('showToast');
 
 const loading = ref(true);
 const saving = ref(false);
@@ -117,8 +118,8 @@ async function fetchCapital(silent = false) {
     error.value = '';
   } catch (e) {
     if (!silent) {
-      if (e.response?.status === 403) { error.value = "Vous n'avez pas accès à cette partie."; }
-      else { error.value = e.response?.data?.message || 'Erreur lors du chargement.'; }
+      if (e.response?.status === 403) { error.value = $t('capital.unauthorized'); }
+      else { error.value = e.response?.data?.message || $t('capital.load_error'); }
     }
   } finally { if (!silent) loading.value = false; }
 }
@@ -134,8 +135,10 @@ async function saveCapital() {
     const res = await axios.put('/capital', { initial_capital: form.initial_capital });
     data.value = res.data.data;
     hasChanges.value = false;
+    showToast($t('capital.save_success'), 'success');
   } catch (e) {
-    if (e.response?.status === 403) { error.value = "Vous n'avez pas accès à cette partie."; }
+    if (e.response?.status === 403) { error.value = $t('capital.unauthorized'); }
+    else { showToast(e.response?.data?.message || $t('capital.save_error'), 'error'); }
   } finally { saving.value = false; }
 }
 

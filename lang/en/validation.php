@@ -166,6 +166,10 @@ return [
     'url' => 'The :attribute field must be a valid URL.',
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
+    'credit_note_quantity_exceeded' => 'The quantity exceeds the remaining creditable amount for this product for this customer (available: :max).',
+    'supplier_payment_order_mismatch' => 'The purchase order does not belong to the selected supplier.',
+    'supplier_payment_exceeds_order' => 'The amount exceeds the remaining balance of this purchase order (remaining: :max).',
+    'supplier_payment_exceeds_balance' => 'The amount exceeds the supplier current debt (remaining: :max).',
 
     /*
     |--------------------------------------------------------------------------

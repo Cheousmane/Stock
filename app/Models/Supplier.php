@@ -27,10 +27,12 @@ class Supplier extends Model
         'registration_number',
         'notes',
         'is_active',
+        'balance_xof',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'balance_xof' => 'integer',
     ];
 
     protected static function booted(): void
@@ -43,7 +45,7 @@ class Supplier extends Model
                 $maxId = static::withTrashed()
                     ->where('company_id', $supplier->company_id)
                     ->max('id') ?? 0;
-                $supplier->code = 'SUP-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
+                $supplier->code = 'SUP-' . str_pad((string) ($maxId + 1), 6, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -51,5 +53,10 @@ class Supplier extends Model
     public function purchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(SupplierPayment::class);
     }
 }

@@ -51,6 +51,7 @@
             { key: 'email', label: $t('form.email'), sortable: true, class: 'hidden md:table-cell' },
             { key: 'phone', label: $t('form.phone'), sortable: true, class: 'hidden lg:table-cell' },
             { key: 'city', label: $t('page.suppliers.city_country'), sortable: true, class: 'hidden lg:table-cell' },
+            { key: 'balance_xof', label: $t('page.suppliers.balance'), sortable: true, align: 'right', class: 'hidden lg:table-cell' },
             { key: 'is_active', label: $t('common.status'), sortable: true, align: 'center', class: 'hidden sm:table-cell' },
           ]"
           :rows="sortedSuppliers"
@@ -81,6 +82,11 @@
           </template>
           <template #cell-city="{ row }">
             <span class="text-sm text-text-secondary">{{ row.city }} / {{ row.country }}</span>
+          </template>
+          <template #cell-balance_xof="{ row }">
+            <span class="text-sm font-medium" :class="Number(row.balance_xof) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-text-tertiary'">
+              {{ Number(row.balance_xof) > 0 ? formatXOF(row.balance_xof) : '—' }}
+            </span>
           </template>
           <template #cell-is_active="{ row }">
             <BaseBadge :variant="row.is_active ? 'success' : 'default'">{{ row.is_active ? $t('status.active') : $t('status.inactive') }}</BaseBadge>
@@ -150,6 +156,10 @@ import {
 const { t: $t } = useI18n();
 const router = useRouter();
 const showToast = inject('showToast', (msg) => alert(msg));
+
+function formatXOF(amount) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount || 0);
+}
 
 const suppliers = ref([]);
 const loading = ref(true);

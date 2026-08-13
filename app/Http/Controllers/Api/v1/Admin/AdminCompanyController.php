@@ -57,6 +57,40 @@ class AdminCompanyController extends Controller
         $company->last_login = $lastLogin;
         $company->owner = $company->users->sortBy('id')->first();
 
+        $invoicedVolume30d = (int) \App\Models\Invoice::where('company_id', $company->id)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', \App\Enums\InvoiceStatus::Cancelled->value)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->sum('total_xof');
+
+        $invoicesCount30d = (int) \App\Models\Invoice::where('company_id', $company->id)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', \App\Enums\InvoiceStatus::Cancelled->value)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+
+        $company->invoiced_volume_30d = $invoicedVolume30d;
+        $company->invoices_count_30d = $invoicesCount30d;
+
+        $timeline = \Spatie\Activitylog\Models\Activity::with('causer')
+            ->where('company_id', $company->id)
+            ->latest()
+            ->limit(30)
+            ->get()
+            ->map(fn ($a) => [
+                'id' => $a->id,
+                'created_at' => $a->created_at,
+                'description' => $a->description,
+                'event' => $a->event,
+                'log_name' => $a->log_name,
+                'user' => $a->causer ? [
+                    'name' => $a->causer->name,
+                    'email' => $a->causer->email,
+                ] : null,
+            ]);
+
+        $company->timeline = $timeline;
+
         return response()->json(new AdminCompanyResource($company), Response::HTTP_OK);
     }
 
@@ -71,6 +105,8 @@ class AdminCompanyController extends Controller
             'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'address' => ['sometimes', 'nullable', 'string'],
             'plan_id' => ['sometimes', 'nullable', 'exists:plans,id'],
+            'trial_ends_at' => ['sometimes', 'nullable', 'date'],
+            'suspended_until' => ['sometimes', 'nullable', 'date'],
         ]);
 
         if (isset($validated['status'])) {
@@ -83,6 +119,14 @@ class AdminCompanyController extends Controller
                 $metadata[$field] = $validated[$field];
                 unset($validated[$field]);
             }
+        }
+        if (array_key_exists('suspended_until', $validated)) {
+            if ($validated['suspended_until'] === null) {
+                unset($metadata['suspended_until']);
+            } else {
+                $metadata['suspended_until'] = $validated['suspended_until'];
+            }
+            unset($validated['suspended_until']);
         }
         if ($metadata !== ($company->metadata ?? [])) {
             $validated['metadata'] = $metadata;
@@ -139,8 +183,40 @@ class AdminCompanyController extends Controller
                 ->pluck('count', 'industry'),
             'registrations_last_30_days' => Company::where('created_at', '>=', now()->subDays(30))->count(),
             'registrations_last_7_days' => Company::where('created_at', '>=', now()->subDays(7))->count(),
+            'plans' => \App\Models\Plan::orderBy('sort')->get(['id', 'name', 'slug', 'price_xof', 'is_active']),
         ];
 
         return response()->json($stats, Response::HTTP_OK);
+    }
+
+    /**
+     * Export companies matching the same filters as index().
+     */
+    public function export(Request $request)
+    {
+        $companies = Company::with(['plan'])
+            ->withCount(['users'])
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('slug', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('status'), function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->when($request->input('size'), function ($query, $size) {
+                $query->where('size', $size);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10000)
+            ->get();
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\AdminCompaniesExport($companies),
+            'entreprises-' . date('Y-m-d-His') . '.csv',
+            \Maatwebsite\Excel\Excel::CSV
+        );
     }
 }

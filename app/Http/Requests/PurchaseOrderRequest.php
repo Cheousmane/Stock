@@ -42,7 +42,9 @@ class PurchaseOrderRequest extends FormRequest
             'metadata' => ['nullable', 'array'],
 
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.name' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:1000'],
             'items.*.product_variant_id' => ['nullable', 'exists:product_variants,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price_xof' => ['required', 'integer', 'min:0'],

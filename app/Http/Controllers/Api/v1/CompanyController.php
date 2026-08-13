@@ -16,6 +16,7 @@ class CompanyController extends Controller
     public function show(): JsonResponse
     {
         $company = TenantContext::get();
+
         return response()->json($company);
     }
 
@@ -31,6 +32,14 @@ class CompanyController extends Controller
             'currency' => 'sometimes|nullable|string|max:10',
             'industry' => 'sometimes|nullable|string|max:100',
             'size' => 'sometimes|nullable|string|in:petite,moyenne,grande',
+            'locale' => 'sometimes|nullable|string|in:fr,en',
+            'brand_color' => 'sometimes|nullable|string|max:9',
+            'legal_rc' => 'sometimes|nullable|string|max:255',
+            'legal_ifu' => 'sometimes|nullable|string|max:255',
+            'legal_rccm' => 'sometimes|nullable|string|max:255',
+            'bank_name' => 'sometimes|nullable|string|max:255',
+            'bank_account' => 'sometimes|nullable|string|max:255',
+            'bank_swift' => 'sometimes|nullable|string|max:50',
         ]);
 
         $data = [];
@@ -45,7 +54,12 @@ class CompanyController extends Controller
         }
 
         $metadata = $company->metadata ?? [];
-        foreach (['email', 'phone', 'address', 'currency'] as $field) {
+        $metadataFields = [
+            'email', 'phone', 'address', 'currency', 'locale', 'brand_color',
+            'legal_rc', 'legal_ifu', 'legal_rccm',
+            'bank_name', 'bank_account', 'bank_swift',
+        ];
+        foreach ($metadataFields as $field) {
             if (array_key_exists($field, $validated)) {
                 $metadata[$field] = $validated[$field];
             }
@@ -53,6 +67,7 @@ class CompanyController extends Controller
         $data['metadata'] = $metadata;
 
         $company->update($data);
+
         return response()->json($company);
     }
 
@@ -67,7 +82,7 @@ class CompanyController extends Controller
         $company->update(['plan_id' => $plan->id]);
 
         return response()->json([
-            'message' => 'Plan switched to ' . $plan->name,
+            'message' => 'Plan switched to '.$plan->name,
             'plan' => $plan,
         ]);
     }
@@ -81,6 +96,7 @@ class CompanyController extends Controller
         $metadata = $company->metadata ?? [];
         $metadata['logo'] = $path;
         $company->update(['metadata' => $metadata]);
+
         return response()->json(['logo_url' => Storage::url($path)]);
     }
 

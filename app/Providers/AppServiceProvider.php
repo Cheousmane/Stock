@@ -22,9 +22,13 @@ use App\Models\WebhookEndpoint;
 use App\Models\Event;
 use App\Models\Expense;
 use App\Models\Export;
+use App\Observers\CreditNoteObserver;
+use App\Observers\ExpenseObserver;
 use App\Observers\InvoiceObserver;
+use App\Observers\PaymentObserver;
 use App\Observers\PosSaleObserver;
 use App\Observers\ProductObserver;
+use App\Observers\PurchaseOrderObserver;
 use App\Observers\WarehouseStockObserver;
 use App\Policies\CategoryPolicy;
 use App\Policies\CustomerPolicy;
@@ -98,8 +102,14 @@ class AppServiceProvider extends ServiceProvider
         }
         Product::observe(ProductObserver::class);
         Invoice::observe(InvoiceObserver::class);
+        \App\Models\Company::observe(\App\Observers\CompanyObserver::class);
+        \App\Models\User::observe(\App\Observers\UserObserver::class);
         \App\Models\WarehouseStock::observe(WarehouseStockObserver::class);
         \App\Models\PosSale::observe(PosSaleObserver::class);
+        \App\Models\Payment::observe(\App\Observers\PaymentObserver::class);
+        \App\Models\Expense::observe(\App\Observers\ExpenseObserver::class);
+        \App\Models\CreditNote::observe(\App\Observers\CreditNoteObserver::class);
+        \App\Models\PurchaseOrder::observe(\App\Observers\PurchaseOrderObserver::class);
 
         Gate::before(function (User $user) {
             if (app()->environment('testing')) {
