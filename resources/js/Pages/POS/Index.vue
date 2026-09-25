@@ -1,257 +1,325 @@
 <template>
   <PosLayout :session="session">
-    <!-- Left: Products -->
-    <div class="flex-1 flex flex-col bg-surface-secondary border-r border-border">
-      <div class="p-4 bg-surface border-b flex gap-4 shadow-sm z-10">
-        <div class="relative flex-1">
-          <input v-model="searchQuery" @keydown.enter="searchExactMatch" type="text" placeholder="Rechercher un produit ou scanner un code-barres..."
-            class="w-full pl-10 pr-4 py-3 bg-surface-tertiary border border-transparent rounded-xl focus:bg-surface focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-text-primary placeholder:text-text-tertiary font-medium outline-none"
-            ref="searchInput">
-          <span class="absolute left-3.5 top-3.5 text-text-tertiary"><MagnifyingGlassIcon class="w-5 h-5" /></span>
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4">
-        <div v-if="loading" class="flex justify-center items-center h-full text-text-tertiary">Chargement du catalogue...</div>
-        <div v-else-if="filteredProducts.length === 0" class="flex justify-center items-center h-full text-text-tertiary">Aucun produit trouvé.</div>
-        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-max">
-          <div v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)"
-            class="bg-surface rounded-xl shadow-sm border border-border/60 overflow-hidden cursor-pointer group transition-all duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-400/70 active:scale-[0.97]">
-            <div class="h-28 bg-surface-tertiary flex items-center justify-center relative overflow-hidden">
-              <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : '/storage/' + product.image"
-                class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110" :alt="product.name">
-              <span v-else class="text-text-tertiary transition-transform duration-500 ease-out group-hover:scale-110"><PhotoIcon class="w-10 h-10" /></span>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"></div>
-              <div v-if="product.price_xof !== undefined" class="absolute bottom-2 right-2 bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm z-10 transition-all duration-300 group-hover:scale-110 group-hover:shadow-md group-hover:shadow-emerald-600/40">{{ formatMoney(product.price_xof) }}</div>
+    <div class="flex-1 flex flex-col xl:flex-row min-h-0 min-w-0">
+      <!-- ═══ CATALOG ═══ -->
+      <section class="flex-1 flex flex-col min-w-0 min-h-0">
+        <div class="px-4 pt-4 pb-3 shrink-0 space-y-3">
+          <div class="max-w-[1200px] mx-auto w-full space-y-3">
+            <div class="pro-search !py-3 shadow-sm">
+              <span class="text-text-tertiary shrink-0"><MagnifyingGlassIcon class="w-5 h-5" /></span>
+              <input v-model="searchQuery" @keydown.enter="searchExactMatch" type="text" :placeholder="$t('page.pos.search_scan')" ref="searchInput">
+              <button v-if="searchQuery" @click="searchQuery = ''" class="flex items-center justify-center w-7 h-7 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface-tertiary shrink-0 transition" title="Effacer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary shrink-0">SCAN</kbd>
             </div>
-            <div class="p-3">
-              <h3 class="font-semibold text-text-primary text-sm line-clamp-2 leading-tight transition-colors duration-300 group-hover:text-emerald-600">{{ product.name }}</h3>
+            <div class="flex items-center gap-2">
+              <div v-if="categories.length" class="flex items-center gap-2 overflow-x-auto custom-scrollbar flex-1 pb-0.5">
+                <button
+                  @click="activeCategory = ''"
+                  class="px-4 py-2 rounded-2xl text-[13px] font-extrabold whitespace-nowrap border transition-all active:scale-95"
+                  :class="!activeCategory ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white shadow-md' : 'bg-surface text-text-secondary border-border hover:border-emerald-400/50 hover:text-text-primary'"
+                >{{ $t('common.all') }}</button>
+                <button
+                  v-for="c in categories" :key="c"
+                  @click="activeCategory = activeCategory === c ? '' : c"
+                  class="px-4 py-2 rounded-2xl text-[13px] font-extrabold whitespace-nowrap border transition-all active:scale-95"
+                  :class="activeCategory === c ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/25' : 'bg-surface text-text-secondary border-border hover:border-emerald-400/50 hover:text-text-primary'"
+                >{{ c }}</button>
+              </div>
+              <span class="text-xs font-bold text-text-tertiary tabular-nums whitespace-nowrap shrink-0 ml-auto">{{ filteredProducts.length }} / {{ products.length }}</span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Right: Cart & Checkout -->
-    <div class="w-96 bg-surface flex flex-col shadow-xl z-20">
-      <!-- Customer selector -->
-      <div class="border-b border-border px-4 py-2.5 bg-surface-secondary/60">
-        <button @click="openCustomerPicker" class="w-full flex items-center gap-2.5 text-left group">
-          <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0">
-            <UserIcon class="w-4.5 h-4.5" />
-          </span>
-          <span class="flex-1 min-w-0">
-            <span class="block text-xs text-text-tertiary">Client</span>
-            <span class="block font-semibold text-text-primary text-sm truncate">
-              {{ selectedCustomer?.name || 'Comptoir (client par défaut)' }}
+        <div class="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar min-h-[180px]">
+          <div class="max-w-[1200px] mx-auto">
+            <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-4">
+              <div v-for="i in 10" :key="i" class="rounded-3xl bg-surface border border-border/60 overflow-hidden">
+                <div class="h-32 pro-skeleton !rounded-none" />
+                <div class="p-3 space-y-2"><div class="h-3.5 w-3/4 pro-skeleton" /><div class="h-3 w-1/2 pro-skeleton" /></div>
+              </div>
+            </div>
+            <div v-else-if="filteredProducts.length === 0" class="flex flex-col justify-center items-center text-center py-16">
+              <span class="pro-empty-icon"><MagnifyingGlassIcon class="w-7 h-7" /></span>
+              <p class="text-sm font-extrabold text-text-primary">{{ $t('page.pos.no_products') }}</p>
+              <p class="text-xs font-medium text-text-tertiary mt-1">{{ $t('page.pos.cart_hint') }}</p>
+              <button v-if="searchQuery || activeCategory" @click="searchQuery = ''; activeCategory = ''" class="mt-4 px-4 py-2.5 text-[13px] font-extrabold rounded-2xl border border-border bg-surface hover:border-emerald-400/50 shadow-sm active:scale-95 transition">{{ $t('common.clear_filters') }}</button>
+            </div>
+            <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-max">
+              <button
+                v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)"
+                class="group relative text-left bg-surface rounded-3xl shadow-sm border border-border/60 overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:border-emerald-400/70 active:scale-[0.97]"
+              >
+                <div class="h-32 bg-surface-tertiary flex items-center justify-center relative overflow-hidden">
+                  <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : '/storage/' + product.image"
+                    class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110" :alt="product.name">
+                  <span v-else class="text-lg font-black text-text-tertiary/70 transition-transform duration-500 group-hover:scale-110">{{ (product.name || '?').charAt(0).toUpperCase() }}</span>
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+                  <span v-if="stockOf(product) !== null" class="absolute top-2 left-2 px-2 py-1 rounded-lg text-[10px] font-extrabold tabular-nums backdrop-blur border"
+                    :class="stockOf(product) > 0 ? 'bg-emerald-500/90 text-white border-emerald-400/50' : 'bg-rose-500/90 text-white border-rose-400/50'">
+                    {{ stockOf(product) > 0 ? $t('page.pos.stock_left', { n: stockOf(product) }) : $t('status.out_of_stock') }}
+                  </span>
+                  <span v-if="product.price_xof !== undefined" class="absolute bottom-2 right-2 bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-extrabold tabular-nums px-2.5 py-1 rounded-xl shadow-md shadow-emerald-600/30">{{ formatMoney(product.price_xof) }}</span>
+                  <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-neutral-950/70 backdrop-blur text-white text-[11px] font-extrabold opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    {{ $t('page.pos.add_btn') }}
+                  </span>
+                </div>
+                <div class="p-3">
+                  <h3 class="font-extrabold text-text-primary text-[13px] line-clamp-1 leading-tight transition-colors group-hover:text-emerald-600">{{ product.name }}</h3>
+                  <p class="mt-0.5 text-[11px] font-semibold text-text-tertiary font-mono truncate">{{ product.sku || product.barcode || '—' }}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ CART ═══ -->
+      <aside class="shrink-0 w-full xl:w-[400px] border-t xl:border-t-0 xl:border-l border-border/70 bg-surface flex flex-col min-h-0 max-h-[48vh] xl:max-h-none z-20 shadow-[0_-12px_36px_-16px_rgb(0_0_0/0.2)]">
+        <div class="px-4 pt-3 shrink-0">
+          <button @click="openCustomerPicker" class="w-full flex items-center gap-3 text-left rounded-2xl border border-border/70 bg-surface-secondary/60 hover:border-emerald-400/50 hover:bg-surface-secondary px-3.5 py-2.5 transition-all group">
+            <span class="flex items-center justify-center w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/15 shrink-0 font-black">
+              {{ selectedCustomer ? (selectedCustomer.name || '?').charAt(0).toUpperCase() : '' }}
+              <UserIcon v-if="!selectedCustomer" class="w-5 h-5" />
             </span>
-          </span>
-          <ChevronDownIcon class="w-4 h-4 text-text-tertiary group-hover:text-text-secondary" />
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto bg-surface-secondary p-2">
-        <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-text-tertiary p-6 text-center">
-          <span class="text-text-tertiary mb-4"><ShoppingCartIcon class="w-16 h-16" /></span>
-          <p class="font-medium">Le panier est vide</p>
-          <p class="text-sm mt-1">Sélectionnez des produits ou scannez un code-barres.</p>
-        </div>
-
-        <div v-for="(item, index) in cart" :key="index" class="bg-surface p-3 rounded-xl shadow-sm border border-border/60 mb-2 flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <h4 class="font-semibold text-text-primary truncate text-sm">{{ item.name }}</h4>
-            <div class="text-emerald-600 font-bold text-sm mt-0.5">{{ formatMoney(item.price_xof) }}</div>
-          </div>
-          <div class="flex items-center bg-surface-tertiary rounded-lg p-0.5">
-            <button @click="updateQty(index, -1)" class="w-8 h-8 flex items-center justify-center text-text-secondary hover:bg-surface hover:shadow-sm rounded-md font-bold">-</button>
-            <span class="w-8 text-center font-bold text-text-primary text-sm">{{ item.quantity }}</span>
-            <button @click="updateQty(index, 1)" class="w-8 h-8 flex items-center justify-center text-text-secondary hover:bg-surface hover:shadow-sm rounded-md font-bold">+</button>
-          </div>
-          <button @click="removeFromCart(index)" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-            <span class="text-current"><TrashIcon class="w-5 h-5" /></span>
+            <span class="flex-1 min-w-0">
+              <span class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('page.pos.customer') }}</span>
+              <span class="block font-extrabold text-text-primary text-sm truncate">{{ selectedCustomer?.name || $t('page.pos.default_customer') }}</span>
+            </span>
+            <ChevronDownIcon class="w-4 h-4 text-text-tertiary group-hover:text-emerald-500 transition-colors shrink-0" />
           </button>
         </div>
-      </div>
 
-      <!-- Payment Modal -->
-      <BaseModal :model-value="showPaymentModal" @update:model-value="showPaymentModal = $event" :title="'Paiement par ' + paymentLabel(paymentMethod)" subtitle="Montant à encaisser" size="sm">
-        <div class="space-y-4">
-          <div class="text-center">
-            <p class="text-4xl font-black text-emerald-600 tracking-tight">{{ formatMoney(cartTotal) }}</p>
-            <p v-if="selectedCustomer" class="text-sm text-text-tertiary mt-1">Client : {{ selectedCustomer.name }}</p>
+        <div class="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
+          <h2 class="text-sm font-extrabold tracking-tight text-text-primary flex items-center gap-2">
+            {{ $t('page.pos.cart_title') }}
+            <span v-if="cartCount > 0" class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-emerald-500 text-white text-[11px] font-black tabular-nums">{{ cartCount }}</span>
+          </h2>
+          <button v-if="cart.length" @click="clearCart" class="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary hover:text-rose-500 transition-colors">
+            <TrashIcon class="w-3.5 h-3.5" /> {{ $t('page.pos.clear_cart') }}
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar min-h-0">
+          <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-center py-8">
+            <span class="flex items-center justify-center w-14 h-14 rounded-3xl bg-surface-secondary border border-border text-text-tertiary mb-3"><ShoppingCartIcon class="w-7 h-7" /></span>
+            <p class="text-sm font-extrabold text-text-primary">{{ $t('page.pos.cart_empty') }}</p>
+            <p class="text-xs font-medium text-text-tertiary mt-1 max-w-[220px]">{{ $t('page.pos.cart_hint') }}</p>
           </div>
-          <div v-if="paymentMethod === 'cash'" class="space-y-3">
+          <TransitionGroup v-else name="cart" tag="div" class="space-y-2">
+            <div v-for="(item, index) in cart" :key="item.product_id" class="bg-surface-secondary/50 border border-border/60 hover:border-emerald-400/40 p-2.5 pl-3 rounded-2xl flex items-center gap-2.5 transition-colors">
+              <div class="flex-1 min-w-0">
+                <h4 class="font-extrabold text-text-primary truncate text-[13px]">{{ item.name }}</h4>
+                <div class="text-emerald-600 font-extrabold tabular-nums text-[13px] mt-0.5">{{ formatMoney(item.price_xof) }} <span class="text-text-tertiary font-semibold">× {{ item.quantity }}</span></div>
+              </div>
+              <div class="flex items-center bg-surface border border-border/70 rounded-xl p-0.5 gap-0.5 shrink-0">
+                <button @click="updateQty(index, -1)" class="w-7 h-7 flex items-center justify-center text-text-secondary hover:bg-surface-tertiary rounded-lg font-black active:scale-90 transition">−</button>
+                <span class="w-7 text-center font-black tabular-nums text-text-primary text-[13px]">{{ item.quantity }}</span>
+                <button @click="updateQty(index, 1)" class="w-7 h-7 flex items-center justify-center text-emerald-600 hover:bg-emerald-500/10 rounded-lg font-black active:scale-90 transition">+</button>
+              </div>
+              <div class="text-right shrink-0 w-[74px]">
+                <p class="text-[13px] font-black tabular-nums text-text-primary">{{ formatMoney(item.price_xof * item.quantity) }}</p>
+                <button @click="removeFromCart(index)" class="text-[10px] font-bold text-text-tertiary hover:text-rose-500 transition-colors">✕</button>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+
+        <div class="border-t border-border/70 p-4 space-y-3 bg-surface shrink-0">
+          <div class="flex justify-between items-end">
             <div>
-              <label class="block text-sm font-medium text-text-secondary mb-1">Montant reçu</label>
-              <input v-model.number="amountReceived" type="number" min="0" class="w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary text-xl font-bold" />
+              <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('page.pos.total_due') }}</p>
+              <p class="text-xs font-semibold text-text-tertiary tabular-nums">{{ $t('page.pos.items_label', { n: cartCount }) }}</p>
             </div>
-            <div class="flex justify-between text-sm pt-2 border-t border-border">
-              <span class="text-text-tertiary">Rendu</span>
-              <span class="font-bold text-text-primary">{{ formatMoney(Math.max(0, amountReceived - cartTotal)) }}</span>
-            </div>
+            <span class="text-[32px] leading-none font-black text-emerald-600 tracking-tight tabular-nums">{{ formatMoney(cartTotal) }}</span>
           </div>
-          <div v-else class="flex items-center gap-2.5 p-3 text-sm text-text-secondary bg-surface-tertiary rounded-xl">
-            <span class="text-emerald-600"><CheckCircleIcon class="w-5 h-5" /></span>
-            Le paiement est confirmé une fois l'encaissement effectué sur le terminal.
-          </div>
-          <div class="flex gap-3 pt-2">
-            <BaseButton variant="secondary" class="flex-1" @click="showPaymentModal = false">Annuler</BaseButton>
-            <BaseButton class="flex-1" :loading="paying" @click="confirmPayment">
-              <span class="text-white"><CheckIcon class="w-5 h-5" /></span>Confirmer
-            </BaseButton>
-          </div>
-        </div>
-      </BaseModal>
 
-      <!-- Customer Picker Modal -->
-      <BaseModal :model-value="showCustomerPicker" @update:model-value="showCustomerPicker = $event" title="Sélectionner un client" size="md">
-        <div class="space-y-3">
-          <div class="relative">
-            <input v-model="customerSearch" type="text" placeholder="Rechercher par nom, téléphone ou email..."
-              class="w-full pl-9 pr-3 py-2.5 border border-border rounded-xl text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary placeholder:text-text-tertiary outline-none">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-          </div>
-          <div class="max-h-64 overflow-y-auto space-y-1.5">
-            <button @click="selectCustomer(null)"
-              class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left border transition-colors"
-              :class="!selectedCustomer ? 'border-emerald-500 bg-emerald-50/50' : 'border-border hover:bg-surface-tertiary'">
-              <span class="text-sm font-medium text-text-primary">Comptoir (client par défaut)</span>
-              <span v-if="!selectedCustomer" class="ml-auto text-emerald-600"><CheckIcon class="w-4 h-4" /></span>
+          <div class="grid grid-cols-3 gap-2">
+            <button @click="openPaymentModal('cash')" :disabled="cart.length === 0 || paying"
+              class="py-3 rounded-2xl font-extrabold text-[13px] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+              :class="cart.length ? 'bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 shadow-lg' : 'bg-surface-tertiary text-text-tertiary'">
+              <BanknotesIcon class="w-5 h-5" />{{ $t('page.pos.pay_cash') }}
             </button>
-            <button v-for="customer in filteredCustomers" :key="customer.id" @click="selectCustomer(customer)"
-              class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left border transition-colors"
-              :class="selectedCustomer?.id === customer.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-border hover:bg-surface-tertiary'">
-              <span class="min-w-0 flex-1">
-                <span class="block text-sm font-medium text-text-primary truncate">{{ customer.name }}</span>
-                <span class="block text-xs text-text-tertiary truncate">{{ customer.phone || customer.email || '—' }}</span>
-              </span>
-              <span v-if="selectedCustomer?.id === customer.id" class="text-emerald-600 shrink-0"><CheckIcon class="w-4 h-4" /></span>
+            <button @click="openPaymentModal('card')" :disabled="cart.length === 0 || paying"
+              class="py-3 rounded-2xl font-extrabold text-[13px] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+              :class="cart.length ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25' : 'bg-surface-tertiary text-text-tertiary'">
+              <CreditCardIcon class="w-5 h-5" />{{ $t('page.pos.pay_card') }}
             </button>
-            <div v-if="customersLoading" class="text-center text-sm text-text-tertiary py-4">Chargement...</div>
-            <div v-else-if="filteredCustomers.length === 0" class="text-center text-sm text-text-tertiary py-4">Aucun client trouvé.</div>
+            <button @click="openPaymentModal('mobile_money')" :disabled="cart.length === 0 || paying"
+              class="py-3 rounded-2xl font-extrabold text-[13px] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+              :class="cart.length ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:brightness-110 shadow-lg shadow-emerald-600/25' : 'bg-surface-tertiary text-text-tertiary'">
+              <DevicePhoneMobileIcon class="w-5 h-5" />M-Money
+            </button>
           </div>
-        </div>
-      </BaseModal>
 
-      <!-- Receipt Modal -->
-      <BaseModal :model-value="showReceipt" @update:model-value="showReceipt = $event" title="Encaissement réussi" size="sm">
-        <div class="space-y-4">
-          <div class="rounded-xl bg-surface-tertiary p-4 font-mono text-xs text-text-primary leading-relaxed">
-            <div class="text-center font-bold text-sm mb-2">SIDIBE CORPORATE</div>
-            <div class="text-center text-text-tertiary mb-3">Ticket {{ lastSale?.receipt_number }}</div>
-            <div v-if="lastSale?.customer" class="mb-2">Client : {{ lastSale.customer.name }}</div>
-            <div class="border-t border-dashed border-border my-2" />
-            <div v-for="item in lastSale?.items || []" :key="item.id" class="flex justify-between gap-2 mb-1">
-              <span class="truncate flex-1">{{ item.product_name }} ×{{ item.quantity }}</span>
-              <span class="shrink-0">{{ formatMoney(item.subtotal_xof) }}</span>
-            </div>
-            <div class="border-t border-dashed border-border my-2" />
-            <div class="flex justify-between font-bold">
-              <span>Total</span>
-              <span>{{ formatMoney(lastSale?.total_xof) }}</span>
-            </div>
-            <div class="flex justify-between mt-1">
-              <span>Payé ({{ lastSale ? paymentLabel(lastSale.payment_method) : '' }})</span>
-              <span>{{ formatMoney(lastSale?.amount_paid_xof) }}</span>
-            </div>
-            <div v-if="lastSale?.change_returned_xof" class="flex justify-between mt-1">
-              <span>Rendu</span>
-              <span>{{ formatMoney(lastSale.change_returned_xof) }}</span>
-            </div>
-          </div>
-          <div class="flex gap-3">
-            <BaseButton variant="secondary" class="flex-1" @click="showReceipt = false">Fermer</BaseButton>
-            <BaseButton class="flex-1" @click="printReceipt">
-              <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>Imprimer
-            </BaseButton>
-          </div>
-        </div>
-      </BaseModal>
-
-      <!-- Close Session Modal (counted cash) -->
-      <BaseModal :model-value="showCloseModal" @update:model-value="showCloseModal = $event" title="Clôturer la caisse" subtitle="Saisissez le comptage d'espèces pour éditer le Ticket Z" size="sm">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1">Comptage des espèces (FCFA)</label>
-            <input v-model.number="closingCashCount" type="number" min="0" class="w-full px-3 py-2.5 border border-border rounded-xl text-lg font-bold text-text-primary bg-surface focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
-          </div>
-          <div v-if="session" class="text-sm text-text-tertiary bg-surface-tertiary rounded-xl p-3 flex justify-between">
-            <span>Fond de caisse</span>
-            <span class="font-bold text-text-primary">{{ formatMoney(session.opening_cash_xof) }}</span>
-          </div>
-          <div class="flex gap-3">
-            <BaseButton variant="secondary" class="flex-1" @click="showCloseModal = false">Annuler</BaseButton>
-            <BaseButton class="flex-1" variant="danger" :loading="closing" @click="confirmCloseSession">
-              <span class="text-white"><CheckIcon class="w-5 h-5" /></span>Clôturer
-            </BaseButton>
-          </div>
-        </div>
-      </BaseModal>
-
-      <!-- Ticket Z Modal -->
-      <BaseModal :model-value="showTicketZ" @update:model-value="showTicketZ = $event" title="Ticket Z — Caisse clôturée" size="sm">
-        <div class="space-y-4">
-          <div class="rounded-xl bg-surface-tertiary p-4 font-mono text-xs text-text-primary leading-relaxed">
-            <div class="text-center font-bold text-sm mb-1">SIDIBE CORPORATE</div>
-            <div class="text-center text-text-tertiary mb-3">{{ formatDate(ticketZ?.closed_at) }}</div>
-            <div class="flex justify-between"><span>Ventes</span><span>{{ ticketZ?.sales_count ?? 0 }}</span></div>
-            <div class="flex justify-between"><span>Total encaissé</span><span>{{ formatMoney(ticketZ?.total_xof) }}</span></div>
-            <div class="flex justify-between"><span>Espèces</span><span>{{ formatMoney(ticketZ?.cash_total_xof) }}</span></div>
-            <div class="flex justify-between"><span>Carte (TPE)</span><span>{{ formatMoney(ticketZ?.card_total_xof) }}</span></div>
-            <div class="flex justify-between"><span>Mobile Money</span><span>{{ formatMoney(ticketZ?.mobile_money_total_xof) }}</span></div>
-            <div class="border-t border-dashed border-border my-2" />
-            <div class="flex justify-between"><span>Fond de caisse</span><span>{{ formatMoney(ticketZ?.opening_cash_xof) }}</span></div>
-            <div class="flex justify-between"><span>Caisse attendue</span><span>{{ formatMoney(ticketZ?.expected_closing_cash_xof) }}</span></div>
-            <div class="flex justify-between"><span>Comptage réel</span><span>{{ formatMoney(ticketZ?.closing_cash_xof) }}</span></div>
-            <div class="flex justify-between font-bold mt-1"
-              :class="(ticketZ?.cash_difference_xof ?? 0) === 0 ? 'text-emerald-600' : 'text-red-600'">
-              <span>Écart de caisse</span>
-              <span>{{ formatMoney(ticketZ?.cash_difference_xof) }}</span>
-            </div>
-          </div>
-          <div v-if="(ticketZ?.cash_difference_xof ?? 0) !== 0" class="flex items-center gap-2.5 p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-xl border border-red-100 dark:border-red-900/70">
-            <ExclamationTriangleIcon class="w-4 h-4 shrink-0" /> Un écart de caisse a été détecté.
-          </div>
-          <div class="flex gap-3">
-            <BaseButton variant="secondary" class="flex-1" @click="finishClosing">Terminer</BaseButton>
-            <BaseButton class="flex-1" @click="printTicketZ">
-              <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>Imprimer
-            </BaseButton>
-          </div>
-        </div>
-      </BaseModal>
-
-      <!-- Totals & Pay -->
-      <div class="border-t border-border bg-surface p-5">
-        <div class="flex justify-between items-end mb-5">
-          <span class="text-text-tertiary font-medium">Total à payer</span>
-          <span class="text-4xl font-black text-emerald-600 tracking-tight">{{ formatMoney(cartTotal) }}</span>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 mb-4">
-          <button @click="openPaymentModal('cash')" :disabled="cart.length === 0 || paying"
-            class="py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="cart.length ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl' : 'bg-surface-tertiary text-text-tertiary'">
-            <span class="text-current"><BanknotesIcon class="w-5 h-5" /></span>Espèces
-          </button>
-          <button @click="openPaymentModal('card')" :disabled="cart.length === 0 || paying"
-            class="py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="cart.length ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl' : 'bg-surface-tertiary text-text-tertiary'">
-            <span class="text-current"><CreditCardIcon class="w-5 h-5" /></span>Carte
-          </button>
-          <button @click="openPaymentModal('mobile_money')" :disabled="cart.length === 0 || paying"
-            class="py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="cart.length ? 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-lg hover:shadow-xl' : 'bg-surface-tertiary text-text-tertiary'">
-            <span class="text-current"><DevicePhoneMobileIcon class="w-5 h-5" /></span>M-Money
+          <button @click="openCloseModal" :disabled="closing"
+            class="w-full py-2.5 text-rose-600 hover:text-white bg-transparent hover:bg-rose-500 font-extrabold rounded-2xl text-[13px] transition-all border border-dashed border-rose-300 hover:border-rose-500 disabled:opacity-40 active:scale-[0.99]">
+            {{ $t('page.pos.close_register') }}
           </button>
         </div>
-
-        <button @click="openCloseModal" :disabled="closing"
-          class="w-full py-3 text-red-600 bg-surface hover:bg-red-50 font-bold rounded-xl text-sm transition-colors border-2 border-red-100 disabled:opacity-50">
-          Clôturer la Caisse
-        </button>
-      </div>
+      </aside>
     </div>
+
+    <!-- Payment Modal -->
+    <BaseModal :model-value="showPaymentModal" @update:model-value="showPaymentModal = $event" :title="$t('page.pos.pay_with', { method: paymentLabel(paymentMethod) })" :subtitle="$t('page.pos.amount_to_collect')" size="md">
+      <div class="space-y-4">
+        <p class="text-center text-5xl font-black text-emerald-600 tracking-tight tabular-nums">{{ formatMoney(cartTotal) }}</p>
+        <p v-if="selectedCustomer" class="text-center text-sm text-text-tertiary -mt-2">{{ $t('page.pos.client_label') }} : <strong class="text-text-primary">{{ selectedCustomer.name }}</strong></p>
+        <div class="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-surface-tertiary">
+          <button v-for="m in ['cash', 'card', 'mobile_money']" :key="m" @click="paymentMethod = m; amountReceived = cartTotal"
+            class="py-2.5 rounded-xl text-[13px] font-extrabold transition-all active:scale-95"
+            :class="paymentMethod === m ? 'bg-surface text-text-primary shadow-md border border-border' : 'text-text-tertiary hover:text-text-secondary'">
+            {{ paymentLabel(m) }}
+          </button>
+        </div>
+        <div v-if="paymentMethod === 'cash'" class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">{{ $t('page.pos.amount_received') }}</label>
+            <input v-model.number="amountReceived" type="number" min="0" class="w-full px-4 py-3.5 border-2 border-border rounded-2xl text-2xl font-black tabular-nums text-text-primary bg-surface focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition text-center" />
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button @click="setExactTender" class="flex-1 min-w-[110px] px-3 py-2.5 rounded-2xl text-xs font-extrabold border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/15 active:scale-95 transition">{{ $t('page.pos.tender_exact') }}</button>
+            <button v-for="q in [1000, 5000, 10000]" :key="q" @click="addTender(q)" class="flex-1 min-w-[80px] px-3 py-2.5 rounded-2xl text-xs font-extrabold border border-border bg-surface text-text-secondary hover:border-emerald-400/50 hover:text-emerald-600 active:scale-95 transition tabular-nums">+{{ q.toLocaleString('fr-FR') }}</button>
+          </div>
+          <div class="flex justify-between items-center text-sm rounded-2xl px-4 py-3.5 font-extrabold" :class="amountReceived >= cartTotal ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400' : 'bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-400'">
+            <span>{{ $t('page.pos.change_due') }}</span>
+            <span class="text-xl tabular-nums">{{ formatMoney(Math.max(0, amountReceived - cartTotal)) }}</span>
+          </div>
+        </div>
+        <div v-else class="flex items-center gap-2.5 p-4 text-sm font-medium text-text-secondary bg-surface-tertiary rounded-2xl">
+          <span class="text-emerald-600"><CheckCircleIcon class="w-5 h-5" /></span>
+          {{ $t('page.pos.card_terminal_note') }}
+        </div>
+        <div class="flex gap-3">
+          <BaseButton variant="secondary" class="flex-1 !py-3.5" @click="showPaymentModal = false">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton class="flex-1 !py-3.5 !text-base" :loading="paying" @click="confirmPayment">
+            <span class="text-white"><CheckIcon class="w-5 h-5" /></span>{{ $t('common.confirm') }} · {{ formatMoney(cartTotal) }}
+          </BaseButton>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- Customer Picker Modal -->
+    <BaseModal :model-value="showCustomerPicker" @update:model-value="showCustomerPicker = $event" :title="$t('page.pos.select_customer')" size="md">
+      <div class="space-y-3">
+        <div class="relative">
+          <input v-model="customerSearch" type="text" :placeholder="$t('page.pos.search_customer_ph')"
+            class="w-full pl-10 pr-3 py-3 border border-border rounded-2xl text-sm font-medium bg-surface-secondary/60 focus:bg-surface focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/60 text-text-primary placeholder:text-text-tertiary outline-none transition">
+          <MagnifyingGlassIcon class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
+        </div>
+        <div class="max-h-72 overflow-y-auto space-y-1.5 custom-scrollbar pr-0.5">
+          <button @click="selectCustomer(null)"
+            class="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-left border transition-all"
+            :class="!selectedCustomer ? 'border-emerald-500 bg-emerald-500/[0.07] shadow-[inset_0_0_0_1px_rgb(16_185_129/0.3)]' : 'border-border hover:bg-surface-tertiary'">
+            <span class="flex items-center justify-center w-10 h-10 rounded-2xl bg-surface-tertiary border border-border text-text-tertiary shrink-0"><UserIcon class="w-5 h-5" /></span>
+            <span class="text-sm font-extrabold text-text-primary">{{ $t('page.pos.default_customer') }}</span>
+            <span v-if="!selectedCustomer" class="ml-auto text-emerald-600"><CheckIcon class="w-5 h-5" /></span>
+          </button>
+          <button v-for="customer in filteredCustomers" :key="customer.id" @click="selectCustomer(customer)"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left border transition-all"
+            :class="selectedCustomer?.id === customer.id ? 'border-emerald-500 bg-emerald-500/[0.07] shadow-[inset_0_0_0_1px_rgb(16_185_129/0.3)]' : 'border-border hover:bg-surface-tertiary'">
+            <span class="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-black shrink-0">{{ (customer.name || '?').charAt(0).toUpperCase() }}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-extrabold text-text-primary truncate">{{ customer.name }}</span>
+              <span class="block text-xs font-medium text-text-tertiary truncate">{{ customer.phone || customer.email || '—' }}</span>
+            </span>
+            <span v-if="selectedCustomer?.id === customer.id" class="text-emerald-600 shrink-0"><CheckIcon class="w-5 h-5" /></span>
+          </button>
+          <div v-if="customersLoading" class="text-center text-sm font-semibold text-text-tertiary py-4">{{ $t('common.loading') }}</div>
+          <div v-else-if="filteredCustomers.length === 0" class="text-center text-sm font-semibold text-text-tertiary py-4">{{ $t('page.pos.no_customer_found') }}</div>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- Receipt Modal -->
+    <BaseModal :model-value="showReceipt" @update:model-value="showReceipt = $event" :title="$t('page.pos.success_alert')" size="sm">
+      <div class="space-y-4">
+        <div class="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.05] p-4 font-mono text-xs text-text-primary leading-relaxed">
+          <div class="text-center font-bold text-sm mb-1">SIDIBE CORPORATE</div>
+          <div class="text-center text-text-tertiary mb-3">{{ $t('page.pos.ticket_word') }} {{ lastSale?.receipt_number }}</div>
+          <div v-if="lastSale?.customer" class="mb-2">{{ $t('page.pos.client_label') }} : {{ lastSale.customer.name }}</div>
+          <div class="border-t border-dashed border-border my-2" />
+          <div v-for="item in lastSale?.items || []" :key="item.id" class="flex justify-between gap-2 mb-1">
+            <span class="truncate flex-1">{{ item.product_name }} ×{{ item.quantity }}</span>
+            <span class="shrink-0 tabular-nums">{{ formatMoney(item.subtotal_xof) }}</span>
+          </div>
+          <div class="border-t border-dashed border-border my-2" />
+          <div class="flex justify-between font-bold">
+            <span>{{ $t('page.pos.total_word') }}</span>
+            <span class="tabular-nums">{{ formatMoney(lastSale?.total_xof) }}</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span>{{ $t('page.pos.paid_label') }} ({{ lastSale ? paymentLabel(lastSale.payment_method) : '' }})</span>
+            <span class="tabular-nums">{{ formatMoney(lastSale?.amount_paid_xof) }}</span>
+          </div>
+          <div v-if="lastSale?.change_returned_xof" class="flex justify-between mt-1">
+            <span>{{ $t('page.pos.change_due') }}</span>
+            <span class="tabular-nums">{{ formatMoney(lastSale.change_returned_xof) }}</span>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <BaseButton variant="secondary" class="flex-1" @click="showReceipt = false">{{ $t('common.close') }}</BaseButton>
+          <BaseButton class="flex-1" @click="printReceipt">
+            <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>{{ $t('page.pos.print_btn') }}
+          </BaseButton>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- Close Session Modal (counted cash) -->
+    <BaseModal :model-value="showCloseModal" @update:model-value="showCloseModal = $event" :title="$t('page.pos.close_title')" :subtitle="$t('page.pos.close_subtitle')" size="sm">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">{{ $t('page.pos.count_cash') }}</label>
+          <input v-model.number="closingCashCount" type="number" min="0" class="w-full px-4 py-3.5 border-2 border-border rounded-2xl text-2xl font-black tabular-nums text-text-primary text-center bg-surface focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition" />
+        </div>
+        <div v-if="session" class="text-sm text-text-tertiary bg-surface-tertiary rounded-2xl px-4 py-3 flex justify-between font-semibold">
+          <span>{{ $t('page.pos.float_label') }}</span>
+          <span class="font-black text-text-primary tabular-nums">{{ formatMoney(session.opening_cash_xof) }}</span>
+        </div>
+        <div class="flex gap-3">
+          <BaseButton variant="secondary" class="flex-1" @click="showCloseModal = false">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton class="flex-1" variant="danger" :loading="closing" @click="confirmCloseSession">
+            <span class="text-white"><CheckIcon class="w-5 h-5" /></span>{{ $t('page.pos.close_btn') }}
+          </BaseButton>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- Ticket Z Modal -->
+    <BaseModal :model-value="showTicketZ" @update:model-value="showTicketZ = $event" :title="$t('page.pos.ticket_z')" size="sm">
+      <div class="space-y-4">
+        <div class="rounded-2xl border border-border/70 bg-surface-tertiary/50 p-4 font-mono text-xs text-text-primary leading-relaxed">
+          <div class="text-center font-bold text-sm mb-1">SIDIBE CORPORATE</div>
+          <div class="text-center text-text-tertiary mb-3">{{ formatDate(ticketZ?.closed_at) }}</div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.sales_word') }}</span><span class="tabular-nums">{{ ticketZ?.sales_count ?? 0 }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.total_collected') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.total_xof) }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.cash_label') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.cash_total_xof) }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.card_tpe') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.card_total_xof) }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.pay_mobile') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.mobile_money_total_xof) }}</span></div>
+          <div class="border-t border-dashed border-border my-2" />
+          <div class="flex justify-between"><span>{{ $t('page.pos.float_label') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.opening_cash_xof) }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.expected_cash') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.expected_closing_cash_xof) }}</span></div>
+          <div class="flex justify-between"><span>{{ $t('page.pos.actual_count') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.closing_cash_xof) }}</span></div>
+          <div class="flex justify-between font-bold mt-1"
+            :class="(ticketZ?.cash_difference_xof ?? 0) === 0 ? 'text-emerald-600' : 'text-red-600'">
+            <span>{{ $t('page.pos.cash_gap') }}</span>
+            <span class="tabular-nums">{{ formatMoney(ticketZ?.cash_difference_xof) }}</span>
+          </div>
+        </div>
+        <div v-if="(ticketZ?.cash_difference_xof ?? 0) !== 0" class="flex items-center gap-2.5 p-3 text-sm font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-2xl border border-red-200 dark:border-red-900/70">
+          <ExclamationTriangleIcon class="w-4 h-4 shrink-0" /> {{ $t('page.pos.gap_detected') }}
+        </div>
+        <div class="flex gap-3">
+          <BaseButton variant="secondary" class="flex-1" @click="finishClosing">{{ $t('page.pos.done_btn') }}</BaseButton>
+          <BaseButton class="flex-1" @click="printTicketZ">
+            <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>{{ $t('page.pos.print_btn') }}
+          </BaseButton>
+        </div>
+      </div>
+    </BaseModal>
 
     <!-- Print area (hidden, revealed only at print time) -->
     <div id="pos-print-area"></div>
@@ -261,6 +329,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import PosLayout from './PosLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -269,10 +338,12 @@ import { MagnifyingGlassIcon, PhotoIcon, ShoppingCartIcon, TrashIcon, BanknotesI
 
 const router = useRouter();
 const showToast = inject('showToast');
+const { t } = useI18n();
 const session = ref(null);
 const products = ref([]);
 const cart = ref([]);
 const searchQuery = ref('');
+const activeCategory = ref('');
 const loading = ref(true);
 const paying = ref(false);
 const searchInput = ref(null);
@@ -338,15 +409,35 @@ const loadCatalog = async () => {
   }
 };
 
+const categories = computed(() => {
+  const set = new Map();
+  for (const p of products.value) {
+    const c = p.category_name || p.category;
+    if (c && !set.has(c)) set.set(c, c);
+  }
+  return [...set.values()].sort((a, b) => a.localeCompare(b));
+});
+
 const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value;
+  let list = products.value;
+  if (activeCategory.value) {
+    list = list.filter(p => (p.category_name || p.category) === activeCategory.value);
+  }
+  if (!searchQuery.value) return list;
   const q = searchQuery.value.toLowerCase();
-  return products.value.filter(p =>
+  return list.filter(p =>
     p.name.toLowerCase().includes(q) ||
     (p.sku && p.sku.toLowerCase().includes(q)) ||
     (p.barcode && p.barcode.toLowerCase().includes(q))
   );
 });
+
+const stockOf = (p) => {
+  for (const k of ['stock_quantity', 'stock', 'quantity', 'available_qty']) {
+    if (typeof p[k] === 'number') return p[k];
+  }
+  return null;
+};
 
 const addToCart = (product) => {
   const existing = cart.value.find(i => i.product_id === product.id);
@@ -386,16 +477,32 @@ const removeFromCart = (index) => {
   cart.value.splice(index, 1);
 };
 
+const clearCart = () => {
+  cart.value = [];
+};
+
 const cartTotal = computed(() => {
   return cart.value.reduce((total, item) => total + (item.price_xof * item.quantity), 0);
 });
+
+const cartCount = computed(() => {
+  return cart.value.reduce((n, item) => n + (item.quantity || 0), 0);
+});
+
+const setExactTender = () => {
+  amountReceived.value = cartTotal.value;
+};
+
+const addTender = (n) => {
+  amountReceived.value = (Number(amountReceived.value) || 0) + n;
+};
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount || 0);
 };
 
 const paymentLabel = (method) => {
-  const labels = { cash: 'Espèces', card: 'Carte (TPE)', mobile_money: 'Mobile Money' };
+  const labels = { cash: t('page.pos.pay_cash'), card: t('page.pos.card_tpe'), mobile_money: t('page.pos.pay_mobile') };
   return labels[method] || method || '';
 };
 
@@ -441,7 +548,7 @@ watch(customerSearch, (val) => {
 const selectCustomer = (customer) => {
   selectedCustomer.value = customer;
   showCustomerPicker.value = false;
-  showToast(customer ? `Client sélectionné : ${customer.name}` : 'Client comptoir sélectionné');
+  showToast(customer ? t('page.pos.customer_selected', { name: customer.name }) : t('page.pos.counter_customer'));
 };
 
 // ---------- Payment ----------
@@ -454,7 +561,7 @@ function openPaymentModal(method) {
 async function confirmPayment() {
   if (cart.value.length === 0 || paying.value) return;
   if (paymentMethod.value === 'cash' && amountReceived.value < cartTotal.value) {
-    showToast('Montant reçu insuffisant.', 'error');
+    showToast(t('page.pos.amount_insufficient'), 'error');
     return;
   }
   paying.value = true;
@@ -482,7 +589,7 @@ async function confirmPayment() {
     if (data?.errors?.stock) {
       showToast(data.message + ' • ' + data.errors.stock.join(' • '), 'error');
     } else {
-      showToast(data?.message || 'Erreur lors de l\'encaissement', 'error');
+      showToast(data?.message || t('page.pos.sale_error'), 'error');
     }
   } finally {
     paying.value = false;
@@ -508,7 +615,7 @@ const confirmCloseSession = async () => {
     showCloseModal.value = false;
     showTicketZ.value = true;
   } catch (err) {
-    showToast('Erreur lors de la clôture', 'error');
+    showToast(t('page.pos.close_error_toast'), 'error');
   } finally {
     closing.value = false;
   }
@@ -516,7 +623,7 @@ const confirmCloseSession = async () => {
 
 const finishClosing = () => {
   showTicketZ.value = false;
-  showToast('Caisse clôturée avec succès.');
+  showToast(t('page.pos.closed_ok'));
   router.push('/dashboard');
 };
 
@@ -538,38 +645,38 @@ const printReceipt = () => {
   const s = lastSale.value;
   if (!s) return;
   const lines = [
-    `<div style="text-align:center;">Ticket ${s.receipt_number}</div>`,
-    s.customer ? `<div>Client : ${s.customer.name}</div>` : '',
+    `<div style="text-align:center;">${t('page.pos.ticket_word')} ${s.receipt_number}</div>`,
+    s.customer ? `<div>${t('page.pos.client_label')} : ${s.customer.name}</div>` : '',
     `<div style="border-top:1px dashed #000;margin:4px 0;"></div>`,
     ...(s.items || []).map(i =>
       `<div style="display:flex;justify-content:space-between;"><span>${i.product_name} x${i.quantity}</span><span>${formatMoney(i.subtotal_xof)}</span></div>`
     ),
     `<div style="border-top:1px dashed #000;margin:4px 0;"></div>`,
-    `<div style="display:flex;justify-content:space-between;font-weight:bold;"><span>Total</span><span>${formatMoney(s.total_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Payé (${paymentLabel(s.payment_method)})</span><span>${formatMoney(s.amount_paid_xof)}</span></div>`,
-    s.change_returned_xof ? `<div style="display:flex;justify-content:space-between;"><span>Rendu</span><span>${formatMoney(s.change_returned_xof)}</span></div>` : '',
+    `<div style="display:flex;justify-content:space-between;font-weight:bold;"><span>${t('page.pos.total_word')}</span><span>${formatMoney(s.total_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.paid_label')} (${paymentLabel(s.payment_method)})</span><span>${formatMoney(s.amount_paid_xof)}</span></div>`,
+    s.change_returned_xof ? `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.change_due')}</span><span>${formatMoney(s.change_returned_xof)}</span></div>` : '',
     `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`,
-    `<div style="text-align:center;">Merci de votre visite !</div>`,
+    `<div style="text-align:center;">${t('page.pos.thanks')}</div>`,
   ].join('');
-  printHtml(`Reçu ${s.receipt_number}`, lines);
+  printHtml(t('page.pos.receipt_title', { number: s.receipt_number }), lines);
 };
 
 const printTicketZ = () => {
-  const t = ticketZ.value;
-  if (!t) return;
+  const z = ticketZ.value;
+  if (!z) return;
   const lines = [
-    `<div style="display:flex;justify-content:space-between;"><span>Ventes</span><span>${t.sales_count ?? 0}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Total encaissé</span><span>${formatMoney(t.total_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Espèces</span><span>${formatMoney(t.cash_total_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Carte (TPE)</span><span>${formatMoney(t.card_total_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Mobile Money</span><span>${formatMoney(t.mobile_money_total_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.sales_word')}</span><span>${z.sales_count ?? 0}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.total_collected')}</span><span>${formatMoney(z.total_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.cash_label')}</span><span>${formatMoney(z.cash_total_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.card_tpe')}</span><span>${formatMoney(z.card_total_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.pay_mobile')}</span><span>${formatMoney(z.mobile_money_total_xof)}</span></div>`,
     `<div style="border-top:1px dashed #000;margin:4px 0;"></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Fond de caisse</span><span>${formatMoney(t.opening_cash_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Caisse attendue</span><span>${formatMoney(t.expected_closing_cash_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;"><span>Comptage réel</span><span>${formatMoney(t.closing_cash_xof)}</span></div>`,
-    `<div style="display:flex;justify-content:space-between;font-weight:bold;"><span>Écart de caisse</span><span>${formatMoney(t.cash_difference_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.float_label')}</span><span>${formatMoney(z.opening_cash_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.expected_cash')}</span><span>${formatMoney(z.expected_closing_cash_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;"><span>${t('page.pos.actual_count')}</span><span>${formatMoney(z.closing_cash_xof)}</span></div>`,
+    `<div style="display:flex;justify-content:space-between;font-weight:bold;"><span>${t('page.pos.cash_gap')}</span><span>${formatMoney(z.cash_difference_xof)}</span></div>`,
   ].join('');
-  printHtml(`Ticket Z — ${formatDate(t.closed_at)}`, lines);
+  printHtml(`${t('page.pos.ticket_word')} Z — ${formatDate(z.closed_at)}`, lines);
 };
 
 // ---------- Barcode / keyboard ----------
@@ -610,4 +717,11 @@ const handleGlobalKeydown = (e) => {
     width: 80mm;
   }
 }
+
+/* Transition d'ajout au panier */
+.cart-enter-active { transition: opacity 0.25s ease, transform 0.25s ease; }
+.cart-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; position: absolute; }
+.cart-enter-from { opacity: 0; transform: translateX(12px); }
+.cart-leave-to { opacity: 0; transform: translateX(12px); }
+.cart-move { transition: transform 0.25s ease; }
 </style>

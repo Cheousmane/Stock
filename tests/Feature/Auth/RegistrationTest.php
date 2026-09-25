@@ -42,7 +42,30 @@ describe('Registration', function () {
         $this->assertDatabaseHas('companies', ['slug' => 'test-corp']);
         $this->assertDatabaseHas('users', ['email' => 'john@test-corp.com']);
 
-        Mail::assertQueued(VerificationCodeMail::class, fn ($mail) => $mail->hasTo('john@test-corp.com'));
+        Mail::assertSent(VerificationCodeMail::class, fn ($mail) => $mail->hasTo('john@test-corp.com'));
+    });
+
+    it('still creates the account when SMTP sending fails', function () {
+        $this->mock(\App\Services\EmailVerificationService::class, function ($mock) {
+            $mock->shouldReceive('sendCode')->once()->andThrow(new \Exception('smtp down'));
+        });
+
+        $payload = [
+            'company_name' => 'Smtp Fail Corp',
+            'company_slug' => 'smtp-fail-corp',
+            'name' => 'Jane Doe',
+            'email' => 'jane@smtp-fail-corp.com',
+            'password' => 'Test@12345',
+            'password_confirmation' => 'Test@12345',
+        ];
+
+        $response = $this->postJson('/api/v1/auth/register', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED)
+            ->assertJsonPath('email_sent', false);
+
+        $this->assertDatabaseHas('companies', ['slug' => 'smtp-fail-corp']);
+        $this->assertDatabaseHas('users', ['email' => 'jane@smtp-fail-corp.com']);
     });
 
     it('validates required fields', function () {
@@ -175,7 +198,7 @@ describe('Email verification', function () {
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        Mail::assertQueued(VerificationCodeMail::class, fn ($mail) => $mail->hasTo('resend@test.com'));
+        Mail::assertSent(VerificationCodeMail::class, fn ($mail) => $mail->hasTo('resend@test.com'));
     });
 
     it('blocks login when the email is not verified', function () {

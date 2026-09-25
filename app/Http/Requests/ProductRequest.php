@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Support\TenantContext;
+use Illuminate\Validation\Validator;
 
 /**
  * Validate product creation / update requests.
@@ -45,19 +46,34 @@ class ProductRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
             'description' => ['nullable', 'string'],
             'barcode' => ['nullable', 'string', 'max:100'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('company_id', TenantContext::getCompanyId())],
             'image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ];
     }
 
-    protected function withValidator(\Illuminate\Validation\Validator $validator): void
+    protected function prepareForValidation(): void
     {
-        if ($this->isMethod('patch')) return;
+        if ($this->has('price') && ! $this->has('price_xof')) {
+            $this->merge([
+                'price_xof' => (int) $this->input('price'),
+            ]);
+        }
+    }
+
+    protected function withValidator(Validator $validator): void
+    {
+        if ($this->isMethod('patch')) {
+            return;
+        }
 
         $validator->after(function ($validator) {
             $data = $validator->getData();
-            if (!isset($data['price_xof']) || $data['price_xof'] === '' || $data['price_xof'] === null) {
+            $hasPriceXof = isset($data['price_xof']) && $data['price_xof'] !== '' && $data['price_xof'] !== null;
+            $hasPrice = isset($data['price']) && $data['price'] !== '' && $data['price'] !== null;
+
+            if (! $hasPriceXof && ! $hasPrice) {
                 $validator->errors()->add('price_xof', 'Le prix de vente est requis.');
+                $validator->errors()->add('price', 'Le prix de vente est requis.');
             }
         });
     }

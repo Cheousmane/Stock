@@ -26,29 +26,52 @@ class AnalyticsService
         $companyId = TenantContext::getCompanyId();
 
         return Cache::remember(self::CACHE_PREFIX . ".{$companyId}.overview", self::CACHE_TTL, function () use ($companyId) {
-            $totalRevenue = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
-                ->sum('total_xof');
+            $now = now();
+            $startThisMonth = $now->copy()->startOfMonth()->format('Y-m-d H:i:s');
+            $endThisMonth = $now->copy()->endOfMonth()->format('Y-m-d H:i:s');
 
-            $paidRevenue = Invoice::where('company_id', $companyId)
-                ->where('status', InvoiceStatus::Paid)
-                ->sum('total_xof');
+            $lastMonthDate = $now->copy()->subMonth();
+            $startLastMonth = $lastMonthDate->copy()->startOfMonth()->format('Y-m-d H:i:s');
+            $endLastMonth = $lastMonthDate->copy()->endOfMonth()->format('Y-m-d H:i:s');
 
-            $outstanding = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue, InvoiceStatus::Partial])
-                ->sum('balance_due_xof');
+            $paidValue = InvoiceStatus::Paid->value;
+            $sentValue = InvoiceStatus::Sent->value;
+            $partialValue = InvoiceStatus::Partial->value;
+            $overdueValue = InvoiceStatus::Overdue->value;
 
-            $totalExpenses = Expense::where('company_id', $companyId)->sum('amount');
-            $monthlyExpenses = Expense::where('company_id', $companyId)
-                ->where('date', '>=', now()->subDays(30))
-                ->sum('amount');
+            $invoiceStats = Invoice::where('company_id', $companyId)
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN status IN ('{$paidValue}', '{$sentValue}', '{$partialValue}') THEN total_xof ELSE 0 END), 0) as total_revenue,
+                    COALESCE(SUM(CASE WHEN status = '{$paidValue}' THEN total_xof ELSE 0 END), 0) as paid_revenue,
+                    COALESCE(SUM(CASE WHEN status IN ('{$sentValue}', '{$overdueValue}', '{$partialValue}') THEN balance_due_xof ELSE 0 END), 0) as outstanding,
+                    COALESCE(SUM(CASE WHEN status IN ('{$paidValue}', '{$sentValue}', '{$partialValue}') AND issue_date >= '{$startThisMonth}' AND issue_date <= '{$endThisMonth}' THEN total_xof ELSE 0 END), 0) as this_month,
+                    COALESCE(SUM(CASE WHEN status IN ('{$paidValue}', '{$sentValue}', '{$partialValue}') AND issue_date >= '{$startLastMonth}' AND issue_date <= '{$endLastMonth}' THEN total_xof ELSE 0 END), 0) as last_month,
+                    COUNT(*) as total_invoices,
+                    COUNT(CASE WHEN status = '{$paidValue}' THEN 1 END) as paid_invoices_count
+                ")
+                ->first();
+
+            $totalRevenue = (int) ($invoiceStats->total_revenue ?? 0);
+            $paidRevenue = (int) ($invoiceStats->paid_revenue ?? 0);
+            $outstanding = (int) ($invoiceStats->outstanding ?? 0);
+            $thisMonth = (int) ($invoiceStats->this_month ?? 0);
+            $lastMonth = (int) ($invoiceStats->last_month ?? 0);
+            $totalInvoices = (int) ($invoiceStats->total_invoices ?? 0);
+            $paidInvoicesCount = (int) ($invoiceStats->paid_invoices_count ?? 0);
+
+            $thirtyDaysAgo = $now->copy()->subDays(30)->format('Y-m-d H:i:s');
+            $expenseStats = Expense::where('company_id', $companyId)
+                ->selectRaw("
+                    COALESCE(SUM(amount), 0) as total_expenses,
+                    COALESCE(SUM(CASE WHEN date >= '{$thirtyDaysAgo}' THEN amount ELSE 0 END), 0) as monthly_expenses
+                ")
+                ->first();
+
+            $totalExpenses = (int) ($expenseStats->total_expenses ?? 0);
+            $monthlyExpenses = (int) ($expenseStats->monthly_expenses ?? 0);
 
             $totalCustomers = Customer::where('company_id', $companyId)->count();
             $totalProducts = Product::where('company_id', $companyId)->count();
-            $totalInvoices = Invoice::where('company_id', $companyId)->count();
-            $paidInvoicesCount = Invoice::where('company_id', $companyId)
-                ->where('status', InvoiceStatus::Paid)
-                ->count();
 
             $lowStockCount = DB::table('products as p')
                 ->where('p.company_id', $companyId)
@@ -56,18 +79,6 @@ class AnalyticsService
                 ->count();
 
             $profitData = app(ProfitService::class)->getSummary($companyId);
-
-            $thisMonth = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
-                ->whereYear('issue_date', now()->year)
-                ->whereMonth('issue_date', now()->month)
-                ->sum('total_xof');
-
-            $lastMonth = Invoice::where('company_id', $companyId)
-                ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
-                ->whereYear('issue_date', now()->subMonth()->year)
-                ->whereMonth('issue_date', now()->subMonth()->month)
-                ->sum('total_xof');
 
             $growthRate = $lastMonth > 0
                 ? round(($thisMonth - $lastMonth) / $lastMonth * 100, 2)
@@ -110,11 +121,16 @@ class AnalyticsService
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $months) {
             $startDate = now()->subMonths($months - 1)->startOfMonth();
 
+            $driver = DB::getDriverName();
+            $monthExpr = $driver === 'sqlite'
+                ? "strftime('%Y-%m', issue_date)"
+                : "DATE_FORMAT(issue_date, '%Y-%m')";
+
             $grouped = Invoice::where('company_id', $companyId)
                 ->whereIn('status', [InvoiceStatus::Paid, InvoiceStatus::Sent, InvoiceStatus::Partial])
                 ->where('issue_date', '>=', $startDate)
-                ->selectRaw("DATE_FORMAT(issue_date, '%Y-%m') as month, SUM(total_xof) as total_xof, COUNT(*) as invoice_count")
-                ->groupBy(DB::raw("DATE_FORMAT(issue_date, '%Y-%m')"))
+                ->selectRaw("{$monthExpr} as month, SUM(total_xof) as total_xof, COUNT(*) as invoice_count")
+                ->groupBy(DB::raw($monthExpr))
                 ->orderBy('month')
                 ->get()
                 ->keyBy('month');

@@ -29,20 +29,23 @@ class DashboardController extends Controller
             $capital = $capitalService->calculate($company);
 
             $sixMonthsAgo = now()->subMonths(6)->startOfMonth();
+            $driver = DB::getDriverName();
+            $monthIssueExpr = $driver === 'sqlite' ? "strftime('%Y-%m', issue_date)" : "DATE_FORMAT(issue_date, '%Y-%m')";
+            $monthCreatedExpr = $driver === 'sqlite' ? "strftime('%Y-%m', created_at)" : "DATE_FORMAT(created_at, '%Y-%m')";
 
             $revenueByMonth = Invoice::where('company_id', $companyId)
                 ->where('status', InvoiceStatus::Paid)
                 ->where('issue_date', '>=', $sixMonthsAgo)
-                ->selectRaw("DATE_FORMAT(issue_date, '%Y-%m') as month, SUM(total_xof) as revenue")
-                ->groupBy(DB::raw("DATE_FORMAT(issue_date, '%Y-%m')"))
+                ->selectRaw("{$monthIssueExpr} as month, SUM(total_xof) as revenue")
+                ->groupBy(DB::raw($monthIssueExpr))
                 ->pluck('revenue', 'month');
 
             $posRevenueByMonth = DB::table('pos_sales')
                 ->where('company_id', $companyId)
                 ->where('status', 'completed')
                 ->where('created_at', '>=', $sixMonthsAgo)
-                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, SUM(total_xof) as revenue")
-                ->groupBy(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"))
+                ->selectRaw("{$monthCreatedExpr} as month, SUM(total_xof) as revenue")
+                ->groupBy(DB::raw($monthCreatedExpr))
                 ->pluck('revenue', 'month');
 
             foreach ($posRevenueByMonth as $month => $revenue) {
@@ -67,17 +70,18 @@ class DashboardController extends Controller
                 "))
                 ->first();
 
+            $thirtyDaysAgo = now()->subDays(30)->format('Y-m-d H:i:s');
             $countsQuery = DB::select("
                 SELECT
                     (SELECT COUNT(*) FROM products WHERE company_id = ? AND deleted_at IS NULL) as total_products,
                     (SELECT COUNT(*) FROM customers WHERE company_id = ? AND deleted_at IS NULL) as total_customers,
-                    (SELECT COUNT(*) FROM payments WHERE company_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) as recent_payments,
+                    (SELECT COUNT(*) FROM payments WHERE company_id = ? AND created_at >= ?) as recent_payments,
                     (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE company_id = ?) as total_expenses,
-                    (SELECT COUNT(*) FROM expenses WHERE company_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) as recent_expenses,
+                    (SELECT COUNT(*) FROM expenses WHERE company_id = ? AND created_at >= ?) as recent_expenses,
                     (SELECT COUNT(*) FROM credit_notes WHERE company_id = ? AND deleted_at IS NULL) as total_credit_notes,
                     (SELECT COUNT(*) FROM credit_notes WHERE company_id = ? AND status = 'draft' AND deleted_at IS NULL) as draft_credit_notes,
                     (SELECT COALESCE(SUM(total_xof), 0) FROM credit_notes WHERE company_id = ? AND status = 'validated' AND deleted_at IS NULL) as credit_notes_amount
-            ", [$companyId, $companyId, $companyId, $companyId, $companyId, $companyId, $companyId, $companyId])[0];
+            ", [$companyId, $companyId, $companyId, $thirtyDaysAgo, $companyId, $companyId, $thirtyDaysAgo, $companyId, $companyId, $companyId])[0];
 
             $lowStockProducts = DB::table('products as p')
                 ->where('p.company_id', $companyId)

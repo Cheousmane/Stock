@@ -3,8 +3,8 @@
     <button @click="open = !open"
       class="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
       :title="$t('component.theme.' + current)">
-      <SunIcon v-if="resolved === 'light'" class="w-5 h-5" />
-      <MoonIcon v-else-if="resolved === 'dark'" class="w-5 h-5" />
+      <SunIcon v-if="resolvedTheme === 'light'" class="w-5 h-5" />
+      <MoonIcon v-else-if="resolvedTheme === 'dark'" class="w-5 h-5" />
       <ComputerDesktopIcon v-else class="w-5 h-5" />
     </button>
     <div v-if="open"
@@ -28,28 +28,7 @@ import { useI18n } from 'vue-i18n';
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline';
 import { useTheme } from '../composables/useTheme';
 
-const { t: $t } = useI18n();
-const { current, set } = useTheme();
-const open = ref(false);
-
-const options = [
-  { value: 'light', label: 'component.theme.light', icon: SunIcon },
-  { value: 'dark', label: 'component.theme.dark', icon: MoonIcon },
-  { value: 'system', label: 'component.theme.system', icon: ComputerDesktopIcon },
-];
-
-function select(value) {
-  set(value);
-  open.value = false;
-}
-
-const resolved = computed(() => {
-  if (current.value === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return current.value;
-});
-
+// Click outside directive
 const vClickOutside = {
   mounted(el, binding) {
     el.__clickOutside = (event) => {
@@ -61,4 +40,27 @@ const vClickOutside = {
     document.removeEventListener('click', el.__clickOutside);
   },
 };
+
+const { t: $t } = useI18n();
+const { current, setTheme } = useTheme();
+
+const open = ref(false);
+
+const options = [
+  { value: 'light', label: 'component.theme.light', icon: SunIcon },
+  { value: 'dark', label: 'component.theme.dark', icon: MoonIcon },
+  { value: 'system', label: 'component.theme.system', icon: ComputerDesktopIcon },
+];
+
+function select(value) {
+  setTheme(value);
+  open.value = false;
+}
+
+const resolvedTheme = computed(() => {
+  if (current.value === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return current.value;
+});
 </script>

@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const STORAGE_KEY = 'theme';
 
@@ -29,11 +29,11 @@ export function applyTheme() {
 }
 
 export function useTheme() {
-  function set(theme) {
+  function setTheme(theme) {
     current.value = theme;
     localStorage.setItem(STORAGE_KEY, theme);
     apply(theme);
   }
 
-  return { current, set };
+  return { current, setTheme };
 }

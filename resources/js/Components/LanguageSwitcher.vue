@@ -1,35 +1,39 @@
 <template>
   <div class="relative" v-click-outside="close">
     <button @click="toggle"
-      class="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900"
+      class="flex items-center gap-1.5 px-2.5 py-2 text-sm font-bold text-text-secondary rounded-xl border border-transparent hover:border-border hover:bg-surface-tertiary hover:text-text-primary active:scale-95 transition-all"
       :title="current?.name">
       <span class="text-base leading-none">{{ current?.flag }}</span>
-      <span class="hidden sm:inline uppercase text-xs font-semibold">{{ current?.code }}</span>
-      <ChevronDownIcon class="w-3.5 h-3.5 text-gray-400" :class="open && 'rotate-180'" />
+      <span class="hidden sm:inline uppercase text-[11px] font-extrabold tracking-wider">{{ current?.code }}</span>
+      <ChevronDownIcon class="w-3.5 h-3.5 text-text-tertiary transition-transform duration-200" :class="open && 'rotate-180'" />
     </button>
 
+    <Transition name="pop">
     <div v-if="open"
-      class="absolute right-0 z-50 mt-1.5 w-64 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-      <div class="p-2 border-b border-gray-100">
+      class="absolute right-0 z-50 mt-2 w-68 bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/[0.08] overflow-hidden">
+      <div class="p-2 border-b border-border/60">
         <div class="relative">
-          <MagnifyingGlassIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
           <input v-model="query" ref="searchRef" type="text" :placeholder="$t('common.search')"
-            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+            class="w-full pl-9 pr-3 py-2.5 text-sm font-semibold bg-surface-secondary/70 border border-border/60 rounded-xl focus:bg-surface focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/60 outline-none transition placeholder:text-text-tertiary placeholder:font-normal" />
         </div>
       </div>
-      <div class="max-h-60 overflow-y-auto overscroll-contain">
-        <button v-for="lang in filtered" :key="lang.code" @click="select(lang.code)"
-          :class="['flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left', lang.code === current?.code ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700 hover:bg-gray-50']">
-          <span class="text-lg leading-none">{{ lang.flag }}</span>
-          <span class="flex-1">{{ lang.name }}</span>
-          <span class="text-xs text-gray-400 uppercase">{{ lang.code }}</span>
-          <CheckIcon v-if="lang.code === current?.code" class="w-4 h-4 text-emerald-600" />
-        </button>
-        <div v-if="!filtered.length" class="px-3 py-8 text-sm text-center text-gray-400">
+      <div class="max-h-60 overflow-y-auto overscroll-contain custom-scrollbar p-1.5">
+        <template v-for="lang in filtered" :key="lang.code">
+          <button @click="select(lang.code)"
+            :class="['group flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left rounded-xl transition-all', lang.code === current?.code ? 'bg-emerald-500/[0.08] text-emerald-700 dark:text-emerald-400 font-extrabold shadow-[inset_0_0_0_1px_rgb(16_185_129/0.2)]' : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary font-semibold']">
+            <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-surface-secondary border border-border/60 text-lg leading-none shrink-0 transition-transform group-hover:scale-105">{{ lang.flag }}</span>
+            <span class="flex-1 truncate">{{ lang.name }}</span>
+            <span class="text-[10px] font-extrabold text-text-tertiary uppercase tracking-wider">{{ lang.code }}</span>
+            <CheckIcon v-if="lang.code === current?.code" class="w-4 h-4 text-emerald-600 shrink-0" />
+          </button>
+        </template>
+        <div v-if="!filtered.length" class="px-3 py-8 text-sm font-semibold text-center text-text-tertiary">
           {{ $t('common.no_results') }}
         </div>
       </div>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -87,8 +91,12 @@ const vClickOutside = {
     };
     document.addEventListener('click', el.__clickOutside);
   },
-  unmounted(el) {
-    document.removeEventListener('click', el.__clickOutside);
-  },
+  unmounted(el) { document.removeEventListener('click', el.__clickOutside) },
 };
 </script>
+
+<style scoped>
+.pop-enter-active { animation: modal-pop 0.18s ease-out; transform-origin: top right; }
+.pop-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.pop-enter-from, .pop-leave-to { opacity: 0; transform: translateY(-4px) scale(0.98); }
+</style>

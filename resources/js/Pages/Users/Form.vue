@@ -97,7 +97,7 @@ onMounted(async () => {
     const { data } = await axios.get('/roles');
     roles.value = data.data ?? data;
   } catch {
-    showToast('Erreur lors du chargement des rôles', 'error');
+    showToast($t('page.users.load_error'), 'error');
   }
   if (!isEdit.value) return;
   try {

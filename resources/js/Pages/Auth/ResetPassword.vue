@@ -8,16 +8,14 @@
       <div class="relative flex flex-col justify-center px-16 max-w-lg mx-auto">
         <!-- Logo et nom de l'entreprise -->
         <router-link to="/" class="flex items-center gap-3 mb-8 group">
-          <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
-            <span class="text-white dark:text-gray-950"><DocumentTextIcon class="w-7 h-7" /></span>
-          </div>
+          <AppLogo :size="48" />
           <div>
-            <p class="text-xl font-bold text-white dark:text-gray-950">SIDIBE CORPORATE</p>
-            <p class="text-sm text-white/50 dark:text-gray-950/50">Facturation & Stock</p>
+            <p class="text-xl font-bold text-white">SIDIBE CORPORATE</p>
+            <p class="text-sm text-white/50">Facturation & Stock</p>
           </div>
         </router-link>
-        <h2 class="text-3xl font-bold text-white dark:text-gray-950 leading-tight">Nouveau mot de passe</h2>
-        <p class="mt-3 text-white/60 dark:text-gray-950/60 leading-relaxed">
+        <h2 class="text-3xl font-bold text-white leading-tight">Nouveau mot de passe</h2>
+        <p class="mt-3 text-white/60 leading-relaxed">
           Choisissez un mot de passe sécurisé pour votre compte.
         </p>
       </div>
@@ -29,9 +27,7 @@
         <!-- Logo mobile (caché sur desktop) -->
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
-            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
-              <span class="text-white dark:text-gray-950"><DocumentTextIcon class="w-6 h-6" /></span>
-            </div>
+            <AppLogo :size="40" />
             <span class="text-lg font-bold text-[var(--color-text-primary)]">SIDIBE CORPORATE</span>
           </router-link>
         </div>
@@ -120,7 +116,8 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { DocumentTextIcon, EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
+import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
+import AppLogo from '../../Components/AppLogo.vue';
 
 // Récupération du token et email depuis l'URL (query params)
 const route = useRoute();

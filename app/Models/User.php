@@ -17,7 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, BelongsToTenant, HasRoles, Billable;
+    use BelongsToTenant, Billable, HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,8 +32,6 @@ class User extends Authenticatable
         'company_id',
         'last_login_at',
         'last_seen_at',
-        'is_super_admin',
-        'is_active',
     ];
 
     /**
@@ -44,6 +42,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
     ];
 
     /**

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
@@ -46,9 +47,6 @@ class Company extends Model
         return $this->belongsTo(Plan::class);
     }
 
-    /**
-     * Boot the model.
-     */
     protected static function booted(): void
     {
         static::creating(function (Company $company) {
@@ -56,11 +54,33 @@ class Company extends Model
                 $company->uuid = (string) Str::uuid();
             }
         });
+
+        static::updated(function (Company $company) {
+            if ($company->isDirty(['plan_id', 'status', 'trial_ends_at'])) {
+                $company->clearPlanCache();
+            }
+        });
     }
 
     /**
-     * Users belonging to this company.
+     * Essai en cours et valide (accès complet aux fonctionnalités).
      */
+    public function hasActiveTrial(): bool
+    {
+        return $this->status === 'trial'
+            && $this->trial_ends_at !== null
+            && $this->trial_ends_at->isFuture();
+    }
+
+    public function clearPlanCache(): void
+    {
+        Cache::forget("plan.{$this->id}");
+        Cache::forget("quota_count.users.{$this->id}");
+        Cache::forget("quota_count.products.{$this->id}");
+        Cache::forget("quota_count.invoices.{$this->id}");
+        Cache::forget("quota_count.warehouses.{$this->id}");
+    }
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

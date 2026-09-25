@@ -50,10 +50,13 @@ describe('Subscription API', function () {
         $response->assertStatus(Response::HTTP_OK);
     });
 
-    it('returns 401 for unauthenticated access to plans', function () {
+    it('returns plans list for unauthenticated access (public endpoint)', function () {
+        Plan::factory()->create(['is_active' => true, 'sort' => 1]);
+        Plan::factory()->create(['is_active' => true, 'sort' => 2]);
+
         $response = $this->getJson('/api/v1/subscriptions/plans');
 
-        $response->assertStatus(Response::HTTP_UNAUTHORIZED);
+        $response->assertStatus(Response::HTTP_OK);
     });
 
 });

@@ -34,6 +34,12 @@ class Invoice extends Model
         'notes',
         'terms',
         'metadata',
+        'fiscal_regime',
+        'tax_id_number',
+        'fiscal_reference',
+        'is_fiscal',
+        'fiscal_issue_date',
+        'fiscal_metadata',
     ];
 
     protected function casts(): array

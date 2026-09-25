@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.events.title')" :subtitle="meta ? $t('page.events.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Gestion" :title="$t('page.events.title')" :subtitle="meta ? $t('page.events.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'EventCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.events.create') }}

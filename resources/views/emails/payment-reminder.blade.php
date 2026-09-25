@@ -24,8 +24,19 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ $company?->name ?? config('app.name') }}</h1>
-            <p>Relance de paiement — Facture {{ $invoice->number }}</p>
+            <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+                <tr>
+                    @if(!empty($company?->metadata['logo']) && file_exists(Storage::disk('public')->path($company->metadata['logo'])))
+                        <td style="vertical-align:middle;width:56px;">
+                            <img src="{{ $message->embed(Storage::disk('public')->path($company->metadata['logo'])) }}" width="44" height="44" alt="{{ $company->name }}" style="border-radius:10px;display:block;background:#ffffff;">
+                        </td>
+                    @endif
+                    <td style="vertical-align:middle;">
+                        <h1 style="font-size:18px;margin:0 0 4px;">{{ $company?->name ?? config('app.name') }}</h1>
+                        <p style="margin:0;font-size:13px;opacity:0.9;">Relance de paiement — Facture {{ $invoice->number }}</p>
+                    </td>
+                </tr>
+            </table>
         </div>
         <div class="body">
             <p>Bonjour {{ $customer?->name ?? 'cher client' }},</p>
@@ -58,7 +69,15 @@
             </p>
         </div>
         <div class="footer">
-            {{ $company?->name ?? config('app.name') }} — © {{ date('Y') }}
+            <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td style="vertical-align:middle;">{{ $company?->name ?? config('app.name') }} — © {{ date('Y') }}</td>
+                    <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+                        <img src="{{ $message->embed(public_path('images/logo-mail.png')) }}" width="18" height="18" alt="" style="border-radius:4px;vertical-align:middle;">
+                        <span style="vertical-align:middle;">Propulsé par SIDIBE CORPORATE</span>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </body>

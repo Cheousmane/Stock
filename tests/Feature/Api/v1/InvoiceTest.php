@@ -271,7 +271,7 @@ describe('Invoice', function () {
         $paymentResponse->assertStatus(Response::HTTP_CREATED);
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice->id,
-            'status' => 'sent',
+            'status' => 'partial',
             'paid_xof' => 10000,
             'balance_due_xof' => 25400,
         ]);

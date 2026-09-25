@@ -1,13 +1,13 @@
 @if(count($payments) > 0)
-    <div class="notes">
-        <strong>{{ trans('pdf.payments') }}</strong>
-        <table class="items" style="margin-top:6px">
+    <div class="callout" style="border-left-color:#16a34a">
+        <div class="callout-title">{{ trans('pdf.payments') }}</div>
+        <table class="items items-accent" style="margin-top:8px" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
                     <th style="width:18%">{{ trans('pdf.payment_date') }}</th>
                     <th style="width:30%">{{ trans('pdf.payment_method') }}</th>
-                    <th style="width:32%">{{ trans('pdf.payment_reference') }}</th>
-                    <th style="width:20%;text-align:right">{{ trans('pdf.payment_amount') }}</th>
+                    <th style="width:30%">{{ trans('pdf.payment_reference') }}</th>
+                    <th style="width:22%;text-align:right">{{ trans('pdf.payment_amount') }}</th>
                 </tr>
             </thead>
             <tbody>

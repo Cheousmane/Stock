@@ -141,6 +141,43 @@ class SuperAdminDashboardController extends Controller
                 ->take(10)
                 ->get();
 
+            // Plan distribution
+            $companiesWithoutPlan = (int) DB::table('companies')
+                ->whereNull('plan_id')
+                ->count();
+
+            $companiesWithPlan = (int) DB::table('companies')
+                ->whereNotNull('plan_id')
+                ->count();
+
+            $planDistribution = DB::table('companies')
+                ->join('plans', 'plans.id', '=', 'companies.plan_id')
+                ->select(
+                    'plans.id',
+                    'plans.name',
+                    'plans.slug',
+                    'plans.price_xof',
+                    DB::raw('COUNT(companies.id) as companies_count')
+                )
+                ->groupBy('plans.id', 'plans.name', 'plans.slug', 'plans.price_xof')
+                ->orderBy('companies_count', 'desc')
+                ->get();
+
+            $companiesWithoutPlanList = Company::whereNull('plan_id')
+                ->whereIn('status', ['active', 'trial'])
+                ->withCount('users')
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(fn ($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'status' => $c->status,
+                    'users_count' => $c->users_count,
+                    'created_at' => $c->created_at,
+                ]);
+
             // Chart data: Registrations over last 30 days
             $chartRegistrations = [];
             $registrationsRaw = Company::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
@@ -177,6 +214,10 @@ class SuperAdminDashboardController extends Controller
                 'alerts' => $alerts,
                 'recent_companies' => $recentCompanies,
                 'chart_registrations' => $chartRegistrations,
+                'companies_without_plan' => $companiesWithoutPlan,
+                'companies_with_plan' => $companiesWithPlan,
+                'plan_distribution' => $planDistribution,
+                'companies_without_plan_list' => $companiesWithoutPlanList,
             ];
         });
 

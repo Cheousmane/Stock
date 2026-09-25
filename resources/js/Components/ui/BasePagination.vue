@@ -1,6 +1,6 @@
 <template>
   <div v-if="lastPage > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4">
-    <p class="text-sm text-text-tertiary">
+    <p class="text-xs font-bold text-text-tertiary tabular-nums">
       {{ from }}–{{ to }} sur {{ total }}
     </p>
     <div class="flex items-center gap-1">

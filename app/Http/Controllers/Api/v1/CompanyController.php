@@ -15,7 +15,8 @@ class CompanyController extends Controller
 {
     public function show(): JsonResponse
     {
-        $company = TenantContext::get();
+        $this->authorize('view_dashboard');
+        $company = TenantContext::get()->load('plan');
 
         return response()->json($company);
     }
@@ -73,13 +74,18 @@ class CompanyController extends Controller
 
     public function switchPlan(Request $request): JsonResponse
     {
+        // Les plans payants passent par le tunnel de souscription (/subscriptions/*).
+        // Ici : retour volontaire vers l'offre gratuite uniquement.
+        $this->authorize('manage_settings');
+
         $validated = $request->validate([
-            'plan_slug' => ['required', 'string', 'exists:plans,slug'],
+            'plan_slug' => ['required', 'string', 'in:free'],
         ]);
 
         $plan = Plan::where('slug', $validated['plan_slug'])->firstOrFail();
         $company = TenantContext::get();
         $company->update(['plan_id' => $plan->id]);
+        $company->clearPlanCache();
 
         return response()->json([
             'message' => 'Plan switched to '.$plan->name,

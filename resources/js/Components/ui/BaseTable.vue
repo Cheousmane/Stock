@@ -1,9 +1,9 @@
 <template>
-  <div class="overflow-hidden rounded-xl border border-border bg-surface">
+  <div class="pro-table-wrap">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
-          <tr class="border-b border-border">
+            <tr class="pro-table-head">
             <th v-if="selectable" class="w-10 px-4 py-3">
               <input
                 type="checkbox"
@@ -18,12 +18,12 @@
               :key="col.key"
               @click="col.sortable !== false && col.key && $emit('sort', col.key)"
               :class="[
-                'px-4 py-3 text-xs font-medium tracking-wider text-text-tertiary whitespace-nowrap',
+                'px-5 py-4 text-[11px] font-extrabold tracking-[0.1em] text-text-tertiary uppercase whitespace-nowrap',
                 col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left',
-                { 'cursor-pointer select-none hover:text-text-secondary': col.sortable !== false && col.key },
+                { 'cursor-pointer select-none hover:text-text-primary transition-colors': col.sortable !== false && col.key },
               ]"
             >
-              <span class="inline-flex items-center gap-1">
+              <span class="inline-flex items-center gap-1.5">
                 {{ col.label }}
                 <span v-if="col.sortable !== false && col.key && sortBy === col.key" class="inline-flex flex-col -space-y-1">
                   <svg class="w-2.5 h-2.5" :class="sortOrder === 'asc' ? 'text-text-primary' : 'text-border'" fill="currentColor" viewBox="0 0 20 20">
@@ -38,16 +38,16 @@
             <th v-if="$slots.actions" class="w-12 px-4 py-3" />
           </tr>
         </thead>
-        <tbody class="divide-y divide-border">
+        <tbody class="divide-y divide-border/60">
           <tr
             v-for="(row, i) in rows"
             :key="row.id ?? i"
             @click="$emit('rowClick', row)"
             :class="[
               clickable ? 'cursor-pointer' : '',
-              striped && i % 2 ? 'bg-surface-secondary/50' : 'bg-surface',
-              hover && 'transition-all duration-200 hover:bg-surface-tertiary/50 hover:translate-x-0.5',
-              selectedIds && isRowSelected(row) ? 'bg-primary-50/50 dark:bg-primary-500/5' : '',
+              striped && i % 2 ? 'bg-surface-secondary/40' : 'bg-surface',
+              hover && 'transition-colors duration-150 hover:bg-emerald-500/[0.05]',
+              selectedIds && isRowSelected(row) ? 'bg-emerald-500/[0.07]' : '',
             ]"
           >
             <td v-if="selectable" class="px-4 py-3">
@@ -62,7 +62,7 @@
               v-for="col in columns"
               :key="col.key"
               :class="[
-                'px-4 py-3 text-sm',
+                'px-5 py-3.5 text-sm',
                 col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left',
                 col.class || '',
               ]"
@@ -78,13 +78,16 @@
         </tbody>
       </table>
     </div>
-    <div v-if="!rows.length" class="py-12 text-center">
+    <div v-if="!rows.length" class="py-12 px-6 text-center">
       <slot name="empty">
-        <div class="flex flex-col items-center gap-2">
-          <svg class="w-10 h-10 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-          </svg>
-          <p class="text-sm text-text-tertiary">{{ emptyText }}</p>
+        <div class="flex flex-col items-center">
+          <span class="pro-empty-icon">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+          </span>
+          <p class="text-sm font-extrabold text-text-primary">{{ emptyText || t('common.no_data') }}</p>
+          <p class="mt-1 text-xs font-medium text-text-tertiary">Aucun élément à afficher pour le moment.</p>
         </div>
       </slot>
     </div>
@@ -98,6 +101,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   columns: { type: Array, required: true },
@@ -109,7 +115,7 @@ const props = defineProps({
   clickable: { type: Boolean, default: false },
   selectable: { type: Boolean, default: false },
   selectedIds: { type: Array, default: () => [] },
-  emptyText: { type: String, default: 'Aucune donnée' },
+  emptyText: { type: String, default: '' },
 })
 
 const emit = defineEmits(['sort', 'rowClick', 'update:selectedIds'])

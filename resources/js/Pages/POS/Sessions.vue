@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.pos_sessions.title')" :subtitle="meta ? $t('page.pos_sessions.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Ventes" :title="$t('page.pos_sessions.title')" :subtitle="meta ? $t('page.pos_sessions.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchSessions(meta?.current_page)" title="Rafraîchir">
             <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
@@ -185,7 +185,7 @@ function formatXof(v) {
 }
 
 function paymentLabel(method) {
-  const labels = { cash: 'Espèces', card: 'Carte', mobile_money: 'Mobile Money' };
+  const labels = { cash: $t('page.pos.pay_cash'), card: $t('page.pos.card_tpe'), mobile_money: $t('page.pos.pay_mobile') };
   return labels[method] || method;
 }
 

@@ -29,6 +29,198 @@ class PosController extends Controller
         return response()->json(['data' => $session]);
     }
 
+    public function printerConfiguration(Request $request, PosSession $session)
+    {
+        $this->authorize('view', $session);
+
+        if ($session->company_id !== TenantContext::getCompanyId()) {
+            abort(403, 'Session de caisse invalide pour cette entreprise.');
+        }
+
+        $company = $session->company;
+
+        $config = [
+            'printer_model' => $session->printer_model ?? ($company->metadata['printer_model'] ?? ''),
+            'printer_ip' => $session->printer_ip ?? ($company->metadata['printer_ip'] ?? ''),
+            'auto_print' => $session->printer_auto_print ?? ($company->metadata['printer_auto_print'] ?? true),
+            'receipt_template' => $company->metadata['receipt_template'] ?? 'default',
+        ];
+
+        return response()->json(['data' => $config]);
+    }
+
+    public function updatePrinterConfiguration(Request $request, PosSession $session)
+    {
+        $this->authorize('update', $session);
+
+        if ($session->company_id !== TenantContext::getCompanyId()) {
+            abort(403, 'Session de caisse invalide pour cette entreprise.');
+        }
+
+        $request->validate([
+            'printer_model' => 'nullable|string|max:50',
+            'printer_ip' => 'nullable|string|max:45',
+            'auto_print' => 'nullable|boolean',
+        ]);
+
+        $session->update([
+            'printer_model' => $request->input('printer_model'),
+            'printer_ip' => $request->input('printer_ip'),
+            'printer_auto_print' => $request->input('auto_print'),
+        ]);
+
+        // Also update company metadata
+        if ($session->company) {
+            $session->company->metadata['printer_model'] = $request->input('printer_model');
+            $session->company->metadata['printer_ip'] = $request->input('printer_ip');
+            $session->company->metadata['printer_auto_print'] = $request->input('auto_print');
+            $session->company->save();
+        }
+
+        return response()->json(['data' => $session]);
+    }
+
+    public function syncOfflineSales(Request $request)
+    {
+        $this->authorize('create', PosSale::class);
+
+        $companyId = TenantContext::getCompanyId();
+        $request->validate([
+            'sales' => 'required|array|min:1',
+            'sales.*.id' => 'sometimes|exists:pos_sales,id',
+            'sales.*.pos_session_id' => 'required|exists:pos_sessions,id',
+            'sales.*.product_id' => 'required|exists:products,id',
+            'sales.*.quantity' => 'required|integer|min:1',
+            'sales.*.unit_price_xof' => 'required|integer|min:0',
+            'sales.*.customer_id' => 'nullable|exists:customers,id',
+            'sales.*.payment_method' => 'required|in:cash,card,mobile_money',
+            'sales.*.amount_paid_xof' => 'required|integer|min:0',
+            'sales.*.change_returned_xof' => 'nullable|integer|min:0',
+        ]);
+
+        $user = $request->user();
+        $results = [];
+
+        foreach ($request->input('sales') as $saleData) {
+            $session = PosSession::find($saleData['pos_session_id']);
+            if (!$session || $session->company_id !== $companyId || $session->status !== 'open') {
+                $results[] = [
+                    'id' => optional($saleData['id']) ?? null,
+                    'success' => false,
+                    'message' => 'Session invalide ou fermée',
+                ];
+                continue;
+            }
+
+            // Check stock availability
+            $warehouse = Warehouse::where('company_id', $companyId)->first();
+            if (!$warehouse) {
+                $warehouse = Warehouse::create([
+                    'company_id' => $companyId,
+                    'name' => 'Entrepôt principal',
+                    'code' => 'PRINCIPAL',
+                    'is_active' => true,
+                ]);
+            }
+
+            $product = Product::where('company_id', $companyId)->where('id', $saleData['product_id'])->first();
+            if (!$product) {
+                $results[] = [
+                    'id' => optional($saleData['id']) ?? null,
+                    'success' => false,
+                    'message' => "Produit introuvable: {$saleData['product_id']}",
+                ];
+                continue;
+            }
+
+            $stock = WarehouseStock::where('warehouse_id', $warehouse->id)
+                ->where('product_id', $product->id)
+                ->first();
+
+            $availableQty = $stock ? $stock->quantity : 0;
+            if ($saleData['quantity'] > $availableQty) {
+                $results[] = [
+                    'id' => optional($saleData['id']) ?? null,
+                    'success' => false,
+                    'message' => "Stock insuffisant pour {$product->name}",
+                ];
+                continue;
+            }
+
+            DB::beginTransaction();
+            try {
+                $subtotal = $saleData['quantity'] * $saleData['unit_price_xof'];
+                $total = $subtotal;
+                $change = max(0, $saleData['amount_paid_xof'] - $total);
+
+                $receiptNumber = 'POS-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
+                $sale = PosSale::create([
+                    'company_id' => $companyId,
+                    'pos_session_id' => $session->id,
+                    'user_id' => $user->id,
+                    'customer_id' => $saleData['customer_id'],
+                    'receipt_number' => $receiptNumber,
+                    'subtotal_xof' => $subtotal,
+                    'tax_xof' => 0,
+                    'discount_xof' => 0,
+                    'total_xof' => $total,
+                    'payment_method' => $saleData['payment_method'],
+                    'amount_paid_xof' => $saleData['amount_paid_xof'],
+                    'change_returned_xof' => $change,
+                    'status' => 'completed',
+                ]);
+
+                // Create POS items
+                PosSaleItem::create([
+                    'pos_sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $saleData['quantity'],
+                    'unit_price_xof' => $saleData['unit_price_xof'],
+                    'subtotal_xof' => $subtotal,
+                ]);
+
+                // Update stock
+                $stock->quantity -= $saleData['quantity'];
+                $stock->save();
+
+                // Create stock movement
+                StockMovement::create([
+                    'company_id' => $companyId,
+                    'warehouse_id' => $warehouse->id,
+                    'product_id' => $product->id,
+                    'type' => 'out',
+                    'quantity' => $saleData['quantity'],
+                    'before_quantity' => $stock->quantity + $saleData['quantity'],
+                    'after_quantity' => $stock->quantity,
+                    'reason' => 'Vente POS offline $receiptNumber',
+                    'reference_type' => PosSale::class,
+                    'reference_id' => $sale->id,
+                    'created_by' => $user->id,
+                ]);
+
+                DB::commit();
+
+                $results[] = [
+                    'id' => $sale->id,
+                    'success' => true,
+                    'receipt_number' => $receiptNumber,
+                    'total_xof' => $total,
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $results[] = [
+                    'id' => optional($saleData['id']) ?? null,
+                    'success' => false,
+                    'message' => 'Erreur: ' . $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json(['data' => $results]);
+    }
+
     public function openSession(Request $request)
     {
         $this->authorize('create', PosSession::class);

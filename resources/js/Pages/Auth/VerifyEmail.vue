@@ -7,16 +7,14 @@
       <div class="absolute bottom-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
       <div class="relative flex flex-col justify-center px-16 max-w-lg mx-auto">
         <router-link to="/" class="flex items-center gap-3 mb-8 group opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.2s_forwards]">
-          <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
-            <span class="text-white dark:text-gray-950"><DocumentTextIcon class="w-7 h-7" /></span>
-          </div>
+          <AppLogo :size="48" />
           <div>
-            <p class="text-xl font-bold text-white dark:text-gray-950">SIDIBE CORPORATE</p>
-            <p class="text-sm text-white/50 dark:text-gray-950/50">Facturation & Stock</p>
+            <p class="text-xl font-bold text-white">SIDIBE CORPORATE</p>
+            <p class="text-sm text-white/50">Facturation & Stock</p>
           </div>
         </router-link>
-        <h2 class="text-3xl font-bold text-white dark:text-gray-950 leading-tight opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.4s_forwards]">Vérifiez votre adresse<br>e-mail</h2>
-        <p class="mt-3 text-white/60 dark:text-gray-950/60 leading-relaxed opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.6s_forwards]">
+        <h2 class="text-3xl font-bold text-white leading-tight opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.4s_forwards]">Vérifiez votre adresse<br>e-mail</h2>
+        <p class="mt-3 text-white/60 leading-relaxed opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.6s_forwards]">
           Nous venons de vous envoyer un code de confirmation pour sécuriser la création de votre compte.
         </p>
       </div>
@@ -27,9 +25,7 @@
       <div class="w-full max-w-sm">
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
-            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
-              <span class="text-white dark:text-gray-950"><DocumentTextIcon class="w-6 h-6" /></span>
-            </div>
+            <AppLogo :size="40" />
             <span class="text-lg font-bold text-[var(--color-text-primary)]">SIDIBE CORPORATE</span>
           </router-link>
         </div>
@@ -51,6 +47,11 @@
           <div v-if="error" class="flex items-center gap-2.5 p-3.5 mb-6 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-xl border border-red-100 dark:border-red-900/70">
             <span class="text-red-500 shrink-0"><ExclamationTriangleIcon class="w-4 h-4" /></span>
             {{ error }}
+          </div>
+
+          <div v-if="route.query.mail_failed" class="flex items-center gap-2.5 p-3.5 mb-6 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 rounded-xl border border-amber-200 dark:border-amber-900/70">
+            <span class="text-amber-500 shrink-0"><ExclamationTriangleIcon class="w-4 h-4" /></span>
+            {{ $t('auth.email_not_sent') }}
           </div>
 
           <form @submit.prevent="verify" class="space-y-5">
@@ -126,7 +127,8 @@ import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
-import { DocumentTextIcon, EnvelopeIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/vue/24/outline';
+import { EnvelopeIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/vue/24/outline';
+import AppLogo from '../../Components/AppLogo.vue';
 import { switchLocale } from '../../i18n';
 
 const route = useRoute();

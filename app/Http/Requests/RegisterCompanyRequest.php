@@ -40,6 +40,7 @@ class RegisterCompanyRequest extends FormRequest
             'password' => ['required', 'string', $password, 'confirmed'],
             'industry' => ['sometimes', 'nullable', 'string', 'max:100'],
             'size' => ['sometimes', 'nullable', 'string', 'in:petite,moyenne,grande'],
+            'plan_id' => ['sometimes', 'nullable', 'integer', 'exists:plans,id'],
         ];
     }
 }

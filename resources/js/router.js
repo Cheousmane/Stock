@@ -1,10 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { ref } from 'vue';
+import { initAnalytics, trackPageView } from './composables/useAnalytics';
 
 export const navigationInProgress = ref(false);
 
 const routes = [
   { path: '/', name: 'Landing', component: () => import('./Pages/Landing.vue'), meta: { guest: true, title: 'Accueil' } },
+  { path: '/confidentialite', name: 'Privacy', component: () => import('./Pages/Legal/Privacy.vue'), meta: { guest: true, title: 'Confidentialité' } },
+  { path: '/conditions', name: 'Terms', component: () => import('./Pages/Legal/Terms.vue'), meta: { guest: true, title: "Conditions d'utilisation" } },
+  { path: '/cookies', name: 'Cookies', component: () => import('./Pages/Legal/Cookies.vue'), meta: { guest: true, title: 'Cookies' } },
   { path: '/login', name: 'Login', component: () => import('./Pages/Auth/Login.vue'), meta: { guest: true, title: 'Connexion' } },
   { path: '/register', name: 'Register', component: () => import('./Pages/Auth/Register.vue'), meta: { guest: true, title: 'Inscription' } },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('./Pages/Auth/VerifyEmail.vue'), meta: { guest: true, title: 'Vérification e-mail' } },
@@ -69,13 +73,14 @@ const routes = [
   { path: '/pos', name: 'PosIndex', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, title: 'Caisse (POS)' } },
   { path: '/pos/session', name: 'PosSession', component: () => import('./Pages/POS/Session.vue'), meta: { requiresAuth: true, title: 'Session caisse' } },
   { path: '/pos/sessions', name: 'PosSessions', component: () => import('./Pages/POS/Sessions.vue'), meta: { requiresAuth: true, title: 'Sessions caisse' } },
+  { path: '/pos/catalog', name: 'PosCatalog', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, title: 'Catalogue Produits' } },
 
   // Super Admin routes
-  { path: '/admin/dashboard', name: 'AdminDashboard', component: () => import('./Pages/Admin/Dashboard.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Tableau de bord' } },
-  { path: '/admin/companies', name: 'AdminCompanies', component: () => import('./Pages/Admin/Companies.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Entreprises' } },
-  { path: '/admin/login-logs', name: 'AdminLoginLogs', component: () => import('./Pages/Admin/LoginLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Connexions' } },
-  { path: '/admin/activity-logs', name: 'AdminActivityLogs', component: () => import('./Pages/Admin/ActivityLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Interférences' } },
-  { path: '/admin/users', name: 'AdminUsers', component: () => import('./Pages/Admin/Users.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Utilisateurs' } },
+  { path: '/admin/dashboard', name: 'AdminDashboard', component: () => import('@/Pages/Admin/Dashboard.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Tableau de bord' } },
+  { path: '/admin/companies', name: 'AdminCompanies', component: () => import('@/Pages/Admin/Companies.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Entreprises' } },
+  { path: '/admin/login-logs', name: 'AdminLoginLogs', component: () => import('@/Pages/Admin/LoginLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Connexions' } },
+  { path: '/admin/activity-logs', name: 'AdminActivityLogs', component: () => import('@/Pages/Admin/ActivityLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Interférences' } },
+  { path: '/admin/users', name: 'AdminUsers', component: () => import('@/Pages/Admin/Users.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Utilisateurs' } },
 ];
 
 const router = createRouter({
@@ -142,8 +147,14 @@ router.beforeEach((to, from, next) => {
 });
 
 router.beforeEach(() => { navigationInProgress.value = true; });
-router.afterEach(() => {
+router.afterEach((to) => {
   setTimeout(() => { navigationInProgress.value = false; }, 220);
+
+  if (to.meta.requiresSuperAdmin) {
+    initAnalytics().then(() => {
+      trackPageView(to.fullPath, to.meta.title || document.title);
+    });
+  }
 });
 
 export default router;

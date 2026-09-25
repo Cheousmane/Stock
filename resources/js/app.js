@@ -22,7 +22,22 @@ axios.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('company');
             window.location.href = '/login';
+        }
+        // Compte suspendu (entreprise bloquée ou essai terminé) : déconnecter
+        // et afficher le motif sur la page de connexion.
+        if (error.response?.status === 403) {
+            const message = error.response?.data?.message || '';
+            if (/suspend/i.test(message)) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('company');
+                sessionStorage.setItem('account_suspended', message);
+                if (!window.location.pathname.startsWith('/login')) {
+                    window.location.href = '/login';
+                }
+            }
         }
         return Promise.reject(error);
     }

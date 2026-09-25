@@ -26,7 +26,7 @@ class UserController extends Controller
     private function authorizeUserManagement(): void
     {
         $this->ensureTeamContext();
-        if (!auth()->user()->hasPermissionTo('manage_users') && !auth()->user()->hasRole('admin')) {
+        if (! auth()->user()->hasPermissionTo('manage_users') && ! auth()->user()->hasRole('admin')) {
             abort(Response::HTTP_FORBIDDEN, 'Action non autorisée.');
         }
     }
@@ -41,10 +41,10 @@ class UserController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             })
-            ->paginate($request->integer('per_page', 20));
+            ->paginate(min($request->integer('per_page', 20), 100));
 
         return response()->json(UserResource::collection($users)->response()->getData(true), Response::HTTP_OK);
     }
@@ -66,6 +66,7 @@ class UserController extends Controller
         }
 
         $user->load('roles');
+
         return response()->json(new UserResource($user), Response::HTTP_CREATED);
     }
 
@@ -76,6 +77,7 @@ class UserController extends Controller
             abort(Response::HTTP_FORBIDDEN);
         }
         $user->load('roles');
+
         return response()->json(new UserResource($user), Response::HTTP_OK);
     }
 
@@ -103,6 +105,7 @@ class UserController extends Controller
         }
 
         $user->load('roles');
+
         return response()->json(new UserResource($user), Response::HTTP_OK);
     }
 
@@ -113,6 +116,7 @@ class UserController extends Controller
             abort(Response::HTTP_FORBIDDEN);
         }
         $user->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

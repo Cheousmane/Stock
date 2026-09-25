@@ -1,10 +1,10 @@
 <template>
-  <div class="py-12 text-center">
-    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-surface-tertiary mb-3">
-      <component :is="icon" class="w-6 h-6 text-text-tertiary" />
-    </div>
-    <h3 v-if="title" class="text-sm font-semibold text-text-primary mb-1">{{ title }}</h3>
-    <p v-if="description" class="text-sm text-text-tertiary mb-4">{{ description }}</p>
+  <div class="py-12 px-6 text-center">
+    <span class="pro-empty-icon">
+      <component :is="icon" class="w-7 h-7" />
+    </span>
+    <h3 v-if="title" class="text-sm font-extrabold text-text-primary mb-1">{{ title }}</h3>
+    <p v-if="description" class="text-[13px] font-medium text-text-tertiary mb-4 max-w-sm mx-auto">{{ description }}</p>
     <slot />
   </div>
 </template>

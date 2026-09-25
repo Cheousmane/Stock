@@ -1,22 +1,36 @@
 <template>
   <SuperAdminLayout>
-    <div class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-text-primary">Journal des connexions</h2>
+    <div class="space-y-5">
+      <div>
+        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded-full px-3 py-1">Sécurité · surveillance accès</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">Journal des connexions</h2>
+        <p class="text-sm text-text-tertiary mt-1 font-medium">{{ total24h }} tentatives · <span class="text-rose-500 font-bold">{{ failed24h }} échecs</span> sur 24h.</p>
       </div>
 
       <!-- Brute force alert -->
-      <div v-if="bruteForceIps.length > 0" class="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row sm:items-center gap-4">
-        <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-xl shrink-0">🚨</div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold text-text-primary">{{ bruteForceIps.length }} IP suspecte(s) détectée(s) — 5+ échecs en 24h</p>
-          <p class="text-sm text-text-secondary mt-0.5 font-mono">{{ bruteForceIps.map(i => `${i.ip_address} (${i.attempts})`).join(' · ') }}</p>
+      <div v-if="bruteForceIps.length > 0" class="p-4 rounded-3xl bg-rose-500/[0.06] border border-rose-500/25 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm">
+        <div class="w-11 h-11 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/30">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
         </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-extrabold text-text-primary">{{ bruteForceIps.length }} IP suspecte(s) — 5+ échecs en 24h</p>
+          <p class="text-[13px] text-text-secondary mt-0.5 font-mono truncate">{{ bruteForceIps.map(i => `${i.ip_address} (${i.attempts})`).join(' · ') }}</p>
+        </div>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-extrabold shrink-0 shadow">À traiter</span>
       </div>
 
       <!-- Hourly chart -->
-      <div class="rounded-2xl bg-surface border border-border/50 shadow-sm p-5">
-        <h3 class="text-lg font-bold text-text-primary mb-4">Connexions par heure (24h) — <span class="text-sm font-medium text-text-tertiary">{{ total24h }} tentatives, {{ failed24h }} échecs</span></h3>
+      <div class="rounded-3xl bg-surface border border-border/70 shadow-sm p-6">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-base font-extrabold text-text-primary tracking-tight">Connexions par heure · 24h</h3>
+            <p class="text-xs text-text-tertiary font-medium">{{ total24h }} tentatives · {{ failed24h }} échecs</p>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] font-bold">
+            <span class="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-emerald-500" />Succès</span>
+            <span class="inline-flex items-center gap-1 bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-500" />Échecs</span>
+          </div>
+        </div>
         <div class="h-48">
           <Bar v-if="chartDataHourly" :data="chartDataHourly" :options="chartOptionsHourly" />
           <div v-else class="flex items-center justify-center h-full text-sm text-text-tertiary">Chargement...</div>
@@ -111,6 +125,7 @@ const chartDataHourly = ref(null)
 const chartOptionsHourly = {
   responsive: true,
   maintainAspectRatio: false,
+  resizeDelay: 100,
   plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true } }, tooltip: { mode: 'index', intersect: false } },
   scales: {
     x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0, callback: v => `${v}h` } },

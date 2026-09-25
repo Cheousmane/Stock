@@ -1,14 +1,8 @@
 <template>
-  <div class="chart-card">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-base font-semibold text-gray-900">{{ $t('component.revenue_chart.title') }}</h3>
-      <span class="text-xs text-gray-400">{{ data?.length || 0 }} {{ $t('component.revenue_chart.months') }}</span>
-    </div>
-    <div class="relative">
-      <canvas ref="chartRef"></canvas>
-      <div v-if="!data?.length" class="absolute inset-0 flex items-center justify-center">
-        <p class="text-sm text-gray-400">{{ $t('common.no_data') }}</p>
-      </div>
+  <div class="relative min-h-[240px] w-full">
+    <canvas ref="chartRef"></canvas>
+    <div v-if="!data?.length" class="absolute inset-0 flex items-center justify-center">
+      <p class="text-sm text-text-tertiary font-medium">{{ $t('common.no_data') }}</p>
     </div>
   </div>
 </template>
@@ -41,22 +35,23 @@ function renderChart() {
       datasets: [{
         label: $t('component.revenue_chart.title'),
         data: props.data.map(d => d.revenue),
-        borderColor: '#059669',
+        borderColor: '#10b981',
         backgroundColor: (ctx) => {
-          const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
-          g.addColorStop(0, isDark ? 'rgba(5,150,105,0.3)' : 'rgba(5,150,105,0.15)');
-          g.addColorStop(1, isDark ? 'rgba(5,150,105,0)' : 'rgba(5,150,105,0)');
+          const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height || 220);
+          g.addColorStop(0, isDark ? 'rgba(16, 185, 129, 0.35)' : 'rgba(16, 185, 129, 0.18)');
+          g.addColorStop(0.7, isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.03)');
+          g.addColorStop(1, 'rgba(16, 185, 129, 0)');
           return g;
         },
         fill: true,
-        tension: 0.4,
+        tension: 0.42,
         pointRadius: 4,
         pointHoverRadius: 7,
-        pointBackgroundColor: '#fff',
-        pointBorderColor: '#059669',
+        pointBackgroundColor: isDark ? '#141414' : '#ffffff',
+        pointBorderColor: '#10b981',
         pointBorderWidth: 2.5,
-        pointHoverBackgroundColor: '#059669',
-        pointHoverBorderColor: '#fff',
+        pointHoverBackgroundColor: '#10b981',
+        pointHoverBorderColor: '#ffffff',
         borderWidth: 2.5,
       }],
     },
@@ -64,18 +59,22 @@ function renderChart() {
       responsive: true,
       maintainAspectRatio: true,
       aspectRatio: 2.2,
+      // Évite les erreurs « ResizeObserver loop » pendant l'animation du sidebar.
+      resizeDelay: 100,
       interaction: { intersect: false, mode: 'index' },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: isDark ? '#1e293b' : '#fff',
-          titleColor: isDark ? '#f1f5f9' : '#0a0a0a',
-          bodyColor: isDark ? '#94a3b8' : '#6b7280',
-          borderColor: isDark ? '#334155' : '#f0f0f0',
+          backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
+          titleColor: isDark ? '#f0f0f0' : '#171717',
+          bodyColor: isDark ? '#10b981' : '#059669',
+          bodyFont: { weight: 'bold', size: 13 },
+          borderColor: isDark ? '#2a2a2a' : '#e5e5e5',
           borderWidth: 1,
           padding: 12,
-          cornerRadius: 10,
+          cornerRadius: 12,
           displayColors: false,
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
           callbacks: {
             label: (ctx) => formatXOF(ctx.parsed.y),
           },
@@ -84,16 +83,16 @@ function renderChart() {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: '#9ca3af', font: { size: 11 } },
+          ticks: { color: isDark ? '#6b7280' : '#9ca3af', font: { size: 11, family: 'Inter' } },
         },
         y: {
           beginAtZero: true,
-          grid: { color: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)' },
-          ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v) => formatXOF(v) },
+          grid: { color: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)' },
+          ticks: { color: isDark ? '#6b7280' : '#9ca3af', font: { size: 11, family: 'Inter' }, callback: (v) => formatXOF(v) },
         },
       },
       animation: {
-        duration: 1000,
+        duration: 900,
         easing: 'easeOutQuart',
       },
     },
@@ -103,17 +102,3 @@ function renderChart() {
 onMounted(() => { nextTick(renderChart); });
 watch(() => props.data, () => { nextTick(renderChart); });
 </script>
-
-<style scoped>
-.chart-card {
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-100);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  transition: all .35s cubic-bezier(.16,1,.3,1);
-}
-.chart-card:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.05);
-  border-color: var(--color-gray-200);
-}
-</style>

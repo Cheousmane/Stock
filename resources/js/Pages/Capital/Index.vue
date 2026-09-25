@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="max-w-3xl mx-auto space-y-6">
-      <BasePageHeader :title="$t('capital.title')" />
+      <BasePageHeader eyebrow="Finance" :title="$t('capital.title')" />
 
       <div v-if="loading" class="space-y-4">
         <div v-for="n in 4" :key="n" class="h-24 bg-surface-secondary rounded-xl shimmer"></div>

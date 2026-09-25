@@ -2,10 +2,10 @@
   <component
     :is="tag"
     :class="[
-      'inline-flex items-center justify-center gap-2 font-medium focus:outline-none select-none transition-transform duration-150 active:scale-[0.97]',
+      'inline-flex items-center justify-center gap-2 font-medium focus:outline-none select-none cursor-pointer transition-all duration-200 active:scale-[0.98]',
       variantClasses[variant],
       sizeClasses[size],
-      { 'opacity-50 pointer-events-none': loading || disabled },
+      { 'opacity-50 pointer-events-none cursor-not-allowed': loading || disabled },
     ]"
     :disabled="disabled || loading"
     v-bind="$attrs"

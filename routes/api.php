@@ -59,11 +59,18 @@ Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->name(
 Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->name('auth.resend-verification')->middleware('throttle:3,5');
 
     // Login detects tenant from user email (no tenant middleware required)
-    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:10,60');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:5,60');
 
-    // Password reset (no auth required)
-    Route::post('/auth/forgot-password', [\App\Http\Controllers\Api\v1\PasswordResetController::class, 'forgot'])->name('auth.forgot-password');
-    Route::post('/auth/reset-password', [\App\Http\Controllers\Api\v1\PasswordResetController::class, 'reset'])->name('auth.reset-password');
+    // Google OAuth (ID token verified server-side, creates tenant or links account)
+    Route::post('/auth/google/profile', [AuthController::class, 'googleProfile'])->name('auth.google.profile')->middleware('throttle:10,10');
+    Route::post('/auth/google', [AuthController::class, 'google'])->name('auth.google')->middleware('throttle:10,10');
+
+    // Password reset (no auth required) - rate limited
+    Route::post('/auth/forgot-password', [\App\Http\Controllers\Api\v1\PasswordResetController::class, 'forgot'])->name('auth.forgot-password')->middleware('throttle:3,60');
+    Route::post('/auth/reset-password', [\App\Http\Controllers\Api\v1\PasswordResetController::class, 'reset'])->name('auth.reset-password')->middleware('throttle:5,60');
+
+    // Public plans (no auth required) - for registration
+    Route::get('subscriptions/plans', [SubscriptionController::class, 'plans'])->name('subscriptions.plans')->middleware('throttle:30,1');
 
     // Authenticated routes with tenant context
     Route::middleware(['auth:sanctum', 'tenant', 'bindings', 'quota', 'throttle:100,1'])->group(function () {
@@ -161,7 +168,6 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::post('quotes/{quote}/pdf/async', [QuotePdfController::class, 'exportAsync'])->name('quotes.pdf.async');
 
         // Subscriptions
-        Route::get('subscriptions/plans', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
         Route::get('subscriptions/current', [SubscriptionController::class, 'current'])->name('subscriptions.current');
         Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
         Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
@@ -273,8 +279,10 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::get('/companies', [AdminCompanyController::class, 'index'])->name('companies.index');
         Route::get('/companies/{company}', [AdminCompanyController::class, 'show'])->name('companies.show');
         Route::put('/companies/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
+        Route::delete('/companies/{company}', [AdminCompanyController::class, 'destroy'])->name('companies.destroy');
         Route::post('/companies/{company}/suspend', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
         Route::post('/companies/{company}/activate', [AdminCompanyController::class, 'activate'])->name('companies.activate');
+        Route::post('/companies/{company}/assign-plan', [AdminCompanyController::class, 'assignPlan'])->name('companies.assign-plan');
         Route::get('/login-logs', [AdminLoginLogController::class, 'index'])->name('login-logs');
         Route::get('/login-logs/export', [AdminLoginLogController::class, 'export'])->name('login-logs.export');
         Route::get('/login-logs/summary', [AdminLoginLogController::class, 'summary'])->name('login-logs.summary');

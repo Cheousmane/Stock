@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.delivery_notes.title')" :subtitle="meta ? $t('page.delivery_notes.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Logistique" :title="$t('page.delivery_notes.title')" :subtitle="meta ? $t('page.delivery_notes.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
             <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}

@@ -32,6 +32,10 @@ class AdminDashboardResource extends JsonResource
             'recent_companies' => $this->recent_companies,
             'chart_registrations' => $this->chart_registrations,
             'chart_logins' => $this->chart_logins,
+            'companies_without_plan' => $this->companies_without_plan,
+            'companies_with_plan' => $this->companies_with_plan,
+            'plan_distribution' => $this->plan_distribution,
+            'companies_without_plan_list' => $this->companies_without_plan_list,
         ];
     }
 }

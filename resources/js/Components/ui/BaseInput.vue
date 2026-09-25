@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-1.5">
-    <label v-if="label" :for="inputId" class="block text-sm font-medium text-text-primary mb-1.5">
+  <div class="space-y-1.5 min-w-0">
+    <label v-if="label" :for="inputId" class="block text-[13px] font-bold text-text-primary mb-1.5">
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
@@ -19,10 +19,10 @@
         @blur="$emit('blur', $event)"
         v-bind="$attrs"
         :class="[
-          'block w-full bg-surface border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none',
+          'block w-full bg-surface border rounded-2xl text-sm font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-normal focus:outline-none transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
           sizeClasses[size],
-          { 'pl-9': $slots.prefix, 'pr-9': $slots.suffix || clearable },
-          error ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+          { 'pl-10': $slots.prefix, 'pr-10': $slots.suffix || clearable },
+          error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
           { 'opacity-50 bg-surface-tertiary cursor-not-allowed': disabled },
         ]"
       />

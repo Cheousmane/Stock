@@ -1,13 +1,13 @@
 <template>
   <AdminLayout>
     <template #header>
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 class="text-xl font-bold text-text-primary">{{ $t('page.dashboard.title') }}</h1>
-          <p class="text-sm text-text-tertiary mt-0.5">{{ $t('page.dashboard.subtitle') }}</p>
+          <p class="pro-eyebrow">{{ $t('page.dashboard.title') }}</p>
+          <h1 class="pro-title">{{ $t('page.dashboard.subtitle') }}</h1>
         </div>
-        <button @click="fetchStats" class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-tertiary hover:text-text-primary">
-          <span class="text-text-secondary"><ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" /></span>
+        <button @click="fetchStats" :disabled="loading" class="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] disabled:opacity-60 transition-all">
+          <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           {{ $t('dashboard.refresh') }}
         </button>
       </div>
@@ -15,7 +15,11 @@
 
     <!-- Loading skeleton -->
     <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <div v-for="i in 8" :key="i" class="h-[120px] rounded-xl bg-surface border border-border animate-pulse" />
+      <div v-for="i in 8" :key="i" class="pro-card p-5">
+        <div class="h-11 w-11 rounded-2xl pro-skeleton" />
+        <div class="mt-4 h-7 w-2/3 pro-skeleton" />
+        <div class="mt-2 h-4 w-1/2 pro-skeleton" />
+      </div>
     </div>
 
     <!-- Error state -->
@@ -32,123 +36,185 @@
 
     <!-- Dashboard content -->
     <template v-else>
-      <!-- KPI Cards -->
-      <TransitionGroup name="stagger" tag="div" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" appear>
-        <div v-for="(kpi, index) in kpiCards" :key="kpi.label" :style="{ '--i': index }"
-          :class="[kpi.to ? 'cursor-pointer' : '']" @click="kpi.to && router.push(kpi.to)">
-          <div class="group relative overflow-hidden rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-            <div class="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 translate-x-1/2 rounded-full opacity-[0.04] transition-transform duration-300 group-hover:scale-150"
-              :style="{ background: `radial-gradient(circle, ${kpi.glow}, transparent 70%)` }" />
-            <div class="flex items-start justify-between">
-              <div class="space-y-1.5">
-                <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ kpi.label }}</p>
-                <p class="text-2xl font-bold text-text-primary tracking-tight">{{ kpi.display }}</p>
-                <div v-if="kpi.trend !== null" class="flex items-center gap-1 pt-0.5">
-                  <span :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'">
-                    <ArrowTrendingUpIcon v-if="kpi.trend >= 0" class="w-3.5 h-3.5" />
-                    <ArrowTrendingDownIcon v-else class="w-3.5 h-3.5" />
-                  </span>
-                  <span :class="kpi.trend >= 0 ? 'text-emerald-600' : 'text-red-600'" class="text-xs font-medium">
-                    {{ kpi.trend >= 0 ? '+' : '' }}{{ kpi.trend }}%
-                  </span>
+      <div class="space-y-5">
+        <!-- Quick Action Shortcuts -->
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
+          <router-link
+            to="/invoices/create"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-text-primary transition-all shadow-xs shrink-0"
+          >
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <PlusIcon class="w-3.5 h-3.5" />
+            </span>
+            <span>{{ $t('page.dashboard.shortcut_invoice') }}</span>
+          </router-link>
+          <router-link
+            to="/pos"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-text-primary transition-all shadow-xs shrink-0"
+          >
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ShoppingCartIcon class="w-3.5 h-3.5" />
+            </span>
+            <span>{{ $t('page.dashboard.shortcut_pos') }}</span>
+          </router-link>
+          <router-link
+            to="/products/create"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-blue-500/40 hover:bg-blue-500/5 text-text-primary transition-all shadow-xs shrink-0"
+          >
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <CubeIcon class="w-3.5 h-3.5" />
+            </span>
+            <span>{{ $t('page.dashboard.shortcut_product') }}</span>
+          </router-link>
+          <router-link
+            to="/customers/create"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-purple-500/40 hover:bg-purple-500/5 text-text-primary transition-all shadow-xs shrink-0"
+          >
+            <span class="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <UsersIcon class="w-3.5 h-3.5" />
+            </span>
+            <span>{{ $t('page.dashboard.shortcut_customer') }}</span>
+          </router-link>
+          <router-link
+            to="/stock"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-amber-500/40 hover:bg-amber-500/5 text-text-primary transition-all shadow-xs shrink-0"
+          >
+            <span class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ArchiveBoxIcon class="w-3.5 h-3.5" />
+            </span>
+            <span>{{ $t('page.dashboard.shortcut_stock') }}</span>
+          </router-link>
+        </div>
+
+        <!-- KPI Bento Cards -->
+        <TransitionGroup name="stagger" tag="div" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" appear>
+          <div v-for="(kpi, index) in kpiCards" :key="kpi.label" :style="{ '--i': index }"
+            :class="[kpi.to ? 'cursor-pointer' : '']" @click="kpi.to && router.push(kpi.to)">
+            <div class="group relative overflow-hidden pro-card pro-card--hover card-sweep p-5">
+              <div class="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 translate-x-1/2 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-150"
+                :style="{ background: `radial-gradient(circle, ${kpi.glow}, transparent 70%)` }" />
+              <div class="relative flex items-start justify-between">
+                <div class="space-y-1.5">
+                  <p class="text-[11px] font-extrabold text-text-tertiary uppercase tracking-[0.12em]">{{ kpi.label }}</p>
+                  <p class="text-[26px] font-black font-mono text-text-primary tracking-tight tabular-nums leading-none">{{ kpi.display }}</p>
+                  <div v-if="kpi.trend !== null" class="flex items-center gap-1 pt-0.5">
+                    <span :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'">
+                      <ArrowTrendingUpIcon v-if="kpi.trend >= 0" class="w-3.5 h-3.5" />
+                      <ArrowTrendingDownIcon v-else class="w-3.5 h-3.5" />
+                    </span>
+                    <span :class="kpi.trend >= 0 ? 'text-emerald-600' : 'text-red-600'" class="text-xs font-semibold tabular-nums">
+                      {{ kpi.trend >= 0 ? '+' : '' }}{{ kpi.trend }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm" :class="kpi.iconBg">
+                  <span :class="kpi.iconColor"><component :is="kpi.icon" class="w-5 h-5" /></span>
                 </div>
               </div>
-              <div class="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110" :class="kpi.iconBg">
-                <span :class="kpi.iconColor"><component :is="kpi.icon" class="w-5 h-5" /></span>
-              </div>
             </div>
           </div>
-        </div>
-      </TransitionGroup>
+        </TransitionGroup>
 
-      <!-- Charts row -->
-      <div class="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-3">
-        <div class="lg:col-span-2 rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.revenue_chart_title') }}</h3>
-              <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.revenue_chart_subtitle') }}</p>
-            </div>
-            <div class="flex items-center gap-1.5 text-xs text-text-tertiary">
-              <span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-              {{ $t('page.dashboard.revenue_legend') }}
-            </div>
-          </div>
-          <RevenueChart :data="revenueByMonth" />
-        </div>
-        <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.top_products_title') }}</h3>
-              <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.top_products_subtitle') }}</p>
-            </div>
-          </div>
-          <TopProductsChart :data="topProducts" />
-        </div>
-      </div>
-
-      <!-- Bottom row -->
-      <div class="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-3">
-        <!-- Recent invoices -->
-        <div class="lg:col-span-2 rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.recent_invoices_title') }}</h3>
-            <router-link to="/invoices" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
-              {{ $t('page.dashboard.view_all') }} →
-            </router-link>
-          </div>
-          <div v-if="recentInvoices.length" class="space-y-1">
-            <div v-for="inv in recentInvoices" :key="inv.id"
-              class="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-secondary transition-all duration-200 hover:translate-x-1 cursor-pointer"
-              @click="router.push(`/invoices/${inv.id}`)">
-              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-tertiary shrink-0 transition-transform duration-300 group-hover:scale-110">
-                <span class="text-text-tertiary"><DocumentTextIcon class="w-4 h-4" /></span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-text-primary truncate">{{ inv.number }}</p>
-                <p class="text-xs text-text-tertiary truncate">{{ inv.customer?.name }}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm font-semibold text-text-primary">{{ formatXOF(inv.total_xof) }}</p>
-                <BaseBadge :variant="statusVariant(inv.status)" size="xs">
-                  {{ $t('status.' + inv.status) }}
-                </BaseBadge>
-              </div>
-            </div>
-          </div>
-          <div v-else class="flex items-center justify-center py-8">
-            <p class="text-sm text-text-tertiary">{{ $t('page.dashboard.no_recent_invoices') }}</p>
-          </div>
-        </div>
-
-        <!-- Right widgets -->
-        <div class="space-y-4">
-          <!-- Low stock alert -->
-          <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600">
-                <span class="text-white"><ExclamationTriangleIcon class="w-5 h-5" /></span>
-              </div>
+        <!-- Charts row -->
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div class="lg:col-span-2 pro-card pro-card--hover card-sweep p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
               <div>
-                <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.low_stock_title') }}</p>
-                <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.low_stock_subtitle') }}</p>
+                <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.revenue_chart_title') }}</h3>
+                <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.revenue_chart_subtitle') }}</p>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-text-tertiary">
+                <span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+                {{ $t('page.dashboard.revenue_legend') }}
               </div>
             </div>
-            <p class="text-2xl font-bold text-text-primary">{{ lowStockCount }}</p>
+            <RevenueChart :data="revenueByMonth" />
+          </div>
+          <div class="pro-card pro-card--hover card-sweep p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('page.dashboard.top_products_title') }}</h3>
+                <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.top_products_subtitle') }}</p>
+              </div>
+            </div>
+            <TopProductsChart :data="topProducts" />
+          </div>
+        </div>
+
+        <!-- Bottom row -->
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <!-- Recent invoices -->
+          <div class="lg:col-span-2 rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.recent_invoices_title') }}</h3>
+              <router-link to="/invoices" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1">
+                <span>{{ $t('page.dashboard.view_all') }}</span>
+                <span>→</span>
+              </router-link>
+            </div>
+            <div v-if="recentInvoices.length" class="divide-y divide-border/60">
+              <div v-for="inv in recentInvoices" :key="inv.id"
+                class="group flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-surface-secondary transition-all duration-150 cursor-pointer"
+                @click="router.push(`/invoices/${inv.id}`)">
+                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-surface-tertiary shrink-0 transition-transform duration-200 group-hover:scale-105 border border-border/40">
+                  <span class="text-text-secondary"><DocumentTextIcon class="w-4 h-4" /></span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold font-mono text-text-primary truncate">{{ inv.number }}</p>
+                  <p class="text-xs text-text-tertiary truncate">{{ inv.customer?.name }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-bold font-mono text-text-primary tabular-nums">{{ formatXOF(inv.total_xof) }}</p>
+                  <BaseBadge :variant="statusVariant(inv.status)" size="xs" :dot="true">
+                    {{ $t('status.' + inv.status) }}
+                  </BaseBadge>
+                </div>
+              </div>
+            </div>
+            <div v-else class="flex items-center justify-center py-8">
+              <p class="text-sm text-text-tertiary">{{ $t('page.dashboard.no_recent_invoices') }}</p>
+            </div>
           </div>
 
-          <!-- Capital summary -->
-          <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <span class="text-white"><CurrencyDollarIcon class="w-5 h-5" /></span>
+          <!-- Right widgets -->
+          <div class="space-y-4">
+            <!-- Low stock alert -->
+            <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shadow-amber-500/20">
+                    <span class="text-white"><ExclamationTriangleIcon class="w-5 h-5" /></span>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.low_stock_title') }}</p>
+                    <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.low_stock_subtitle') }}</p>
+                  </div>
+                </div>
+                <span v-if="lowStockCount > 0" class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold text-amber-600 bg-amber-500/15 border border-amber-500/20 rounded-full animate-pulse">
+                  Alerte
+                </span>
               </div>
-              <div>
-                <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.capital_title') }}</p>
-                <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.capital_subtitle') }}</p>
+              <div class="flex items-baseline justify-between mt-2">
+                <p class="text-3xl font-bold font-mono text-text-primary tabular-nums">{{ lowStockCount }}</p>
+                <router-link to="/stock" class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors">
+                  {{ $t('page.dashboard.check_stock') }}
+                </router-link>
               </div>
             </div>
-            <p class="text-2xl font-bold text-text-primary">{{ formatXOF(capital) }}</p>
+
+            <!-- Capital summary -->
+            <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm shadow-emerald-500/20">
+                  <span class="text-white"><CurrencyDollarIcon class="w-5 h-5" /></span>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.capital_title') }}</p>
+                  <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.capital_subtitle') }}</p>
+                </div>
+              </div>
+              <p class="text-2xl font-bold font-mono text-text-primary tabular-nums">{{ formatXOF(capital) }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -168,7 +234,7 @@ import BaseBadge from '../Components/ui/BaseBadge.vue';
 import {
   DocumentTextIcon, CurrencyDollarIcon, BanknotesIcon, CreditCardIcon,
   ArrowPathIcon, ExclamationTriangleIcon, CubeIcon, UsersIcon,
-  ArrowTrendingUpIcon, ArrowTrendingDownIcon,
+  ArrowTrendingUpIcon, ArrowTrendingDownIcon, PlusIcon, ShoppingCartIcon, ArchiveBoxIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();

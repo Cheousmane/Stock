@@ -18,9 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'quota' => \App\Http\Middleware\CheckSubscriptionQuota::class,
             'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'security.headers' => \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
 
         $middleware->removeFromGroup('api', \Illuminate\Routing\Middleware\SubstituteBindings::class);
+
+        // Apply security headers to all routes
+        $middleware->prependToGroup('web', \App\Http\Middleware\SecurityHeadersMiddleware::class);
+        $middleware->prependToGroup('api', \App\Http\Middleware\SecurityHeadersMiddleware::class);
     })
 ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule): void {
         $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping();

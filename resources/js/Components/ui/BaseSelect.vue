@@ -12,9 +12,9 @@
         @change="$emit('update:modelValue', $event.target.value)"
         v-bind="$attrs"
         :class="[
-          'block w-full bg-surface border rounded-lg text-sm text-text-primary focus:outline-none appearance-none cursor-pointer',
+          'block w-full bg-surface border rounded-2xl text-sm font-semibold text-text-primary focus:outline-none appearance-none cursor-pointer transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
           sizeClasses[size],
-          error ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+          error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
           { 'opacity-50 bg-surface-tertiary cursor-not-allowed': disabled },
         ]"
       >

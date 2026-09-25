@@ -10,19 +10,21 @@
         ],
     ])
 
-    <table class="items">
+    <table class="items items-accent" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width:42%">{{ trans('pdf.description') }}</th>
-                <th style="width:8%;text-align:center">{{ trans('pdf.quantity') }}</th>
+                <th class="num">N°</th>
+                <th style="width:38%">{{ trans('pdf.description') }}</th>
+                <th style="width:9%;text-align:center">{{ trans('pdf.quantity') }}</th>
                 <th style="width:16%;text-align:right">{{ trans('pdf.unit_price') }}</th>
-                <th style="width:10%;text-align:right">{{ trans('pdf.vat') }}</th>
-                <th style="width:24%;text-align:right">{{ trans('pdf.total') }}</th>
+                <th style="width:9%;text-align:right">{{ trans('pdf.vat') }}</th>
+                <th style="width:22%;text-align:right">{{ trans('pdf.total') }}</th>
             </tr>
         </thead>
         <tbody>
             @foreach($items as $item)
                 <tr>
+                    <td class="num">{{ $loop->iteration }}</td>
                     <td>{{ $item->description }}</td>
                     <td style="text-align:center">{{ $item->quantity }}</td>
                     <td style="text-align:right">{{ $money::format($item->unit_price_xof, $currency) }}</td>
@@ -36,7 +38,7 @@
     @include('pdf.partials.totals')
 
     @if($total > 0)
-        <div class="words-block"><strong>{{ trans('pdf.amount_in_words') }} :</strong> {{ $amountInWords }}.</div>
+        <div class="callout"><span class="callout-title">{{ trans('pdf.amount_in_words') }}</span><br><strong>{{ $amountInWords }}.</strong></div>
     @endif
 
     @include('pdf.partials.bank')

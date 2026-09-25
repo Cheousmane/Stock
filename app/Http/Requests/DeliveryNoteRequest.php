@@ -27,8 +27,9 @@ class DeliveryNoteRequest extends FormRequest
             'invoice_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('invoices', 'id')->where('company_id', $companyId),
-                Rule::exists('invoices', 'id')->whereColumn('customer_id', $this->input('customer_id')),
+                Rule::exists('invoices', 'id')
+                    ->where('company_id', $companyId)
+                    ->when($this->input('customer_id'), fn ($query, $customerId) => $query->where('customer_id', $customerId)),
             ],
             'issue_date' => $isPatch ? ['sometimes', 'date'] : ['required', 'date'],
             'delivery_date' => ['nullable', 'date', 'after_or_equal:issue_date'],

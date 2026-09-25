@@ -85,7 +85,7 @@ describe('Payment API', function () {
 
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice->id,
-            'status' => 'sent',
+            'status' => 'partial',
             'paid_xof' => 10000,
             'balance_due_xof' => 25400,
         ]);

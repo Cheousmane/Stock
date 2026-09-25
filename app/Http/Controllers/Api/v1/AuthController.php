@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Actions\Auth\GoogleAuthAction;
 use App\Actions\Auth\LoginAction;
 use App\Actions\Auth\RegisterCompanyAction;
+use App\DTOs\GoogleRegisterDTO;
 use App\DTOs\LoginDTO;
 use App\DTOs\RegisterCompanyDTO;
 use App\Http\Controllers\Controller;
@@ -14,12 +16,14 @@ use App\Http\Requests\RegisterCompanyRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\EmailVerificationService;
+use App\Services\GoogleTokenVerifier;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
-use Carbon\Carbon;
 
 /**
  * Class AuthController
@@ -39,13 +43,27 @@ class AuthController extends Controller
 
         $result = $action->execute($dto);
 
-        // Envoi du code de vérification e-mail (anti-bots) : pas de token tant que l'e-mail n'est pas confirmé
-        $verification->sendCode($result['user']->email, $result['user']->name);
+        // Envoi du code de vérification e-mail (anti-bots) : pas de token tant que l'e-mail n'est pas confirmé.
+        // Si l'envoi échoue (SMTP indisponible), le compte reste créé : le code
+        // est déjà enregistré en base et pourra être renvoyé via /resend-verification.
+        $emailSent = true;
+        try {
+            $verification->sendCode($result['user']->email, $result['user']->name);
+        } catch (\Throwable $e) {
+            $emailSent = false;
+            Log::warning('Échec envoi code de vérification à l\'inscription', [
+                'email' => $result['user']->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'user' => new UserResource($result['user']->load('company', 'roles')),
             'requires_verification' => true,
-            'message' => 'Compte créé. Un code de vérification a été envoyé à votre adresse e-mail.',
+            'email_sent' => $emailSent,
+            'message' => $emailSent
+                ? 'Compte créé. Un code de vérification a été envoyé à votre adresse e-mail.'
+                : 'Compte créé, mais l\'e-mail de vérification n\'a pas pu être envoyé. Utilisez « Renvoyer le code ».',
         ], Response::HTTP_CREATED);
     }
 
@@ -104,7 +122,7 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email', 'max:255'],
         ]);
 
-        $key = 'resend-verification:' . strtolower($validated['email']);
+        $key = 'resend-verification:'.strtolower($validated['email']);
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
             throw ValidationException::withMessages([
@@ -136,11 +154,122 @@ class AuthController extends Controller
             ]);
         }
 
-        $verification->sendCode($user->email, $user->name);
+        try {
+            $verification->sendCode($user->email, $user->name);
+        } catch (\Throwable $e) {
+            Log::warning('Échec renvoi code de vérification', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Service e-mail momentanément indisponible. Réessayez dans quelques minutes.',
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
+        }
 
         return response()->json([
             'message' => 'Un nouveau code de vérification a été envoyé.',
         ], Response::HTTP_OK);
+    }
+
+    /**
+     * Inspect a Google ID token: tells the frontend whether the account
+     * already exists (direct login) or is new (prefill company form).
+     */
+    public function googleProfile(Request $request, GoogleTokenVerifier $verifier): JsonResponse
+    {
+        $validated = $request->validate([
+            'id_token' => ['required', 'string'],
+        ]);
+
+        $profile = $this->verifiedGoogleProfile($verifier, $validated['id_token']);
+
+        $exists = User::withoutGlobalScopes()
+            ->where('google_id', $profile['sub'])
+            ->orWhere('email', $profile['email'])
+            ->exists();
+
+        return response()->json([
+            'is_new' => ! $exists,
+            'name' => $profile['name'],
+            'email' => $profile['email'],
+            'avatar' => $profile['picture'],
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Login or register-with-company from a Google ID token.
+     * Existing accounts (google_id or matching e-mail) receive a token
+     * directly; new accounts must provide company_name + company_slug.
+     */
+    public function google(
+        Request $request,
+        GoogleTokenVerifier $verifier,
+        GoogleAuthAction $auth,
+        RegisterCompanyAction $register,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'id_token' => ['required', 'string'],
+            'company_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'company_slug' => ['sometimes', 'nullable', 'string', 'alpha_dash', 'max:255', 'unique:companies,slug'],
+            'industry' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'size' => ['sometimes', 'nullable', 'string', 'in:petite,moyenne,grande'],
+            'plan_id' => ['sometimes', 'nullable', 'integer', 'exists:plans,id'],
+        ]);
+
+        $profile = $this->verifiedGoogleProfile($verifier, $validated['id_token']);
+
+        $exists = User::withoutGlobalScopes()
+            ->where('google_id', $profile['sub'])
+            ->orWhere('email', $profile['email'])
+            ->exists();
+
+        if ($exists) {
+            $user = $auth->execute($profile);
+            $status = Response::HTTP_OK;
+        } else {
+            $companyData = $request->validate([
+                'company_name' => ['required', 'string', 'max:255'],
+                'company_slug' => ['required', 'string', 'alpha_dash', 'max:255', 'unique:companies,slug'],
+            ]);
+
+            $result = $register->executeWithGoogle(new GoogleRegisterDTO(
+                googleId: $profile['sub'],
+                userEmail: $profile['email'],
+                userName: $profile['name'] !== '' ? $profile['name'] : $profile['email'],
+                companyName: $companyData['company_name'],
+                companySlug: $companyData['company_slug'],
+                avatar: $profile['picture'],
+                companyIndustry: $validated['industry'] ?? null,
+                companySize: $validated['size'] ?? null,
+                planId: $validated['plan_id'] ?? null,
+            ));
+
+            $user = $result['user'];
+            $status = Response::HTTP_CREATED;
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user' => new UserResource($user->load('company', 'roles')),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], $status);
+    }
+
+    /**
+     * @return array{sub:string,email:string,email_verified:bool,name:string,picture?:string}
+     */
+    private function verifiedGoogleProfile(GoogleTokenVerifier $verifier, string $idToken): array
+    {
+        try {
+            return $verifier->verify($idToken);
+        } catch (\RuntimeException $e) {
+            throw ValidationException::withMessages([
+                'id_token' => [$e->getMessage()],
+            ]);
+        }
     }
 
     /**
@@ -191,7 +320,7 @@ class AuthController extends Controller
     public function updateLocale(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'locale' => ['required', 'string', 'max:10'],
+            'locale' => ['required', 'string', 'in:fr,en'],
         ]);
 
         $request->user()->update(['locale' => $validated['locale']]);

@@ -11,11 +11,23 @@
 </template>
 
 <script setup>
-import { provide } from 'vue';
+import { provide, onMounted } from 'vue';
 import Toast from './Components/Toast.vue';
 import { navigationInProgress } from './router';
 import { useToast } from './composables/useToast';
+import { useRoute } from 'vue-router';
+import { initAnalytics, trackPageView } from './composables/useAnalytics';
 
 const { toast, showToast } = useToast();
 provide('showToast', showToast);
+
+const route = useRoute();
+
+onMounted(() => {
+  if (route.meta.requiresSuperAdmin) {
+    initAnalytics().then(() => {
+      trackPageView(route.fullPath, route.meta.title || document.title);
+    });
+  }
+});
 </script>

@@ -10,21 +10,23 @@
         ],
     ])
 
-    <table class="items">
+    <table class="items items-accent" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width:52%">{{ trans('pdf.description') }}</th>
-                <th style="width:18%">{{ trans('pdf.reference') }}</th>
+                <th class="num">N°</th>
+                <th style="width:46%">{{ trans('pdf.description') }}</th>
+                <th style="width:20%">{{ trans('pdf.reference') }}</th>
                 <th style="width:14%;text-align:center">{{ trans('pdf.quantity') }}</th>
-                <th style="width:16%;text-align:right">{{ trans('pdf.unit') }}</th>
+                <th style="width:14%;text-align:right">{{ trans('pdf.unit') }}</th>
             </tr>
         </thead>
         <tbody>
             @foreach($items as $item)
                 <tr>
+                    <td class="num">{{ $loop->iteration }}</td>
                     <td>{{ $item->description }}</td>
                     <td>{{ $item->product?->sku ?? '-' }}</td>
-                    <td style="text-align:center">{{ $item->quantity }}</td>
+                    <td style="text-align:center"><strong>{{ $item->quantity }}</strong></td>
                     <td style="text-align:right">{{ $item->product?->unit?->code ?? '-' }}</td>
                 </tr>
             @endforeach

@@ -6,10 +6,10 @@ namespace App\Http\Middleware;
 
 use App\Models\Plan;
 use App\Models\Subscription;
-use App\Models\User;
 use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\Warehouse;
+use App\Models\User;
 use App\Support\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -24,30 +24,46 @@ class CheckSubscriptionQuota
             return $next($request);
         }
 
+        // Les super admins ne sont pas soumis aux quotas.
+        if ($request->user()?->is_super_admin) {
+            return $next($request);
+        }
+
         $company = TenantContext::get();
+
+        if (!$company) {
+            return $next($request);
+        }
+
         $companyId = $company->id;
+
+        // Essai gratuit valide => accès complet, sans quotas.
+        if ($company->hasActiveTrial()) {
+            return $next($request);
+        }
+
+        // Essai expiré mais pas encore suspendu (scheduler pas passé) => bloquer.
+        // La suspension effective est faite par `companies:manage-statuses`.
+        if ($company->status === 'trial') {
+            abort(Response::HTTP_PAYMENT_REQUIRED, 'Période d\'essai terminée. Souscrivez à un plan pour continuer.');
+        }
+
+        $subscription = Subscription::where('company_id', $companyId)
+            ->whereIn('stripe_status', ['active', 'trialing', 'past_due'])
+            ->latest()
+            ->first();
+
+        // Abonnement (y compris essai Stripe) valide => accès complet.
+        if ($subscription) {
+            return $next($request);
+        }
 
         $plan = Cache::remember("plan.{$companyId}", 3600, function () use ($company) {
             if ($company->plan_id) {
                 return Plan::find($company->plan_id);
             }
 
-            $subscription = Subscription::where('company_id', $company->id)
-                ->where('stripe_status', 'active')
-                ->latest()
-                ->first();
-
-            if (!$subscription) {
-                return Plan::where('slug', 'free')->first();
-            }
-
-            $plan = Plan::where('stripe_price_id', $subscription->stripe_price)->first();
-
-            if ($plan && $plan->slug !== 'free' && !$subscription) {
-                abort(Response::HTTP_PAYMENT_REQUIRED, 'Active subscription required.');
-            }
-
-            return $plan;
+            return Plan::where('slug', 'free')->first();
         });
 
         $this->enforceQuotas($request, $plan, $companyId);

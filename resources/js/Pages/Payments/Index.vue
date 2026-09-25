@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.payments.title')" :subtitle="meta ? $t('page.payments.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Finance" :title="$t('page.payments.title')" :subtitle="meta ? $t('page.payments.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
             <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel

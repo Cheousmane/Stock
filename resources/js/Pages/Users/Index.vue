@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.users.title')" :subtitle="meta ? $t('page.users.title') + ' · ' + meta.total : undefined">
+      <BasePageHeader eyebrow="Système" :title="$t('page.users.title')" :subtitle="meta ? $t('page.users.title') + ' · ' + meta.total : undefined">
         <template #actions>
           <BaseButton v-if="canManage" variant="primary" size="sm" :to="{ name: 'UserCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.users.create') }}

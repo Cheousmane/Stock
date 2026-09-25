@@ -1,6 +1,6 @@
 @if($bankName || $bankAccount || $bankSwift)
-    <div class="bank-block">
-        <div class="bank-title">{{ trans('pdf.payment_details') }}</div>
+    <div class="callout">
+        <div class="callout-title">{{ trans('pdf.payment_details') }}</div>
         @if($bankName)
             <div><strong>{{ trans('pdf.bank_name') }} :</strong> {{ $bankName }}</div>
         @endif

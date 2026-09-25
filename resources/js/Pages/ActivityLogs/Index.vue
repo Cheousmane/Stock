@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.activity_logs.title')" :subtitle="meta ? $t('page.activity_logs.total_count', { count: meta.total }) : undefined" />
+      <BasePageHeader eyebrow="Système" :title="$t('page.activity_logs.title')" :subtitle="meta ? $t('page.activity_logs.total_count', { count: meta.total }) : undefined" />
 
       <div class="flex flex-col sm:flex-row gap-3">
         <BaseInput v-model="search" :placeholder="$t('page.activity_logs.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />

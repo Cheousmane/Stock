@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIDIBE CORPORATE — La facturation & le stock, simplifiés.</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -82,7 +83,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <div class="w">
 <div class="nav-inner">
 <a href="#" class="nav-logo">
-<div class="nav-logo-icon">SC</div>
+<svg width="34" height="34" viewBox="0 0 48 48" fill="none" style="border-radius:10px;filter:drop-shadow(0 4px 10px rgb(5 150 105 / .35))"><defs><linearGradient id="scg" x1="8" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#34d399"/><stop offset=".55" stop-color="#10b981"/><stop offset="1" stop-color="#0d9488"/></linearGradient></defs><rect x="3" y="3" width="42" height="42" rx="12" fill="url(#scg)"/><path d="M30.5 15.2c-2.5-2.5-7-3.1-9.8-1.6-3 1.6-3.3 4.9.1 6.5l5.4 2.3c3.5 1.5 3.2 5.3.1 7-2.7 1.6-7.1 1.2-10-1.2" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/><path d="M28.5 35.5 36.5 27.5" stroke="#fcd34d" stroke-width="3.4" stroke-linecap="round"/><path d="M31.6 27.5h4.9v4.9" stroke="#fcd34d" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <span class="nav-logo-text">SIDIBE CORPORATE</span>
 </a>
 <div class="nav-right">
@@ -164,7 +165,10 @@ Gérez vos factures, votre stock, vos clients et vos paiements depuis une seule 
 
 <footer class="footer">
 <div class="w">
-© 2026 OM-SID — Tous droits réservés.
+© 2026 OM-SID — Tous droits réservés. ·
+<a href="/confidentialite" style="color:inherit">Confidentialité</a> ·
+<a href="/conditions" style="color:inherit">Conditions d'utilisation</a> ·
+<a href="/cookies" style="color:inherit">Cookies</a>
 </div>
 </footer>
 

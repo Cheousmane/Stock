@@ -10,6 +10,8 @@ use App\Support\TenantContext;
 use App\Support\TenantMailConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 
 class SettingController extends Controller
@@ -19,6 +21,7 @@ class SettingController extends Controller
         $this->authorize('manage_settings');
         $companyId = TenantContext::getCompanyId();
         $settings = Setting::where('company_id', $companyId)->pluck('value', 'key');
+
         return response()->json($settings, Response::HTTP_OK);
     }
 
@@ -41,6 +44,7 @@ class SettingController extends Controller
                 ['value' => $value ?? ''],
             );
         }
+
         return response()->json(['message' => 'Paramètres mis à jour'], Response::HTTP_OK);
     }
 
@@ -50,13 +54,15 @@ class SettingController extends Controller
         try {
             TenantMailConfig::apply(TenantContext::get());
 
-            \Illuminate\Support\Facades\Mail::raw('Test de configuration email réussi', function ($msg) {
+            Mail::raw('Test de configuration email réussi', function ($msg) {
                 $msg->to(config('mail.from.address'))->subject('Test de configuration');
             });
 
             return response()->json(['message' => 'Email de test envoyé avec succès'], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            Log::warning('Test mail failed', ['error' => $e->getMessage()]);
+
+            return response()->json(['message' => 'Impossible d\'envoyer l\'email de test. Vérifiez la configuration.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.invoices.title')" :subtitle="meta ? $t('page.invoices.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Ventes" :title="$t('page.invoices.title')" :subtitle="meta ? $t('page.invoices.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
             <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
@@ -15,8 +15,8 @@
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" :placeholder="$t('page.invoices.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+        <BaseInput v-model="search" :placeholder="$t('page.invoices.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="statusFilter" :options="[
           { value: '', label: $t('page.invoices.all_statuses') },
           { value: 'draft', label: $t('status.draft') },
@@ -35,7 +35,7 @@
         <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.invoices.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>

@@ -1,33 +1,37 @@
 <template>
   <SuperAdminLayout>
-    <div class="space-y-6 pb-12">
+    <div class="space-y-5 pb-12">
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-3xl font-extrabold text-text-primary">Journal des interférences (Global)</h2>
-          <p class="text-sm text-text-tertiary mt-1">Surveillez toutes les actions effectuées par les utilisateurs sur l'ensemble des locataires.</p>
-        </div>
+      <div>
+        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1">Audit · traçabilité globale</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">Journal d'activité</h2>
+        <p class="text-sm text-text-tertiary mt-1 font-medium">Toutes les actions utilisateurs sur l'ensemble des locataires, en temps réel.</p>
       </div>
 
       <!-- Filtres -->
-      <div class="flex flex-wrap gap-3">
-        <input v-model="filters.search" placeholder="Rechercher (email, action, modèle)..." class="px-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-80 shadow-sm" @input="debouncedSearch" />
-        <select v-model="filters.event" class="px-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-text-primary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm" @change="fetchLogs">
-          <option value="">Tous les événements</option>
-          <option value="created">Créations</option>
-          <option value="updated">Modifications</option>
-          <option value="deleted">Suppressions</option>
-        </select>
-        <select v-model="filters.company_id" class="px-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-text-primary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm max-w-64" @change="fetchLogs">
-          <option value="">Toutes les entreprises</option>
-          <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-        </select>
-        <button @click="fetchLogs" class="px-4 py-2.5 text-sm font-medium rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 shadow-sm">
-          Rafraîchir
-        </button>
-        <button @click="exportCsv" :disabled="exporting" class="px-4 py-2.5 text-sm font-medium rounded-xl bg-surface border border-border text-text-secondary hover:bg-surface-tertiary shadow-sm disabled:opacity-50">
-          {{ exporting ? 'Export en cours...' : '⬇ Exporter CSV' }}
-        </button>
+      <div class="flex flex-col lg:flex-row lg:items-center gap-3 p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+        <label class="flex items-center gap-2.5 flex-1 min-w-0 px-3.5 py-2.5 rounded-2xl bg-surface-secondary/70 border border-border/60 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition">
+          <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+          <input v-model="filters.search" placeholder="Rechercher (email, action, modèle)…" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary outline-none" @input="debouncedSearch" />
+        </label>
+        <div class="flex flex-wrap items-center gap-2">
+          <select v-model="filters.event" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer" @change="fetchLogs">
+            <option value="">Tous les événements</option>
+            <option value="created">Créations</option>
+            <option value="updated">Modifications</option>
+            <option value="deleted">Suppressions</option>
+          </select>
+          <select v-model="filters.company_id" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer max-w-56" @change="fetchLogs">
+            <option value="">Toutes les entreprises</option>
+            <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+          <button @click="fetchLogs" class="px-4 py-2.5 text-sm font-extrabold rounded-2xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/15 border border-emerald-500/20 transition active:scale-95">
+            Rafraîchir
+          </button>
+          <button @click="exportCsv" :disabled="exporting" class="px-4 py-2.5 text-sm font-extrabold rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 transition active:scale-95 disabled:opacity-50">
+            {{ exporting ? 'Export…' : 'Exporter CSV' }}
+          </button>
+        </div>
       </div>
 
       <!-- Table -->

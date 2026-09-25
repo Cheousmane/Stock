@@ -6,10 +6,10 @@
       </div>
 
       <template v-else-if="cn">
-        <BasePageHeader :title="'Avoir ' + cn.number" subtitle="Détail de l'avoir">
+        <BasePageHeader :title="$t('page.credit_notes.title') + ' ' + cn.number" :subtitle="$t('page.credit_notes.detail')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'CreditNotes' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>Retour
+              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
@@ -17,7 +17,7 @@
         <BaseCard padding="lg">
           <div class="flex justify-between items-start mb-6">
             <div>
-              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Numéro</p>
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('page.credit_notes.number_label') }}</p>
               <p class="mt-1 text-sm font-semibold text-text-primary">{{ cn.number }}</p>
             </div>
             <div class="text-right">
@@ -27,36 +27,36 @@
 
           <div class="grid grid-cols-2 gap-4 pb-6 mb-6 border-b border-border">
             <div>
-              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Date</p>
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('common.date') }}</p>
               <p class="mt-1 text-sm text-text-primary">{{ cn.issue_date }}</p>
             </div>
             <div>
-              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Client</p>
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('page.credit_notes.customer') }}</p>
               <p class="mt-1 text-sm text-text-primary">{{ cn.customer?.name || '—' }}</p>
             </div>
             <div>
-              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Facture liée</p>
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('page.credit_notes.linked_invoice') }}</p>
               <p class="mt-1 text-sm text-text-primary">{{ cn.invoice?.number || '—' }}</p>
             </div>
             <div v-if="cn.metadata?.restock_warehouse_id">
-              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Retour de stock</p>
+              <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('page.credit_notes.restock_title') }}</p>
               <p class="mt-1 text-sm text-text-primary">
                 {{ cn.metadata.restock_warehouse_name || cn.metadata.restock_warehouse_id }}
-                <span class="text-xs text-text-tertiary">({{ cn.metadata.restocked_lines || 0 }} ligne(s))</span>
+                <span class="text-xs text-text-tertiary">({{ cn.metadata.restocked_lines || 0 }} {{ $t('page.credit_notes.lines_unit') }})</span>
               </p>
-              <p v-if="cn.metadata.restocked_at" class="text-xs text-text-tertiary">le {{ cn.metadata.restocked_at }}</p>
+              <p v-if="cn.metadata.restocked_at" class="text-xs text-text-tertiary">{{ $t('page.credit_notes.on_date', { date: cn.metadata.restocked_at }) }}</p>
             </div>
           </div>
 
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-text-secondary mb-3">Lignes</h3>
+            <h3 class="text-sm font-medium text-text-secondary mb-3">{{ $t('page.credit_notes.lines_word') }}</h3>
             <table class="w-full text-sm">
               <thead>
                 <tr class="border-b border-border">
-                  <th class="py-2 text-left font-medium text-text-tertiary">Produit</th>
-                  <th class="py-2 text-right font-medium text-text-tertiary">Qté</th>
-                  <th class="py-2 text-right font-medium text-text-tertiary">Prix unitaire</th>
-                  <th class="py-2 text-right font-medium text-text-tertiary">Total</th>
+                  <th class="py-2 text-left font-medium text-text-tertiary">{{ $t('page.products.title') }}</th>
+                  <th class="py-2 text-right font-medium text-text-tertiary">{{ $t('invoice.qty') }}</th>
+                  <th class="py-2 text-right font-medium text-text-tertiary">{{ $t('invoice.unit_price') }}</th>
+                  <th class="py-2 text-right font-medium text-text-tertiary">{{ $t('common.total') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -73,40 +73,40 @@
           <div class="flex justify-end pt-4 border-t border-border">
             <div class="w-64 space-y-2">
               <div class="flex justify-between text-sm">
-                <span class="text-text-tertiary">Sous-total</span>
+                <span class="text-text-tertiary">{{ $t('common.subtotal') }}</span>
                 <span class="font-medium text-text-primary">{{ formatXOF(cn.subtotal_xof) }}</span>
               </div>
               <div v-if="cn.discount_xof" class="flex justify-between text-sm">
-                <span class="text-text-tertiary">Remise</span>
+                <span class="text-text-tertiary">{{ $t('common.discount') }}</span>
                 <span class="font-medium text-text-primary">-{{ formatXOF(cn.discount_xof) }}</span>
               </div>
               <div class="flex justify-between text-base font-bold border-t border-border pt-2">
-                <span class="text-text-primary">Total</span>
+                <span class="text-text-primary">{{ $t('common.total') }}</span>
                 <span class="text-text-primary">{{ formatXOF(cn.total_xof) }}</span>
               </div>
             </div>
           </div>
 
           <div v-if="cn.notes" class="pt-4 mt-4 border-t border-border">
-            <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">Notes</p>
+            <p class="text-xs font-medium text-text-tertiary uppercase tracking-wider">{{ $t('common.notes') }}</p>
             <p class="mt-1 text-sm text-text-secondary">{{ cn.notes }}</p>
           </div>
         </BaseCard>
 
         <div class="flex flex-wrap items-end gap-3">
           <div v-if="cn.status === 'draft'" class="space-y-1.5" style="flex: 1; min-width: 240px;">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">Entrepôt de réintégration stock</label>
+            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.credit_notes.restock_warehouse') }}</label>
             <select v-model="warehouseId"
               class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-              <option value="">Aucun (pas de retour de stock)</option>
+              <option value="">{{ $t('page.credit_notes.restock_none') }}</option>
               <option v-for="w in warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
             </select>
           </div>
           <BaseButton v-if="cn.status === 'draft'" @click="validateCreditNote">
-            <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Valider l'avoir
+            <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.credit_notes.validate') }}
           </BaseButton>
           <BaseButton variant="secondary" :to="{ name: 'CreditNotes' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>Retour à la liste
+            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back_to_list') }}
           </BaseButton>
         </div>
       </template>

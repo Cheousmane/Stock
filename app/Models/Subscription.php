@@ -10,6 +10,7 @@ class Subscription extends CashierSubscription
 {
     protected $fillable = [
         'company_id',
+        'plan_id',
         'type',
         'stripe_id',
         'stripe_status',
@@ -19,9 +20,22 @@ class Subscription extends CashierSubscription
         'ends_at',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'trial_ends_at' => 'datetime',
+            'ends_at' => 'datetime',
+        ];
+    }
+
     public function company(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function plan(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
     }
 
     public function owner(): \Illuminate\Database\Eloquent\Relations\BelongsTo

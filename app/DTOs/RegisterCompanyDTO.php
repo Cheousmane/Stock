@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\Plan;
+
 /**
  * Class RegisterCompanyDTO
  * Immutable Data Transfer Object for creating a new company and its owner.
@@ -17,7 +19,8 @@ final readonly class RegisterCompanyDTO
         public string $userEmail,
         public string $userPassword,
         public ?string $companyIndustry = null,
-        public ?string $companySize = null
+        public ?string $companySize = null,
+        public ?int $planId = null
     ) {}
 
     /**
@@ -32,7 +35,8 @@ final readonly class RegisterCompanyDTO
             userEmail: $data['email'],
             userPassword: $data['password'],
             companyIndustry: $data['industry'] ?? null,
-            companySize: $data['size'] ?? null
+            companySize: $data['size'] ?? null,
+            planId: $data['plan_id'] ?? null
         );
     }
 }

@@ -9,7 +9,7 @@ use App\Models\EmailVerification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
-final class EmailVerificationService
+class EmailVerificationService
 {
     public const CODE_LIFETIME_MINUTES = 20;
 

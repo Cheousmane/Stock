@@ -40,4 +40,19 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
+    'wave' => [
+        'api_key' => env('WAVE_API_KEY'),
+        'webhook_secret' => env('WAVE_WEBHOOK_SECRET'),
+    ],
+
+    'cinetpay' => [
+        'merchant_id' => env('CINETPAY_MERCHANT_ID'),
+        'access_code' => env('CINETPAY_ACCESS_CODE'),
+        'sandbox' => env('CINETPAY_SANDBOX', 'false'),
+    ],
+
 ];

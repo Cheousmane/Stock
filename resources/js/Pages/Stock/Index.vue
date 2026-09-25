@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.stock.title')" :subtitle="meta ? $t('page.stock.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Gestion" :title="$t('page.stock.title')" :subtitle="meta ? $t('page.stock.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchData(meta?.current_page || 1)" :title="$t('common.refresh')">
             <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>

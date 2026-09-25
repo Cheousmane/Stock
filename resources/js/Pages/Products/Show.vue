@@ -8,13 +8,13 @@
       <div v-else-if="error" class="py-12 text-center text-text-tertiary">{{ error }}</div>
 
       <template v-else-if="product">
-        <BasePageHeader :title="product.name" subtitle="Détail du produit">
+        <BasePageHeader :title="product.name" :subtitle="$t('page.products.detail')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'ProductEdit', params: { id: product.id } }">
-              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>Modifier
+              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Products' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>Retour
+              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
@@ -23,39 +23,39 @@
           <img :src="product.image_url" class="w-48 h-48 object-cover rounded-xl border border-border shadow-sm" />
         </div>
 
-        <BaseCard title="Informations" padding="lg">
+        <BaseCard :title="$t('page.products.information')" padding="lg">
           <div class="grid grid-cols-2 gap-4 text-sm">
-            <div><span class="text-text-tertiary">Nom</span><p class="font-medium text-text-primary">{{ product.name }}</p></div>
-            <div><span class="text-text-tertiary">SKU</span><p class="text-text-primary">{{ product.sku || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Code-barres</span><p class="text-text-primary font-mono">{{ product.barcode || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Catégorie</span><p class="text-text-primary">{{ product.category_name || '—' }}</p></div>
-            <div class="col-span-2"><span class="text-text-tertiary">Description</span><p class="text-text-primary">{{ product.description || '—' }}</p></div>
-            <div><span class="text-text-tertiary">Prix de vente</span><p class="font-medium text-text-primary">{{ formatXOF(product.price_xof) }}</p></div>
-            <div><span class="text-text-tertiary">Prix d'achat</span><p class="text-text-primary">{{ product.purchase_price_xof ? formatXOF(product.purchase_price_xof) : '—' }}</p></div>
-            <div><span class="text-text-tertiary">Prix de revient</span><p class="text-text-primary">{{ product.cost_price_xof ? formatXOF(product.cost_price_xof) : '—' }}</p></div>
-            <div><span class="text-text-tertiary">Prix de gros</span><p class="text-text-primary">{{ product.wholesale_price_xof ? formatXOF(product.wholesale_price_xof) : '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.name_label') }}</span><p class="font-medium text-text-primary">{{ product.name }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.sku_label') }}</span><p class="text-text-primary">{{ product.sku || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.barcode_label') }}</span><p class="text-text-primary font-mono">{{ product.barcode || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.category_label') }}</span><p class="text-text-primary">{{ product.category_name || '—' }}</p></div>
+            <div class="col-span-2"><span class="text-text-tertiary">{{ $t('page.products.description_label') }}</span><p class="text-text-primary">{{ product.description || '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.sale_price_label') }}</span><p class="font-medium text-text-primary">{{ formatXOF(product.price_xof) }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.purchase_price_label') }}</span><p class="text-text-primary">{{ product.purchase_price_xof ? formatXOF(product.purchase_price_xof) : '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.cost_price_label') }}</span><p class="text-text-primary">{{ product.cost_price_xof ? formatXOF(product.cost_price_xof) : '—' }}</p></div>
+            <div><span class="text-text-tertiary">{{ $t('page.products.wholesale_price_label') }}</span><p class="text-text-primary">{{ product.wholesale_price_xof ? formatXOF(product.wholesale_price_xof) : '—' }}</p></div>
             <div>
-              <span class="text-text-tertiary">Statut</span>
+              <span class="text-text-tertiary">{{ $t('page.products.status_label') }}</span>
               <BaseBadge :variant="product.is_active ? 'success' : 'default'" size="sm" class="ml-2">
-                {{ product.is_active ? 'Actif' : 'Inactif' }}
+                {{ product.is_active ? $t('status.active') : $t('status.inactive') }}
               </BaseBadge>
             </div>
           </div>
         </BaseCard>
 
-        <BaseCard title="Stock par entrepôt" padding="lg">
-          <div v-if="stocks.length === 0" class="text-sm text-text-tertiary">Aucun stock disponible</div>
+        <BaseCard :title="$t('page.products.stock_by_warehouse')" padding="lg">
+          <div v-if="stocks.length === 0" class="text-sm text-text-tertiary">{{ $t('page.products.no_stock') }}</div>
           <table v-else class="min-w-full divide-y divide-border">
             <thead class="bg-surface-secondary">
               <tr>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Entrepôt</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Quantité</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Stock min</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('form.warehouse') }}</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('common.quantity') }}</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('form.min_stock') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
               <tr v-for="s in stocks" :key="s.warehouse?.id || s.id" class="hover:bg-surface-secondary">
-                <td class="px-4 py-3 text-sm text-text-primary">{{ s.warehouse?.name || 'Entrepôt principal' }}</td>
+                <td class="px-4 py-3 text-sm text-text-primary">{{ s.warehouse?.name || $t('page.products.main_warehouse') }}</td>
                 <td class="px-4 py-3 text-sm text-right text-text-primary">{{ s.quantity ?? s.stock }}</td>
                 <td class="px-4 py-3 text-sm text-right text-text-tertiary">{{ s.min_stock ?? product.min_stock }}</td>
               </tr>
@@ -63,15 +63,15 @@
           </table>
         </BaseCard>
 
-        <BaseCard title="Mouvements de stock" padding="lg">
-          <div v-if="movements.length === 0" class="text-sm text-text-tertiary">Aucun mouvement</div>
+        <BaseCard :title="$t('page.products.stock_movements')" padding="lg">
+          <div v-if="movements.length === 0" class="text-sm text-text-tertiary">{{ $t('page.products.no_movements') }}</div>
           <table v-else class="min-w-full divide-y divide-border">
             <thead class="bg-surface-secondary">
               <tr>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Date</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">Type</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Quantité</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Référence</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.date') }}</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-center text-text-tertiary uppercase">{{ $t('common.type') }}</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('common.quantity') }}</th>
+                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.reference') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -79,7 +79,7 @@
                 <td class="px-4 py-3 text-sm text-text-tertiary">{{ m.created_at || m.date }}</td>
                 <td class="px-4 py-3 text-center">
                   <BaseBadge :variant="m.type === 'in' ? 'success' : 'danger'" size="xs">
-                    {{ m.type === 'in' ? 'Entrée' : 'Sortie' }}
+                    {{ m.type === 'in' ? $t('status.entry') : $t('status.exit') }}
                   </BaseBadge>
                 </td>
                 <td class="px-4 py-3 text-sm text-right text-text-primary">{{ m.quantity }}</td>

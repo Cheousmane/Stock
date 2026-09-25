@@ -24,6 +24,7 @@ class CompanyFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name) . '-' . Str::random(4),
             'metadata' => null,
+            'plan_id' => \App\Models\Plan::where('slug', 'free')->value('id'),
         ];
     }
 }

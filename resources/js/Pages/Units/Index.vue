@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.units.title')" :subtitle="meta ? $t('page.units.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Catalogue" :title="$t('page.units.title')" :subtitle="meta ? $t('page.units.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'UnitCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.units.create') }}

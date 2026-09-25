@@ -7,34 +7,34 @@
       <div v-else-if="error" class="py-12 text-center text-text-tertiary">{{ error }}</div>
 
       <template v-else-if="quote">
-        <BasePageHeader :title="'Devis ' + quote.number" subtitle="Détail du devis">
+        <BasePageHeader :title="$t('page.quotes.title_show', { number: quote.number })" :subtitle="$t('page.quotes.detail')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" @click="downloadPdf">
-              <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Télécharger PDF
+              <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.download_pdf') }}
             </BaseButton>
             <button v-if="quote.status !== 'converted'" @click="convertToInvoice" :disabled="converting"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50">
-              <span class="text-white"><DocumentTextIcon class="w-4 h-4" /></span>{{ converting ? 'Conversion...' : 'Convertir en facture' }}
+              <span class="text-white"><DocumentTextIcon class="w-4 h-4" /></span>{{ converting ? $t('page.quotes.converting') : $t('page.quotes.convert_to_invoice') }}
             </button>
             <BaseButton variant="secondary" size="sm" :loading="sendingEmail" @click="sendEmail">
-              <span class="text-current"><EnvelopeIcon class="w-4 h-4" /></span>{{ sendingEmail ? 'Envoi...' : 'Envoyer par email' }}
+              <span class="text-current"><EnvelopeIcon class="w-4 h-4" /></span>{{ sendingEmail ? $t('common.sending') : $t('common.send_email') }}
             </BaseButton>
             <BaseButton v-if="quote.status === 'draft'" size="sm" @click="updateStatus('sent')">
-              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Marquer envoyé
+              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.mark_sent') }}
             </BaseButton>
             <button v-if="quote.status === 'sent' || quote.status === 'accepted'" @click="updateStatus('accepted')"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700">
-              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>Accepter
+              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.accept') }}
             </button>
             <button v-if="quote.status === 'draft' || quote.status === 'sent'" @click="updateStatus('rejected')"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700">
-              <span class="text-white"><XCircleIcon class="w-4 h-4" /></span>Rejeter
+              <span class="text-white"><XCircleIcon class="w-4 h-4" /></span>{{ $t('page.quotes.reject') }}
             </button>
             <BaseButton v-if="quote.status !== 'converted'" variant="danger-ghost" size="sm" @click="deleteQuote">
-              <span class="text-current"><TrashIcon class="w-4 h-4" /></span>Supprimer
+              <span class="text-current"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Quotes' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>Retour
+              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
@@ -43,8 +43,8 @@
           <div class="flex justify-between pb-8 mb-8 border-b border-border">
             <div>
               <h2 class="text-xl font-bold text-text-primary">{{ quote.number }}</h2>
-              <p class="mt-1 text-sm text-text-tertiary">Date : {{ quote.issue_date }}</p>
-              <p class="text-sm text-text-tertiary">Expire le : {{ quote.expiration_date }}</p>
+              <p class="mt-1 text-sm text-text-tertiary">{{ $t('common.date') }} : {{ quote.issue_date }}</p>
+              <p class="text-sm text-text-tertiary">{{ $t('page.quotes.expires') }} : {{ quote.expiration_date }}</p>
             </div>
             <div>
               <span :class="['px-3 py-1 text-sm font-medium rounded-full', statusClass(quote.status)]">{{ statusLabel(quote.status) }}</span>
@@ -52,7 +52,7 @@
           </div>
 
           <div class="mb-8">
-            <h3 class="text-sm font-medium text-text-tertiary">Client</h3>
+            <h3 class="text-sm font-medium text-text-tertiary">{{ $t('page.quotes.customer') }}</h3>
             <p class="mt-1 font-medium text-text-primary">{{ quote.customer?.name }}</p>
             <p v-if="quote.customer?.email" class="text-sm text-text-tertiary">{{ quote.customer.email }}</p>
           </div>
@@ -60,10 +60,10 @@
           <table class="w-full mb-8">
             <thead>
               <tr class="border-b border-border">
-                <th class="pb-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">Description</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Qté</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Prix unitaire</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">Total</th>
+                <th class="pb-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.description') }}</th>
+                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('invoice.qty') }}</th>
+                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('invoice.unit_price') }}</th>
+                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('common.total') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -123,11 +123,11 @@ const sendingEmail = ref(false);
 const converting = ref(false);
 
 const statusMap = {
-  draft: { class: 'bg-surface-tertiary text-text-secondary', label: 'Brouillon' },
-  sent: { class: 'bg-blue-50 text-blue-700', label: 'Envoyé' },
-  accepted: { class: 'bg-green-50 text-green-700', label: 'Accepté' },
-  rejected: { class: 'bg-red-50 text-red-700', label: 'Rejeté' },
-  converted: { class: 'bg-purple-50 text-purple-700', label: 'Converti' },
+  draft: { class: 'bg-surface-tertiary text-text-secondary', label: t('status.draft') },
+  sent: { class: 'bg-blue-50 text-blue-700', label: t('status.sent') },
+  accepted: { class: 'bg-green-50 text-green-700', label: t('status.accepted') },
+  rejected: { class: 'bg-red-50 text-red-700', label: t('status.rejected') },
+  converted: { class: 'bg-purple-50 text-purple-700', label: t('status.converted') },
 };
 
 function statusClass(s) { return statusMap[s]?.class || 'bg-surface-tertiary text-text-secondary'; }

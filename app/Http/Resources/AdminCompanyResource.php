@@ -33,6 +33,7 @@ class AdminCompanyResource extends JsonResource
             'suspended_at' => $this->suspended_at,
             'currency_code' => $this->currency_code,
             'plan' => new PlanResource($this->whenLoaded('plan')),
+            'subscription' => $this->subscription ?? null,
             'users' => UserResource::collection($this->whenLoaded('users')),
             'users_count' => $this->whenCounted('users'),
             'invoices_count' => $this->whenCounted('invoices'),

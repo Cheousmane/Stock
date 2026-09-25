@@ -1,67 +1,85 @@
 <template>
-  <div class="flex h-screen bg-surface-secondary text-text-primary antialiased">
+  <div class="flex min-h-screen bg-surface-secondary text-text-primary antialiased selection:bg-emerald-500/20">
+    <div class="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
+      <div class="absolute -top-32 left-1/4 h-72 w-72 rounded-full bg-emerald-500/[0.07] blur-3xl" />
+      <div class="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-teal-500/[0.07] blur-3xl" />
+    </div>
     <!-- Mobile backdrop -->
-    <div v-if="sidebarOpen" class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="sidebarOpen = false" />
+    <Transition name="fade">
+      <div v-if="sidebarOpen" class="fixed inset-0 z-40 bg-neutral-950/50 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" />
+    </Transition>
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar-surface border-r border-sidebar-border transition-[width,transform] duration-200 ease-out lg:translate-x-0 sidebar-transition"
-      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-64', 'w-64']"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[272px] bg-sidebar-surface border-r border-sidebar-border shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)] transition-[width,transform] duration-100 ease-out"
+      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[272px]']"
     >
       <!-- Logo -->
-      <div class="flex items-center h-14 px-3 border-b border-sidebar-border shrink-0 sidebar-transition">
-        <button @click="sidebarOpen = false" class="p-1.5 rounded-lg lg:hidden hover:bg-sidebar-surface-hover sidebar-transition">
-          <span class="flex items-center justify-center w-4 h-4 text-sidebar-text-secondary">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </span>
+      <div class="flex items-center gap-2.5 h-[68px] px-4 border-b border-sidebar-border shrink-0">
+        <button @click="sidebarOpen = false" class="p-2 rounded-xl lg:hidden hover:bg-sidebar-surface-hover text-sidebar-text-secondary">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-        <router-link to="/dashboard" class="flex items-center gap-2.5 min-w-0">
-          <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20 shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
-          </span>
-          <div class="sidebar-label overflow-hidden transition-all duration-150 ease-out" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">
-            <div class="min-w-0 whitespace-nowrap">
-              <p class="text-sm font-semibold text-sidebar-text truncate sidebar-transition">{{ abbreviatedName }}</p>
-              <p class="text-[10px] font-medium text-sidebar-text-secondary truncate tracking-wider sidebar-transition">{{ companyName }}</p>
+        <router-link to="/dashboard" class="group flex items-center gap-3 min-w-0 flex-1">
+          <AppLogo :size="40" />
+          <div class="min-w-0 overflow-hidden transition-opacity duration-100" :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'w-auto opacity-100'">
+            <div class="whitespace-nowrap">
+              <p class="text-[15px] font-extrabold tracking-tight text-sidebar-text truncate">{{ abbreviatedName }}</p>
+              <p class="text-[10px] font-bold text-sidebar-text-secondary truncate tracking-[0.12em] uppercase">{{ companyName }}</p>
+              <p v-if="companyPlan" class="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 truncate tracking-wider bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-px">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                {{ companyPlan.name }}
+              </p>
             </div>
           </div>
         </router-link>
         <button
           @click="sidebarCollapsed = !sidebarCollapsed"
-          class="hidden lg:flex items-center justify-center ml-auto w-6 h-6 rounded-md text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover sidebar-transition"
+          class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover border border-transparent hover:border-sidebar-border transition-all"
           :class="{ 'rotate-180': sidebarCollapsed }"
+          :title="$t('header.collapse')"
         >
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5" />
           </svg>
         </button>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-2 py-3 overflow-y-auto overflow-x-hidden">
-        <div class="space-y-0.5">
+      <nav class="flex-1 px-3 py-4 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div class="space-y-5">
           <template v-for="item in navItems" :key="item.name || item.key">
-            <div v-if="item.divider" class="sidebar-label overflow-hidden transition-all duration-150 ease-out" :class="sidebarCollapsed ? 'w-0 opacity-0 h-0 pt-0 pb-0' : 'w-auto opacity-100 px-3 pt-4 pb-1.5'">
-              <span v-if="item.label" class="text-[10px] font-semibold tracking-widest text-sidebar-text-secondary uppercase whitespace-nowrap">{{ item.label || $t(item.key) }}</span>
-            </div>
+            <p v-if="item.divider" class="px-3 text-[10px] font-extrabold tracking-[0.16em] text-sidebar-text-secondary/80 uppercase transition-all" :class="sidebarCollapsed ? 'lg:text-center lg:px-0' : ''">
+              {{ sidebarCollapsed ? '· · ·' : (item.key ? $t(item.key) : item.label) }}
+            </p>
             <router-link
-              v-if="!item.divider"
+              v-else
               :to="item.to"
-              class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium sidebar-transition"
-              :class="isActive(item.to) ? 'nav-item--active text-sidebar-text-active' : 'text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover'"
+              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-100"
+              :class="[
+                isActive(item.to)
+                  ? 'bg-gradient-to-r from-emerald-500/12 to-teal-500/[0.06] text-sidebar-text-active shadow-[inset_0_0_0_1px_rgb(16_185_129/0.18)]'
+                  : 'text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover',
+                sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''
+              ]"
               @mouseenter="showTooltip($event, item)"
               @mouseleave="hideTooltip"
             >
-              <span class="flex items-center justify-center w-5 h-5 shrink-0 sidebar-transition" :class="isActive(item.to) ? 'text-sidebar-text-active' : 'text-sidebar-text-secondary group-hover:text-sidebar-text'">
-                <component :is="item.icon" class="w-5 h-5" />
+              <span v-if="isActive(item.to)" class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-to-b from-emerald-400 to-teal-600" />
+              <span
+                class="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-transform duration-100 group-active:scale-95"
+                :class="isActive(item.to)
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25'
+                  : 'bg-sidebar-surface-hover/60 text-sidebar-text-secondary group-hover:text-sidebar-text group-hover:bg-sidebar-surface-hover border border-sidebar-border/60'"
+              >
+                <component :is="item.icon" class="w-[18px] h-[18px]" />
               </span>
-              <span class="sidebar-label truncate overflow-hidden transition-all duration-150 ease-out" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">{{ item.label || $t(item.key) }}</span>
-              <span v-if="item.badge" class="sidebar-label flex-shrink-0 transition-all duration-150 ease-out" :class="sidebarCollapsed ? 'w-0 opacity-0 scale-0' : 'w-auto opacity-100 scale-100'">
-                <span class="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/20 text-emerald-400 whitespace-nowrap">{{ item.badge }}</span>
+              <span class="truncate transition-opacity duration-100 overflow-hidden" :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'flex-1 opacity-100'">{{ item.key ? $t(item.key) : item.label }}</span>
+              <span v-if="item.badge" class="shrink-0 transition-all" :class="sidebarCollapsed ? 'lg:hidden' : ''">
+                <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 whitespace-nowrap">{{ item.badge }}</span>
               </span>
             </router-link>
           </template>
@@ -69,19 +87,25 @@
       </nav>
 
       <!-- Bottom -->
-      <div class="p-2 border-t border-sidebar-border sidebar-transition">
+      <div class="p-3 border-t border-sidebar-border bg-sidebar-surface/60">
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-surface-hover/50 border border-sidebar-border/70" :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''">
+          <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shrink-0 shadow-md shadow-emerald-500/20">{{ userInitial }}</span>
+          <div class="min-w-0 flex-1 leading-tight" :class="sidebarCollapsed ? 'lg:hidden' : ''">
+            <p class="text-[13px] font-bold text-sidebar-text truncate">{{ userName || 'Utilisateur' }}</p>
+            <p class="text-[11px] text-sidebar-text-secondary truncate">{{ companyName }}</p>
+          </div>
+        </div>
         <button
           @click="logout"
-          class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-sidebar-text-secondary hover:text-red-400 hover:bg-red-500/10 sidebar-transition"
+          class="mt-1.5 flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-sidebar-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+          :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
           @mouseenter="showTooltip($event, { label: $t('common.logout') })"
           @mouseleave="hideTooltip"
         >
-          <span class="flex items-center justify-center w-5 h-5 shrink-0 text-sidebar-text-secondary group-hover:text-red-400 sidebar-transition">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-            </svg>
-          </span>
-          <span class="sidebar-label truncate overflow-hidden transition-all duration-150 ease-out" :class="sidebarCollapsed ? 'w-0 opacity-0 -translate-x-2' : 'w-auto opacity-100 translate-x-0'">{{ $t('common.logout') }}</span>
+          <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          <span class="truncate transition-all" :class="sidebarCollapsed ? 'lg:hidden' : ''">{{ $t('common.logout') }}</span>
         </button>
       </div>
     </aside>
@@ -98,30 +122,87 @@
     </Teleport>
 
     <!-- Main area -->
-    <div class="flex flex-col flex-1 min-w-0 transition-[margin] duration-200 ease-out" :class="sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-64'">
+    <div class="relative z-10 flex flex-col flex-1 min-w-0 min-h-screen transition-[margin] duration-100 ease-out" :class="sidebarCollapsed ? 'lg:ml-[84px]' : 'lg:ml-[272px]'">
       <!-- Top navbar -->
-      <header class="sticky top-0 z-30 flex items-center h-14 px-4 lg:px-6 bg-surface/70 backdrop-blur-xl border-b border-border">
-        <button @click="sidebarOpen = true" class="flex items-center justify-center w-8 h-8 -ml-1.5 text-text-secondary rounded-lg lg:hidden hover:bg-surface-tertiary">
+      <header class="sticky top-0 z-30 border-b border-border bg-surface/75 backdrop-blur-xl">
+        <div class="flex items-center gap-2.5 h-[68px] px-4 lg:px-8 max-w-[1440px] mx-auto w-full">
+        <button @click="sidebarOpen = true" class="flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface text-text-secondary shadow-sm active:scale-95 transition">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
 
+        <div class="hidden md:flex items-center gap-2 min-w-0">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{{ companyName || 'Mon entreprise' }}</span>
+          <span v-if="companyPlan" class="hidden xl:inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-[11px] font-extrabold text-violet-600 whitespace-nowrap">{{ companyPlan.name }}</span>
+        </div>
+
         <div class="flex items-center gap-2 ml-auto">
+          <!-- Quick Create Action -->
+          <div class="relative" v-click-outside="() => quickCreateOpen = false">
+            <button
+              @click="quickCreateOpen = !quickCreateOpen"
+              class="inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] transition-all"
+            >
+              <PlusIcon class="w-4 h-4" />
+              <span class="hidden sm:inline">{{ $t('header.new') }}</span>
+            </button>
+            <div
+              v-if="quickCreateOpen"
+              class="absolute right-0 z-50 mt-2 w-60 bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active"
+            >
+              <div class="px-3 py-2 text-[10px] font-extrabold text-text-tertiary uppercase tracking-[0.14em]">
+                {{ $t('header.quick_create') }}
+              </div>
+              <router-link
+                to="/invoices/create"
+                @click="quickCreateOpen = false"
+                class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-emerald-500/[0.07] rounded-xl transition-colors"
+              >
+                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600"><DocumentTextIcon class="w-4 h-4" /></span>
+                {{ $t('header.new_invoice') }}
+              </router-link>
+              <router-link
+                to="/pos"
+                @click="quickCreateOpen = false"
+                class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-emerald-500/[0.07] rounded-xl transition-colors"
+              >
+                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600"><ComputerDesktopIcon class="w-4 h-4" /></span>
+                {{ $t('header.pos') }}
+              </router-link>
+              <router-link
+                to="/products/create"
+                @click="quickCreateOpen = false"
+                class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-blue-500/[0.07] rounded-xl transition-colors"
+              >
+                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600"><CubeIcon class="w-4 h-4" /></span>
+                {{ $t('header.new_product') }}
+              </router-link>
+              <router-link
+                to="/customers/create"
+                @click="quickCreateOpen = false"
+                class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-violet-500/[0.07] rounded-xl transition-colors"
+              >
+                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-violet-500/10 text-violet-600"><UsersIcon class="w-4 h-4" /></span>
+                {{ $t('header.new_customer') }}
+              </router-link>
+            </div>
+          </div>
+
           <!-- Global search -->
           <button
             @click="searchOpen = true"
-            class="flex items-center gap-2 px-3 py-1.5 text-xs text-text-tertiary bg-surface-tertiary rounded-lg hover:bg-surface-tertiary/80 hidden sm:flex"
+            class="hidden sm:flex items-center gap-2.5 pl-3.5 pr-2 py-2.5 w-52 xl:w-64 rounded-2xl border border-border bg-surface-secondary/70 text-sm text-text-tertiary hover:border-emerald-400/50 hover:bg-surface transition-all shadow-sm group"
           >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-4 h-4 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            Rechercher...
-            <kbd class="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] text-text-tertiary bg-surface border border-border rounded ml-4">⌘K</kbd>
+            <span class="flex-1 text-left truncate font-medium">{{ $t('header.search_placeholder') }}</span>
+            <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary">⌘K</kbd>
           </button>
           <button
             @click="searchOpen = true"
-            class="flex items-center justify-center w-8 h-8 text-text-secondary rounded-lg sm:hidden hover:bg-surface-tertiary"
+            class="flex sm:hidden items-center justify-center w-10 h-10 text-text-secondary rounded-xl border border-border bg-surface shadow-sm"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -135,15 +216,15 @@
           <div class="relative" v-click-outside="() => dropdownOpen = false">
             <button
               @click="dropdownOpen = !dropdownOpen"
-              class="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-text-secondary rounded-lg hover:bg-surface-tertiary"
+              class="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-2xl border border-border bg-surface shadow-sm hover:border-emerald-400/40 hover:shadow-md active:scale-[0.98] transition-all"
             >
-              <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xs font-semibold shrink-0">{{ userInitial }}</span>
-              <span class="hidden sm:inline text-text-primary text-sm max-w-[100px] truncate">{{ userName }}</span>
-              <svg class="w-3.5 h-3.5 text-text-tertiary" :class="{ 'rotate-180': dropdownOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shadow shrink-0">{{ userInitial }}</span>
+              <span class="hidden sm:inline text-text-primary text-[13px] font-bold max-w-[100px] truncate">{{ userName }}</span>
+              <svg class="w-4 h-4 text-text-tertiary transition-transform" :class="{ 'rotate-180': dropdownOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
-            <div v-if="dropdownOpen" class="absolute right-0 z-50 mt-2 w-56 bg-surface border border-border rounded-xl shadow-dropdown py-1 overflow-hidden">
+            <div v-if="dropdownOpen" class="absolute right-0 z-50 mt-2 w-60 bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active">
               <div class="px-4 py-3 border-b border-border">
                 <p class="text-sm font-semibold text-text-primary truncate">{{ userName }}</p>
                 <p class="text-xs text-text-tertiary truncate mt-0.5">{{ userEmail }}</p>
@@ -155,7 +236,7 @@
                   </svg>
                   {{ $t('nav.settings') }}
                 </router-link>
-                <button @click="logout" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                <button @click="logout" class="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-left text-rose-600 hover:bg-rose-500/10 rounded-xl transition">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                   </svg>
@@ -164,12 +245,32 @@
               </div>
             </div>
           </div>
+        </div>
       </header>
 
+      <!-- Trial banner -->
+      <div v-if="trialDaysLeft !== null" class="px-4 lg:px-8 pt-4 max-w-[1440px] mx-auto w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 py-3 rounded-3xl border shadow-sm"
+          :class="trialDaysLeft <= 3 ? 'bg-amber-500/[0.08] border-amber-500/25' : 'bg-emerald-500/[0.07] border-emerald-500/20'">
+          <span class="flex items-center justify-center w-9 h-9 rounded-2xl shrink-0"
+            :class="trialDaysLeft <= 3 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25' : 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'">
+            <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </span>
+          <p class="text-[13px] font-bold flex-1" :class="trialDaysLeft <= 3 ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'">
+            {{ $t('subscription.trial_banner', { n: trialDaysLeft }) }}
+          </p>
+          <router-link to="/settings/subscription" class="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-2xl text-xs font-extrabold text-white bg-neutral-900 hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 active:scale-[0.98] transition shrink-0">
+            {{ $t('subscription.change_plan') }} →
+          </router-link>
+        </div>
+      </div>
+
       <!-- Content -->
-      <div class="flex-1 overflow-y-auto">
-        <slot name="header" />
-        <main class="p-4 lg:p-6">
+      <div class="flex-1 w-full">
+        <div class="px-4 lg:px-8 pt-5 lg:pt-7 max-w-[1440px] mx-auto w-full">
+          <slot name="header" />
+        </div>
+        <main class="px-4 lg:px-8 pb-8 pt-4 max-w-[1440px] mx-auto w-full">
           <slot />
         </main>
       </div>
@@ -179,35 +280,35 @@
     <Teleport to="body">
       <div v-if="searchOpen" class="fixed inset-0 z-[200] flex items-start justify-center pt-[15vh]" @click.self="searchOpen = false">
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm modal-fade-enter-active" />
-        <div class="relative w-full max-w-xl bg-surface border border-border rounded-2xl shadow-modal overflow-hidden modal-pop-enter-active">
-            <div class="flex items-center gap-3 px-4 border-b border-border">
-              <svg class="w-5 h-5 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="relative w-full max-w-xl bg-surface border border-border/70 rounded-3xl shadow-modal overflow-hidden modal-pop-enter-active">
+            <div class="flex items-center gap-3 px-5 border-b border-border/70">
+              <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
               <input
                 ref="searchInput"
                 v-model="searchQuery"
                 type="text"
-                placeholder="Rechercher une page, un client, une facture..."
-                class="flex-1 py-3.5 text-sm bg-transparent border-0 outline-none text-text-primary placeholder:text-text-tertiary"
+                :placeholder="$t('header.search_placeholder')"
+                class="flex-1 py-4 text-sm font-semibold bg-transparent border-0 outline-none text-text-primary placeholder:text-text-tertiary placeholder:font-normal"
               />
-              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-text-tertiary bg-surface-tertiary rounded">ESC</kbd>
+              <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-[10px] font-extrabold text-text-tertiary bg-surface-tertiary border border-border rounded-lg">ESC</kbd>
             </div>
             <div class="p-2 max-h-80 overflow-y-auto">
               <p v-if="searchQuery.length < 2" class="py-8 text-center text-sm text-text-tertiary">
-                Tapez au moins 2 caractères pour lancer la recherche
+                {{ $t('header.search_hint') }}
               </p>
               <div v-else-if="searchResults.length === 0" class="py-8 text-center text-sm text-text-tertiary">
-                Aucun résultat pour "{{ searchQuery }}"
+                {{ $t('header.no_results_for', { q: searchQuery }) }}
               </div>
-              <div v-else class="space-y-0.5">
-                <div v-for="r in searchResults" :key="r.url" @click="navigateToSearch(r)" class="group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 hover:bg-surface-tertiary hover:translate-x-0.5">
-                  <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-tertiary shrink-0 transition-transform duration-300 group-hover:scale-110">
-                    <component :is="r.icon" class="w-4 h-4 text-text-secondary" />
+              <div v-else class="space-y-1">
+                <div v-for="r in searchResults" :key="r.url" @click="navigateToSearch(r)" class="group flex items-center gap-3 px-3 py-2.5 rounded-2xl cursor-pointer transition-all duration-150 hover:bg-emerald-500/[0.06] hover:translate-x-0.5">
+                  <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 shrink-0 transition-transform duration-300 group-hover:scale-110">
+                    <component :is="r.icon" class="w-4 h-4" />
                   </span>
                   <div class="min-w-0 flex-1">
-                    <p class="text-sm font-medium text-text-primary truncate">{{ r.title }}</p>
-                    <p class="text-xs text-text-tertiary truncate">{{ r.subtitle }}</p>
+                    <p class="text-sm font-extrabold text-text-primary truncate">{{ r.title }}</p>
+                    <p class="text-xs font-medium text-text-tertiary truncate">{{ r.subtitle }}</p>
                   </div>
                   <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -228,12 +329,14 @@ import axios from 'axios'
 import { useI18n } from 'vue-i18n'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import AppLogo from './AppLogo.vue'
 import {
   HomeIcon, ComputerDesktopIcon, CubeIcon, UsersIcon, DocumentTextIcon,
   DocumentDuplicateIcon, TruckIcon, CreditCardIcon, ArchiveBoxIcon,
   BanknotesIcon, TagIcon, BuildingStorefrontIcon, ScaleIcon,
   CalendarDaysIcon, BriefcaseIcon, ShoppingCartIcon,
   ArrowUturnLeftIcon, Cog6ToothIcon, ClockIcon, CurrencyDollarIcon, BuildingOfficeIcon,
+  PlusIcon,
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -243,6 +346,7 @@ const { t } = useI18n()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') !== 'false')
 const dropdownOpen = ref(false)
+const quickCreateOpen = ref(false)
 const tooltip = ref({ text: '', x: 0, y: 0 })
 const searchOpen = ref(false)
 const searchQuery = ref('')
@@ -252,7 +356,35 @@ const userName = ref('')
 const userEmail = ref('')
 const userPermissions = ref([])
 const companyName = ref('')
+const companyPlan = ref(null)
+const companyStatus = ref('')
+const companyTrialEndsAt = ref(null)
 const isSuperAdmin = ref(false)
+
+const trialDaysLeft = computed(() => {
+  if (companyStatus.value !== 'trial' || !companyTrialEndsAt.value) return null
+  const diff = new Date(companyTrialEndsAt.value).getTime() - Date.now()
+  if (diff <= 0) return null
+  return Math.ceil(diff / 86400000)
+})
+
+async function refreshCompany() {
+  const { data } = await axios.get('/company')
+  const c = data.data ?? data
+  const name = c.company_name || c.name || ''
+  companyName.value = name
+  if (c.plan) {
+    companyPlan.value = c.plan
+  }
+  companyStatus.value = c.status || ''
+  companyTrialEndsAt.value = c.trial_ends_at || null
+  localStorage.setItem('company', JSON.stringify({
+    name,
+    plan: c.plan,
+    status: c.status || '',
+    trial_ends_at: c.trial_ends_at || null,
+  }))
+}
 
 watch(sidebarCollapsed, (v) => localStorage.setItem('sidebarCollapsed', v))
 watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
@@ -335,7 +467,7 @@ function showTooltip(event, item) {
   if (!sidebarCollapsed.value) return
   const rect = event.currentTarget.getBoundingClientRect()
   tooltip.value = {
-    text: item.label || (item.key ? t(item.key) : ''),
+    text: item.key ? t(item.key) : (item.label || ''),
     x: rect.right + 8,
     y: rect.top + rect.height / 2,
   }
@@ -345,32 +477,32 @@ function hideTooltip() {
   tooltip.value = { text: '', x: 0, y: 0 }
 }
 
-const searchPages = [
-  { title: 'Tableau de bord', subtitle: 'Vue d\'ensemble et indicateurs', url: '/dashboard', icon: HomeIcon },
-  { title: 'Caisse (POS)', subtitle: 'Point de vente', url: '/pos', icon: ComputerDesktopIcon },
-  { title: 'Sessions caisse', subtitle: 'Historique des sessions', url: '/pos/sessions', icon: ClockIcon },
-  { title: 'Produits', subtitle: 'Gérer le catalogue', url: '/products', icon: CubeIcon },
-  { title: 'Clients', subtitle: 'Gérer les clients', url: '/customers', icon: UsersIcon },
-  { title: 'Fournisseurs', subtitle: 'Gérer les fournisseurs', url: '/suppliers', icon: BriefcaseIcon },
-  { title: 'Factures', subtitle: 'Gérer les factures', url: '/invoices', icon: DocumentTextIcon },
-  { title: 'Devis', subtitle: 'Gérer les devis', url: '/quotes', icon: DocumentDuplicateIcon },
-  { title: 'Avoirs', subtitle: 'Gérer les avoirs', url: '/credit-notes', icon: ArrowUturnLeftIcon },
-  { title: 'Bons de commande', subtitle: 'Gérer les bons de commande', url: '/purchase-orders', icon: ShoppingCartIcon },
-  { title: 'Bons de livraison', subtitle: 'Gérer les bons de livraison', url: '/delivery-notes', icon: TruckIcon },
-  { title: 'Paiements', subtitle: 'Historique des paiements', url: '/payments', icon: CreditCardIcon },
-  { title: 'Dépenses', subtitle: 'Suivi des dépenses', url: '/expenses', icon: BanknotesIcon },
-  { title: 'Capital', subtitle: 'Gestion du capital', url: '/capital', icon: CurrencyDollarIcon },
-  { title: 'Stock', subtitle: 'Gestion des stocks', url: '/stock', icon: ArchiveBoxIcon },
-  { title: 'Catégories', subtitle: 'Catégories de produits', url: '/categories', icon: TagIcon },
-  { title: 'Unités', subtitle: 'Unités de mesure', url: '/units', icon: ScaleIcon },
-  { title: 'Entrepôts', subtitle: 'Gestion des dépôts', url: '/warehouses', icon: BuildingStorefrontIcon },
-  { title: 'Utilisateurs', subtitle: 'Gestion des utilisateurs', url: '/users', icon: Cog6ToothIcon },
-  { title: 'Journal activité', subtitle: 'Logs système', url: '/activity-logs', icon: ClockIcon },
-  { title: 'Paramètres', subtitle: 'Configuration', url: '/settings', icon: Cog6ToothIcon },
-  { title: 'Panel Admin', subtitle: 'Administration globale', url: '/admin/dashboard', icon: Cog6ToothIcon },
-  { title: 'Admin Entreprises', subtitle: 'Gérer les entreprises', url: '/admin/companies', icon: BuildingOfficeIcon },
-  { title: 'Admin Connexions', subtitle: 'Journal des connexions', url: '/admin/login-logs', icon: ClockIcon },
-]
+const searchPages = computed(() => [
+  { title: t('nav.dashboard'), subtitle: t('nav.system'), url: '/dashboard', icon: HomeIcon },
+  { title: t('nav.pos'), subtitle: t('nav.sales'), url: '/pos', icon: ComputerDesktopIcon },
+  { title: t('nav.pos_sessions'), subtitle: t('nav.sales'), url: '/pos/sessions', icon: ClockIcon },
+  { title: t('nav.products'), subtitle: t('nav.sales'), url: '/products', icon: CubeIcon },
+  { title: t('nav.customers'), subtitle: t('nav.sales'), url: '/customers', icon: UsersIcon },
+  { title: t('nav.suppliers'), subtitle: t('nav.sales'), url: '/suppliers', icon: BriefcaseIcon },
+  { title: t('nav.invoices'), subtitle: t('nav.documentation'), url: '/invoices', icon: DocumentTextIcon },
+  { title: t('nav.quotes'), subtitle: t('nav.documentation'), url: '/quotes', icon: DocumentDuplicateIcon },
+  { title: t('nav.credit_notes'), subtitle: t('nav.documentation'), url: '/credit-notes', icon: ArrowUturnLeftIcon },
+  { title: t('nav.purchase_orders'), subtitle: t('nav.documentation'), url: '/purchase-orders', icon: ShoppingCartIcon },
+  { title: t('nav.delivery_notes'), subtitle: t('nav.documentation'), url: '/delivery-notes', icon: TruckIcon },
+  { title: t('nav.payments'), subtitle: t('nav.finance'), url: '/payments', icon: CreditCardIcon },
+  { title: t('nav.expenses'), subtitle: t('nav.finance'), url: '/expenses', icon: BanknotesIcon },
+  { title: t('nav.capital'), subtitle: t('nav.finance'), url: '/capital', icon: CurrencyDollarIcon },
+  { title: t('nav.stock'), subtitle: t('nav.management'), url: '/stock', icon: ArchiveBoxIcon },
+  { title: t('nav.categories'), subtitle: t('nav.management'), url: '/categories', icon: TagIcon },
+  { title: t('nav.units'), subtitle: t('nav.management'), url: '/units', icon: ScaleIcon },
+  { title: t('nav.warehouses'), subtitle: t('nav.management'), url: '/warehouses', icon: BuildingStorefrontIcon },
+  { title: t('nav.users'), subtitle: t('nav.system'), url: '/users', icon: Cog6ToothIcon },
+  { title: t('nav.activity_logs'), subtitle: t('nav.system'), url: '/activity-logs', icon: ClockIcon },
+  { title: t('nav.settings'), subtitle: t('nav.system'), url: '/settings', icon: Cog6ToothIcon },
+  { title: t('nav.admin_panel'), subtitle: t('nav.system'), url: '/admin/dashboard', icon: Cog6ToothIcon },
+  { title: t('admin.companies'), subtitle: t('nav.system'), url: '/admin/companies', icon: BuildingOfficeIcon },
+  { title: t('admin.logins'), subtitle: t('nav.system'), url: '/admin/login-logs', icon: ClockIcon },
+])
 
 watch(searchQuery, async (q) => {
   if (q.length < 2) { searchResults.value = []; return }
@@ -415,13 +547,14 @@ onMounted(async () => {
     const cachedCompany = JSON.parse(localStorage.getItem('company') || '{}')
     if (cachedCompany.name) {
       companyName.value = cachedCompany.name
-    } else {
-      const { data } = await axios.get('/company')
-      const c = data.data ?? data
-      const name = c.company_name || c.name || ''
-      companyName.value = name
-      localStorage.setItem('company', JSON.stringify({ name }))
+      if (cachedCompany.plan) {
+        companyPlan.value = cachedCompany.plan
+      }
+      companyStatus.value = cachedCompany.status || ''
+      companyTrialEndsAt.value = cachedCompany.trial_ends_at || null
     }
   } catch {}
+  // Rafraîchir en arrière-plan pour un bandeau d'essai toujours à jour.
+  try { await refreshCompany() } catch {}
 })
 </script>

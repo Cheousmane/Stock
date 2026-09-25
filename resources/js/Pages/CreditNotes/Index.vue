@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader :title="$t('page.credit_notes.title')" :subtitle="meta ? $t('page.credit_notes.total_count', { count: meta.total }) : undefined">
+      <BasePageHeader eyebrow="Ventes" :title="$t('page.credit_notes.title')" :subtitle="meta ? $t('page.credit_notes.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'CreditNoteCreate' }">
             <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('common.create') }}

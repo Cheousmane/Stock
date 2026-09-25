@@ -10,6 +10,8 @@ class SubscriptionResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $plan = $this->whenLoaded('plan');
+
         return [
             'id' => $this->id,
             'company_id' => $this->company_id,
@@ -22,6 +24,9 @@ class SubscriptionResource extends JsonResource
             'ends_at' => $this->ends_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'plan_id' => $this->plan_id,
+            'plan_slug' => $plan?->slug,
+            'plan_name' => $plan?->name,
         ];
     }
 }

@@ -6,15 +6,15 @@
       </Transition>
       <Transition name="modal-pop">
         <div
-          class="relative bg-surface border border-border rounded-2xl shadow-modal w-full"
+          class="modal-pop-enter-active relative bg-surface border border-border/70 rounded-3xl shadow-modal w-full"
           :class="sizeClasses[size]"
         >
-        <div v-if="$slots.header || title" class="flex items-start justify-between gap-4 p-5 pb-0">
+        <div v-if="$slots.header || title" class="flex items-start justify-between gap-4 p-6 pb-0">
           <div class="min-w-0">
-            <h3 v-if="title" class="text-base font-semibold text-text-primary">{{ title }}</h3>
-            <p v-if="subtitle" class="mt-0.5 text-sm text-text-tertiary">{{ subtitle }}</p>
+            <h3 v-if="title" class="text-base font-extrabold tracking-tight text-text-primary">{{ title }}</h3>
+            <p v-if="subtitle" class="mt-0.5 text-[13px] font-medium text-text-tertiary">{{ subtitle }}</p>
           </div>
-          <button @click="close" class="p-1 -mr-1 text-text-tertiary hover:text-text-secondary rounded-lg hover:bg-surface-tertiary">
+          <button @click="close" class="flex items-center justify-center w-8 h-8 -mr-1 text-text-tertiary hover:text-text-primary rounded-xl hover:bg-surface-tertiary active:scale-95 transition">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>

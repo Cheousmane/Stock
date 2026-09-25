@@ -11,6 +11,7 @@ use App\Support\TenantContext;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 /**
  * Class LoginAction
@@ -18,6 +19,9 @@ use Illuminate\Validation\ValidationException;
  */
 class LoginAction
 {
+    private const MAX_FAILED_ATTEMPTS = 5;
+    private const LOCKOUT_WINDOW_MINUTES = 15;
+
     /**
      * Execute the action.
      *
@@ -29,6 +33,11 @@ class LoginAction
             ->with('company')
             ->where('email', $dto->email)
             ->first();
+
+        // Check for account lockout due to too many failed attempts
+        if ($user) {
+            $this->checkLockout($user);
+        }
 
         $success = $user && Hash::check($dto->password, $user->password);
 
@@ -63,6 +72,24 @@ class LoginAction
         $user->update(['last_login_at' => now()]);
 
         return $user;
+    }
+
+    private function checkLockout(User $user): void
+    {
+        $recentFailures = LoginLog::where('user_id', $user->id)
+            ->where('success', false)
+            ->where('login_at', '>=', Carbon::now()->subMinutes(self::LOCKOUT_WINDOW_MINUTES))
+            ->count();
+
+        if ($recentFailures >= self::MAX_FAILED_ATTEMPTS) {
+            $lockoutUntil = Carbon::now()->subMinutes(self::LOCKOUT_WINDOW_MINUTES)->addMinutes(self::LOCKOUT_WINDOW_MINUTES);
+            throw ValidationException::withMessages([
+                'email' => [sprintf(
+                    'Trop de tentatives de connexion échouées. Réessayez dans %d minutes.',
+                    self::LOCKOUT_WINDOW_MINUTES
+                )],
+            ]);
+        }
     }
 
     private function logAttempt(string $email, ?User $user, bool $success): void
