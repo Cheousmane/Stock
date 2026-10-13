@@ -28,7 +28,7 @@
 
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
         <span class="text-sm font-medium text-text-primary">{{ selectedIds.length }} {{ $t('common.selected') }}</span>
-        <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
+        <BaseButton v-if="canDelete" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
       </div>
 
@@ -135,6 +135,7 @@
 import { ref, computed, onMounted, inject, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -283,8 +284,8 @@ async function executeDelete() {
     await axios.delete(`/suppliers/${id}`);
     showToast($t('page.suppliers.deleted'), 'success');
     fetchSuppliers(meta.value?.current_page || 1);
-  } catch {
-    showToast($t('common.delete_error'), 'error');
+  } catch (err) {
+    toastApiError(err, showToast, $t, 'common.delete_error');
   }
 }
 
@@ -295,8 +296,8 @@ async function bulkDelete() {
     showToast('Suppliers deleted successfully', 'success');
     selectedIds.value = [];
     fetchSuppliers(meta.value?.current_page || 1);
-  } catch {
-    showToast($t('common.error'), 'error');
+  } catch (err) {
+    toastApiError(err, showToast, $t, 'common.error');
   }
 }
 

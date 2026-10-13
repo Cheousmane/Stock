@@ -14,8 +14,10 @@ use App\Http\Requests\DeliveryNoteRequest;
 use App\Http\Resources\DeliveryNoteResource;
 use App\Models\Customer;
 use App\Models\DeliveryNote;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class DeliveryNoteController extends Controller
@@ -30,7 +32,7 @@ class DeliveryNoteController extends Controller
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = strtolower($request->input('sort_order', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        if (!in_array($sortBy, $sortable, true)) {
+        if (! in_array($sortBy, $sortable, true)) {
             $sortBy = 'id';
         }
 
@@ -40,7 +42,7 @@ class DeliveryNoteController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('number', 'like', "%{$search}%")
-                      ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($status = $request->input('status'), function ($query) use ($status) {
@@ -62,6 +64,7 @@ class DeliveryNoteController extends Controller
         $dto = DeliveryNoteDTO::fromArray($request->validated());
         $deliveryNote = $action->execute($dto);
         $deliveryNote->load(['customer', 'items', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_CREATED);
     }
 
@@ -69,6 +72,7 @@ class DeliveryNoteController extends Controller
     {
         $this->authorize('view', $deliveryNote);
         $deliveryNote->load(['customer', 'items.product:id,name', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 
@@ -77,6 +81,7 @@ class DeliveryNoteController extends Controller
         $this->authorize('update', $deliveryNote);
         $deliveryNote = $action->execute($deliveryNote, $request->validated());
         $deliveryNote->load(['customer', 'items', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 
@@ -84,15 +89,16 @@ class DeliveryNoteController extends Controller
     {
         $this->authorize('delete', $deliveryNote);
         $deliveryNote->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', DeliveryNote::class);
+        $this->authorize('delete_delivery_note');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:delivery_notes,id',
+            'ids.*' => ['integer', Rule::exists('delivery_notes', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = DeliveryNote::whereIn('id', $validated['ids'])->delete();
 
@@ -104,6 +110,7 @@ class DeliveryNoteController extends Controller
         $this->authorize('update', $deliveryNote);
         $deliveryNote = $action->execute($deliveryNote, DeliveryNoteStatus::Shipped);
         $deliveryNote->load(['customer', 'items', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 
@@ -112,6 +119,7 @@ class DeliveryNoteController extends Controller
         $this->authorize('update', $deliveryNote);
         $deliveryNote = $action->execute($deliveryNote, DeliveryNoteStatus::Delivered);
         $deliveryNote->load(['customer', 'items', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 
@@ -120,6 +128,7 @@ class DeliveryNoteController extends Controller
         $this->authorize('update', $deliveryNote);
         $deliveryNote = $action->execute($deliveryNote, DeliveryNoteStatus::Returned);
         $deliveryNote->load(['customer', 'items', 'invoice']);
+
         return response()->json(new DeliveryNoteResource($deliveryNote), Response::HTTP_OK);
     }
 }

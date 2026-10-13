@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class SupplierController extends Controller
@@ -17,16 +19,16 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $perPage = $request->integer('per_page', 15);
+        $perPage = min($request->integer('per_page', 15), 100);
         $query = Supplier::query();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('tax_number', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('tax_number', 'like', "%{$search}%");
             });
         }
 
@@ -41,12 +43,14 @@ class SupplierController extends Controller
     {
         $this->authorize('create', Supplier::class);
         $supplier = Supplier::create($request->validated());
+
         return response()->json($supplier, Response::HTTP_CREATED);
     }
 
     public function show(Supplier $supplier): JsonResponse
     {
         $this->authorize('view', $supplier);
+
         return response()->json($supplier);
     }
 
@@ -54,6 +58,7 @@ class SupplierController extends Controller
     {
         $this->authorize('update', $supplier);
         $supplier->update($request->validated());
+
         return response()->json($supplier);
     }
 
@@ -61,15 +66,16 @@ class SupplierController extends Controller
     {
         $this->authorize('delete', $supplier);
         $supplier->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', Supplier::class);
+        $this->authorize('delete_supplier');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:suppliers,id',
+            'ids.*' => ['integer', Rule::exists('suppliers', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = Supplier::whereIn('id', $validated['ids'])->delete();
 

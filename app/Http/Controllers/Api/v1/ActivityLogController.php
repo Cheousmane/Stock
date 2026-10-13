@@ -10,7 +10,6 @@ use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
-use Symfony\Component\HttpFoundation\Response;
 
 class ActivityLogController extends Controller
 {
@@ -23,11 +22,11 @@ class ActivityLogController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('description', 'like', "%{$search}%")
-                      ->orWhere('log_name', 'like', "%{$search}%")
-                      ->orWhere('event', 'like', "%{$search}%");
+                        ->orWhere('log_name', 'like', "%{$search}%")
+                        ->orWhere('event', 'like', "%{$search}%");
                 });
             })
-            ->paginate($request->integer('per_page', 20));
+            ->paginate(min($request->integer('per_page', 20), 100));
 
         return ActivityLogResource::collection($logs)->response();
     }

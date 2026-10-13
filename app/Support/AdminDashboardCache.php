@@ -18,6 +18,9 @@ final class AdminDashboardCache
      */
     public static function bump(): void
     {
+        // Libère l'entrée courante immédiatement ; les anciennes versions
+        // expirent via leur TTL (300s), pas de fuite durable.
+        Cache::forget(self::key());
         Cache::increment(self::VERSION_KEY);
     }
 
@@ -28,7 +31,7 @@ final class AdminDashboardCache
 
     public static function key(): string
     {
-        return 'admin.dashboard.static.v' . self::version();
+        return 'admin.dashboard.static.v'.self::version();
     }
 
     /**

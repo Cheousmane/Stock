@@ -28,7 +28,7 @@
 
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.purchase_orders.n_selected', { n: selectedIds.length }) }}</span>
-        <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
+        <BaseButton v-if="canDelete" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
       </div>
 
@@ -168,6 +168,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, inject, onBeforeUnmount, watch } from 'vue';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -359,7 +360,7 @@ async function executeDelete() {
     await axios.delete(`/purchase-orders/${id}`);
     showToast(t('page.purchase_orders.deleted'), 'success');
     fetchPurchaseOrders(meta.value?.current_page || 1);
-  } catch { showToast(t('common.delete_error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, t, 'common.delete_error'); }
 }
 
 async function bulkDelete() {
@@ -369,7 +370,7 @@ async function bulkDelete() {
     showToast(t('page.purchase_orders.bulk_delete_success'), 'success');
     selectedIds.value = [];
     fetchPurchaseOrders(meta.value?.current_page || 1);
-  } catch { showToast(t('common.error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, t, 'common.error'); }
 }
 
 function exportName(ext) {

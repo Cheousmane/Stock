@@ -391,6 +391,7 @@ const checkSession = async () => {
     }
   } catch (err) {
     if (err.response?.status === 401) router.push('/login');
+    else if (err.response?.status === 403) router.push('/dashboard');
   }
 };
 

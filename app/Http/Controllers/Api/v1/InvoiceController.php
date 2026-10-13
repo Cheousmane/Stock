@@ -13,8 +13,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
@@ -23,7 +25,7 @@ class InvoiceController extends Controller
     {
         $this->authorize('viewAny', Invoice::class);
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $query = Invoice::query()
             ->with('customer:id,company_id,name,email,phone')
             ->select([
@@ -37,8 +39,8 @@ class InvoiceController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -53,6 +55,7 @@ class InvoiceController extends Controller
 
         if ($limit = $request->integer('limit')) {
             $limit = min($limit, 100);
+
             return response()->json(InvoiceResource::collection($query->limit($limit)->get()), Response::HTTP_OK);
         }
 
@@ -65,6 +68,7 @@ class InvoiceController extends Controller
         $dto = InvoiceDTO::fromArray($request->validated());
         $invoice = $action->execute($dto);
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_CREATED);
     }
 
@@ -72,6 +76,7 @@ class InvoiceController extends Controller
     {
         $this->authorize('view', $invoice);
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_OK);
     }
 
@@ -80,6 +85,7 @@ class InvoiceController extends Controller
         $this->authorize('update', $invoice);
         $invoice = $action->execute($invoice, $request->validated());
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_OK);
     }
 
@@ -87,6 +93,7 @@ class InvoiceController extends Controller
     {
         $this->authorize('delete', $invoice);
         $invoice->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
@@ -95,17 +102,20 @@ class InvoiceController extends Controller
      */
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', Invoice::class);
-        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:invoices,id']);
+        $this->authorize('delete_invoice');
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => ['integer', Rule::exists('invoices', 'id')->where('company_id', TenantContext::getCompanyId())]]);
         $count = Invoice::whereIn('id', $validated['ids'])->delete();
+
         return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 
     public function markAsSent(Invoice $invoice, UpdateInvoiceStatusAction $action): JsonResponse
     {
         $this->authorize('update', $invoice);
+        $this->authorize('send_invoice');
         $invoice = $action->execute($invoice, InvoiceStatus::Sent);
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_OK);
     }
 
@@ -114,6 +124,7 @@ class InvoiceController extends Controller
         $this->authorize('update', $invoice);
         $invoice = $action->execute($invoice, InvoiceStatus::Cancelled);
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_OK);
     }
 }

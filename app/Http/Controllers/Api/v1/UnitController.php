@@ -20,10 +20,10 @@ class UnitController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
 
         return UnitResource::collection($units)->response();
     }
@@ -31,6 +31,7 @@ class UnitController extends Controller
     public function show(Unit $unit): JsonResponse
     {
         $this->authorize('view', $unit);
+
         return response()->json(new UnitResource($unit), Response::HTTP_OK);
     }
 
@@ -42,6 +43,7 @@ class UnitController extends Controller
             'code' => 'required|string|max:50',
         ]);
         $unit = Unit::create($validated);
+
         return response()->json(new UnitResource($unit), Response::HTTP_CREATED);
     }
 
@@ -53,6 +55,7 @@ class UnitController extends Controller
             'code' => 'sometimes|string|max:50',
         ]);
         $unit->update($validated);
+
         return response()->json(new UnitResource($unit), Response::HTTP_OK);
     }
 
@@ -60,6 +63,7 @@ class UnitController extends Controller
     {
         $this->authorize('delete', $unit);
         $unit->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -38,6 +38,7 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import PosLayout from './PosLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
+import { toastApiError } from '../../utils/api';
 import { BanknotesIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -55,7 +56,8 @@ const openSession = async () => {
     showToast(t('page.pos.opened_ok'));
     router.push('/pos');
   } catch (err) {
-    showToast(err.response?.data?.message || t('page.pos_session.open_error'), 'error');
+    if (err.response?.status === 403) toastApiError(err, showToast, t, 'page.pos_session.open_error');
+    else showToast(err.response?.data?.message || t('page.pos_session.open_error'), 'error');
   } finally {
     loading.value = false;
   }

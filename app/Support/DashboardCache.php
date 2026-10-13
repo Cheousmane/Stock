@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Services\AnalyticsService;
 use Illuminate\Support\Facades\Cache;
 
 final class DashboardCache
@@ -20,5 +21,6 @@ final class DashboardCache
         Cache::forget(self::key($companyId));
         Cache::forget("dashboard.aggregates.v2.{$companyId}");
         Cache::forget("capital.{$companyId}");
+        AnalyticsService::forgetForCompany($companyId);
     }
 }

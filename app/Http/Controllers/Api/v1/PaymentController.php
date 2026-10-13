@@ -9,7 +9,6 @@ use App\DTOs\PaymentDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentRequest;
 use App\Http\Resources\PaymentResource;
-use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,7 +28,7 @@ class PaymentController extends Controller
             ->when($status = $request->input('status'), function ($query) use ($status) {
                 $query->where('status', $status);
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
 
         return response()->json($payments, Response::HTTP_OK);
     }
@@ -39,6 +38,7 @@ class PaymentController extends Controller
         $this->authorize('create', Payment::class);
         $dto = PaymentDTO::fromArray($request->validated());
         $payment = $action->execute($dto);
+
         return response()->json(new PaymentResource($payment->load('invoice')), Response::HTTP_CREATED);
     }
 
@@ -46,6 +46,7 @@ class PaymentController extends Controller
     {
         $this->authorize('view', $payment);
         $payment->load('invoice');
+
         return response()->json(new PaymentResource($payment), Response::HTTP_OK);
     }
 
@@ -53,6 +54,7 @@ class PaymentController extends Controller
     {
         $this->authorize('delete', $payment);
         $payment->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

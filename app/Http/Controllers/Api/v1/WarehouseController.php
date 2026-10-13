@@ -24,15 +24,15 @@ class WarehouseController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
             ->when($isActive = $request->input('is_active'), function ($query) use ($isActive) {
                 $query->where('is_active', $isActive === '1');
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
 
         return WarehouseResource::collection($warehouses)->response();
     }
@@ -42,12 +42,14 @@ class WarehouseController extends Controller
         $this->authorize('create', Warehouse::class);
         $dto = WarehouseDTO::fromArray($request->validated());
         $warehouse = $action->execute($dto);
+
         return response()->json(new WarehouseResource($warehouse), Response::HTTP_CREATED);
     }
 
     public function show(Warehouse $warehouse): JsonResponse
     {
         $this->authorize('view', $warehouse);
+
         return response()->json(new WarehouseResource($warehouse), Response::HTTP_OK);
     }
 
@@ -56,6 +58,7 @@ class WarehouseController extends Controller
         $this->authorize('update', $warehouse);
         $dto = WarehouseDTO::fromArray($request->validated());
         $warehouse = $action->execute($warehouse, $dto);
+
         return response()->json(new WarehouseResource($warehouse), Response::HTTP_OK);
     }
 
@@ -63,6 +66,7 @@ class WarehouseController extends Controller
     {
         $this->authorize('delete', $warehouse);
         $warehouse->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

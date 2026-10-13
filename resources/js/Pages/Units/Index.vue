@@ -59,7 +59,7 @@
                   <span class="text-text-tertiary"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
                 </router-link>
                 <hr class="my-1 border-border" />
-                <button @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                <button v-if="can('delete_unit')" @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
                 </button>
               </template>
@@ -90,6 +90,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, inject, watch } from 'vue';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
+import { usePermissions } from '../../composables/usePermissions';
+
+const { can } = usePermissions();
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -178,6 +182,6 @@ async function executeDelete() {
     showToast($t('page.units.deleted'), 'success');
     const isLastItemOfLastPage = units.value.length === 1 && meta.value?.last_page > 1 && currentPage === meta.value.last_page;
     fetchUnits(isLastItemOfLastPage ? currentPage - 1 : currentPage);
-  } catch { showToast($t('common.delete_error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, $t, 'common.delete_error'); }
 }
 </script>

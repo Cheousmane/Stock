@@ -6,7 +6,9 @@ namespace App\Http\Requests;
 
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Support\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SupplierPaymentRequest extends FormRequest
 {
@@ -18,8 +20,8 @@ class SupplierPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
-            'purchase_order_id' => ['nullable', 'integer', 'exists:purchase_orders,id'],
+            'supplier_id' => ['required', 'integer', Rule::exists('suppliers', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'purchase_order_id' => ['nullable', 'integer', Rule::exists('purchase_orders', 'id')->where('company_id', TenantContext::getCompanyId())],
             'method' => ['required', 'string', 'in:cash,bank,stripe,mobile_money'],
             'reference' => ['nullable', 'string', 'max:100'],
             'amount_xof' => ['required', 'integer', 'min:1'],
@@ -38,11 +40,12 @@ class SupplierPaymentRequest extends FormRequest
 
                 if ($poId) {
                     $po = PurchaseOrder::find($poId);
-                    if (!$po || (int) $po->supplier_id !== $supplierId) {
+                    if (! $po || (int) $po->supplier_id !== $supplierId) {
                         $validator->errors()->add(
                             'purchase_order_id',
                             trans('validation.supplier_payment_order_mismatch')
                         );
+
                         return;
                     }
 
@@ -53,6 +56,7 @@ class SupplierPaymentRequest extends FormRequest
                             trans('validation.supplier_payment_exceeds_order', ['max' => max(0, $balanceDue)])
                         );
                     }
+
                     return;
                 }
 

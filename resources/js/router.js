@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { ref } from 'vue';
 import { initAnalytics, trackPageView } from './composables/useAnalytics';
+import { useToast } from './composables/useToast';
+import i18n from './i18n';
 
 export const navigationInProgress = ref(false);
 
@@ -43,7 +45,7 @@ const routes = [
   { path: '/stock', name: 'Stock', component: () => import('./Pages/Stock/Index.vue'), meta: { requiresAuth: true, permission: 'view_stock', title: 'Stock' } },
   { path: '/stock/transfer', name: 'StockTransfer', component: () => import('./Pages/Stock/Transfer.vue'), meta: { requiresAuth: true, permission: 'transfer_stock', title: 'Transfert de stock' } },
   { path: '/expenses', name: 'Expenses', component: () => import('./Pages/Expenses/Index.vue'), meta: { requiresAuth: true, permission: 'view_expenses', title: 'Dépenses' } },
-  { path: '/capital', name: 'Capital', component: () => import('./Pages/Capital/Index.vue'), meta: { requiresAuth: true, title: 'Capital' } },
+  { path: '/capital', name: 'Capital', component: () => import('./Pages/Capital/Index.vue'), meta: { requiresAuth: true, permission: 'view_capital', title: 'Capital' } },
   { path: '/expenses/create', name: 'ExpenseCreate', component: () => import('./Pages/Expenses/Form.vue'), meta: { requiresAuth: true, permission: 'view_expenses', title: 'Nouvelle dépense' } },
   { path: '/expenses/:id/edit', name: 'ExpenseEdit', component: () => import('./Pages/Expenses/Form.vue'), meta: { requiresAuth: true, permission: 'update_expense', title: 'Modifier dépense' } },
   { path: '/suppliers', name: 'Suppliers', component: () => import('./Pages/Suppliers/Index.vue'), meta: { requiresAuth: true, permission: 'view_supplier', title: 'Fournisseurs' } },
@@ -70,10 +72,10 @@ const routes = [
   { path: '/activity-logs', name: 'ActivityLogs', component: () => import('./Pages/ActivityLogs/Index.vue'), meta: { requiresAuth: true, permission: 'view_activity_logs', title: 'Journal d\'activité' } },
   { path: '/settings', name: 'Settings', component: () => import('./Pages/Settings/Index.vue'), meta: { requiresAuth: true, permission: 'manage_settings', title: 'Paramètres' } },
   { path: '/settings/subscription', name: 'Subscription', component: () => import('./Pages/Settings/Subscription.vue'), meta: { requiresAuth: true, permission: 'manage_settings', title: 'Abonnement' } },
-  { path: '/pos', name: 'PosIndex', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, title: 'Caisse (POS)' } },
-  { path: '/pos/session', name: 'PosSession', component: () => import('./Pages/POS/Session.vue'), meta: { requiresAuth: true, title: 'Session caisse' } },
-  { path: '/pos/sessions', name: 'PosSessions', component: () => import('./Pages/POS/Sessions.vue'), meta: { requiresAuth: true, title: 'Sessions caisse' } },
-  { path: '/pos/catalog', name: 'PosCatalog', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, title: 'Catalogue Produits' } },
+  { path: '/pos', name: 'PosIndex', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, permission: 'access_pos', title: 'Caisse (POS)' } },
+  { path: '/pos/session', name: 'PosSession', component: () => import('./Pages/POS/Session.vue'), meta: { requiresAuth: true, permission: 'access_pos', title: 'Session caisse' } },
+  { path: '/pos/sessions', name: 'PosSessions', component: () => import('./Pages/POS/Sessions.vue'), meta: { requiresAuth: true, permission: 'access_pos', title: 'Sessions caisse' } },
+  { path: '/pos/catalog', name: 'PosCatalog', component: () => import('./Pages/POS/Index.vue'), meta: { requiresAuth: true, permission: 'access_pos', title: 'Catalogue Produits' } },
 
   // Super Admin routes
   { path: '/admin/dashboard', name: 'AdminDashboard', component: () => import('@/Pages/Admin/Dashboard.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Tableau de bord' } },
@@ -105,6 +107,19 @@ function getUserPermissions() {
   }
 }
 
+function denyNavigation(to, from, next) {
+  let message = "Vous n'avez pas les permissions nécessaires";
+  try {
+    const translated = i18n.global.t('common.no_permission');
+    if (translated && translated !== 'common.no_permission') message = translated;
+  } catch {}
+  const { showToast } = useToast();
+  showToast(message, 'error');
+  // Premier chargement (accès direct par URL) : pas de page à conserver.
+  if (!from.name) return next({ name: 'Dashboard' });
+  return next(false);
+}
+
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const user = getUser();
@@ -127,7 +142,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.requiresSuperAdmin && !user?.is_super_admin) {
-    return next({ name: 'Dashboard' });
+    return denyNavigation(to, from, next);
   }
 
   if (to.meta.permission && !user?.is_super_admin) {
@@ -139,7 +154,7 @@ router.beforeEach((to, from, next) => {
       return next({ name: 'Login' });
     }
     if (!permissions.includes(to.meta.permission)) {
-      return next({ name: 'Dashboard' });
+      return denyNavigation(to, from, next);
     }
   }
 

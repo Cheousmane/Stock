@@ -21,17 +21,17 @@ class SupplierPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('create_supplier');
+        return $user->can('create_supplier') || $user->hasRole('admin');
     }
 
     public function update(User $user, Supplier $supplier): bool
     {
-        return $user->company_id === $supplier->company_id && $user->can('update_supplier');
+        return $user->company_id === $supplier->company_id && ($user->can('update_supplier') || $user->hasRole('admin'));
     }
 
     public function delete(User $user, Supplier $supplier): bool
     {
-        return $user->company_id === $supplier->company_id && $user->can('delete_supplier');
+        return $user->company_id === $supplier->company_id && ($user->can('delete_supplier') || $user->hasRole('admin'));
     }
 
     public function restore(User $user, Supplier $supplier): bool

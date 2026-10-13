@@ -15,6 +15,7 @@ use App\Support\CreditNoteQuantities;
 use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class CreditNoteController extends Controller
@@ -37,6 +38,7 @@ class CreditNoteController extends Controller
 
         return response()->json($available);
     }
+
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', CreditNote::class);
@@ -50,16 +52,17 @@ class CreditNoteController extends Controller
             ->when($status = $request->input('status'), function ($query) use ($status) {
                 $query->where('status', $status);
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
+
         return CreditNoteResource::collection($creditNotes)->response();
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', CreditNote::class);
+        $this->authorize('delete_credit_note');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:credit_notes,id',
+            'ids.*' => ['integer', Rule::exists('credit_notes', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = CreditNote::whereIn('id', $validated['ids'])->delete();
 
@@ -78,6 +81,7 @@ class CreditNoteController extends Controller
     public function show(CreditNote $creditNote): JsonResponse
     {
         $this->authorize('view', $creditNote);
+
         return response()->json(new CreditNoteResource($creditNote->load('items', 'customer', 'invoice')));
     }
 
@@ -85,19 +89,21 @@ class CreditNoteController extends Controller
     {
         $this->authorize('update', $creditNote);
         $creditNote = $action->execute($creditNote, $request->validated());
+
         return response()->json(new CreditNoteResource($creditNote->load('items', 'customer', 'invoice')), Response::HTTP_OK);
     }
 
     public function validateCreditNote(Request $request, CreditNote $creditNote, ValidateCreditNoteAction $action): JsonResponse
     {
         $this->authorize('update', $creditNote);
-        
+
         $request->validate([
             'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
 
         try {
             $cn = $action->execute($creditNote, $request->input('warehouse_id') ? (int) $request->input('warehouse_id') : null);
+
             return response()->json([
                 'message' => 'Credit note validated.',
                 'credit_note' => new CreditNoteResource($cn->load('items', 'customer', 'invoice')),
@@ -111,6 +117,7 @@ class CreditNoteController extends Controller
     {
         $this->authorize('delete', $creditNote);
         $creditNote->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -59,7 +59,7 @@ Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->name(
 Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->name('auth.resend-verification')->middleware('throttle:3,5');
 
     // Login detects tenant from user email (no tenant middleware required)
-    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:5,60');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:10,60');
 
     // Google OAuth (ID token verified server-side, creates tenant or links account)
     Route::post('/auth/google/profile', [AuthController::class, 'googleProfile'])->name('auth.google.profile')->middleware('throttle:10,10');

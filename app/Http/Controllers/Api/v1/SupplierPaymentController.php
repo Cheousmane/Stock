@@ -26,7 +26,7 @@ class SupplierPaymentController extends Controller
             ->when($poId = $request->integer('purchase_order_id'), function ($query) use ($poId) {
                 $query->where('purchase_order_id', $poId);
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
 
         return response()->json($payments, Response::HTTP_OK);
     }

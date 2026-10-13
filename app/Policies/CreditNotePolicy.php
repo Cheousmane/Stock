@@ -21,17 +21,17 @@ class CreditNotePolicy
 
     public function create(User $user): bool
     {
-        return $user->can('create_credit_note');
+        return $user->can('create_credit_note') || $user->hasRole('admin');
     }
 
     public function update(User $user, CreditNote $creditNote): bool
     {
-        return $user->company_id === $creditNote->company_id && $user->can('update_credit_note');
+        return $user->company_id === $creditNote->company_id && ($user->can('update_credit_note') || $user->hasRole('admin'));
     }
 
     public function delete(User $user, CreditNote $creditNote): bool
     {
-        return $user->company_id === $creditNote->company_id && $user->can('delete_credit_note');
+        return $user->company_id === $creditNote->company_id && ($user->can('delete_credit_note') || $user->hasRole('admin'));
     }
 
     public function restore(User $user, CreditNote $creditNote): bool

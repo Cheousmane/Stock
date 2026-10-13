@@ -25,11 +25,11 @@ class AdminActivityLogController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('log_name', 'like', "%{$search}%")
-                  ->orWhereHas('causer', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhere('log_name', 'like', "%{$search}%")
+                    ->orWhereHas('causer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -45,7 +45,7 @@ class AdminActivityLogController extends Controller
             $query->where('company_id', $request->company_id);
         }
 
-        $logs = $query->latest()->paginate($request->get('per_page', 50));
+        $logs = $query->latest()->paginate(min($request->integer('per_page', 50), 100));
 
         return response()->json($logs, Response::HTTP_OK);
     }
@@ -61,11 +61,11 @@ class AdminActivityLogController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('log_name', 'like', "%{$search}%")
-                  ->orWhereHas('causer', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhere('log_name', 'like', "%{$search}%")
+                    ->orWhereHas('causer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -81,7 +81,7 @@ class AdminActivityLogController extends Controller
 
         return Excel::download(
             new AdminActivityLogsExport($logs),
-            'activity-logs-' . date('Y-m-d-His') . '.csv',
+            'activity-logs-'.date('Y-m-d-His').'.csv',
             \Maatwebsite\Excel\Excel::CSV
         );
     }

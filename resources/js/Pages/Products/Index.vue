@@ -40,7 +40,7 @@
 
       <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.products.n_selected', { n: selectedIds.length }) }}</span>
-        <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
+        <BaseButton v-if="can('delete_product')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
       </div>
 
@@ -134,7 +134,7 @@
                   <span class="text-text-tertiary"><DocumentDuplicateIcon class="w-4 h-4" /></span>{{ $t('common.duplicate') }}
                 </button>
                 <hr class="my-1 border-border" />
-                <button @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                <button v-if="can('delete_product')" @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
                 </button>
               </template>
@@ -167,6 +167,10 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
+import { usePermissions } from '../../composables/usePermissions';
+
+const { can } = usePermissions();
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -298,7 +302,7 @@ async function toggleStatus(product) {
     await axios.patch(`/products/${product.id}`, { is_active: !product.is_active });
     product.is_active = !product.is_active;
     showToast(product.is_active ? $t('page.products.activated') : $t('page.products.deactivated'), 'success');
-  } catch { showToast($t('common.error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, $t, 'common.error'); }
 }
 
 async function duplicateProduct(product) {
@@ -306,7 +310,7 @@ async function duplicateProduct(product) {
     await axios.post(`/products/${product.id}/duplicate`);
     showToast($t('page.products.duplicated'), 'success');
     fetchProducts(meta.value?.current_page || 1);
-  } catch { showToast($t('common.error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, $t, 'common.error'); }
 }
 
 function confirmDelete(product) { deleteTarget.value = product; }
@@ -315,7 +319,7 @@ async function executeDelete() {
   if (!deleteTarget.value) return;
   const id = deleteTarget.value.id; deleteTarget.value = null;
   try { await axios.delete(`/products/${id}`); showToast($t('page.products.delete_success'), 'success'); fetchProducts(meta.value?.current_page || 1); }
-  catch { showToast($t('page.products.delete_error'), 'error'); }
+  catch (err) { toastApiError(err, showToast, $t, 'page.products.delete_error'); }
 }
 
 async function bulkDelete() {
@@ -324,7 +328,7 @@ async function bulkDelete() {
     await axios.post('/products/bulk-delete', { ids: selectedIds.value });
     showToast($t('page.products.bulk_delete_success'), 'success');
     selectedIds.value = []; fetchProducts(meta.value?.current_page || 1);
-  } catch { showToast($t('common.error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, $t, 'common.error'); }
 }
 
 function exportName(ext) { return `${$t('page.products.title')}_${new Date().toISOString().slice(0, 10)}.${ext}`; }

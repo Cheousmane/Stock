@@ -288,12 +288,12 @@ L'ordre de résolution du contexte tenant :
 
 | Rôle | Accès |
 |---|---|
-| **admin** | Toutes les permissions (51) |
-| **manager** | Opérationnel (sauf suppression facture, etc.) |
-| **accountant** | Opérations financières uniquement |
-| **warehouse_manager** | Stock et produits |
-| **sales** | Clients, factures, devis |
-| **employee** | Lecture seule |
+| **admin** | Toutes les permissions |
+| **manager** | Opérationnel (sauf suppression facture/devis), capital, caisse, exports, paramètres |
+| **accountant** | Finance (factures, paiements, avoirs), profits, capital, caisse |
+| **warehouse_manager** | Stock, produits, fournisseurs, achats, caisse |
+| **sales** | Clients, factures (envoi inclus), devis (acceptation, conversion), caisse |
+| **employee** | Lecture seule (sans caisse, sans exports) |
 
 ### Plans & Quotas
 

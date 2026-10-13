@@ -12,25 +12,25 @@
             <BaseButton variant="secondary" size="sm" @click="downloadPdf">
               <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.download_pdf') }}
             </BaseButton>
-            <button v-if="quote.status !== 'converted'" @click="convertToInvoice" :disabled="converting"
+            <button v-if="quote.status !== 'converted' && can('convert_quote')" @click="convertToInvoice" :disabled="converting"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50">
               <span class="text-white"><DocumentTextIcon class="w-4 h-4" /></span>{{ converting ? $t('page.quotes.converting') : $t('page.quotes.convert_to_invoice') }}
             </button>
             <BaseButton variant="secondary" size="sm" :loading="sendingEmail" @click="sendEmail">
               <span class="text-current"><EnvelopeIcon class="w-4 h-4" /></span>{{ sendingEmail ? $t('common.sending') : $t('common.send_email') }}
             </BaseButton>
-            <BaseButton v-if="quote.status === 'draft'" size="sm" @click="updateStatus('sent')">
+            <BaseButton v-if="quote.status === 'draft' && can('update_quote')" size="sm" @click="updateStatus('sent')">
               <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.mark_sent') }}
             </BaseButton>
-            <button v-if="quote.status === 'sent' || quote.status === 'accepted'" @click="updateStatus('accepted')"
+            <button v-if="(quote.status === 'sent' || quote.status === 'accepted') && can('validate_quote')" @click="updateStatus('accepted')"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700">
               <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.accept') }}
             </button>
-            <button v-if="quote.status === 'draft' || quote.status === 'sent'" @click="updateStatus('rejected')"
+            <button v-if="(quote.status === 'draft' || quote.status === 'sent') && can('update_quote')" @click="updateStatus('rejected')"
               class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700">
               <span class="text-white"><XCircleIcon class="w-4 h-4" /></span>{{ $t('page.quotes.reject') }}
             </button>
-            <BaseButton v-if="quote.status !== 'converted'" variant="danger-ghost" size="sm" @click="deleteQuote">
+            <BaseButton v-if="quote.status !== 'converted' && can('delete_quote')" variant="danger-ghost" size="sm" @click="deleteQuote">
               <span class="text-current"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Quotes' }">
@@ -107,6 +107,10 @@ import { ref, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
+import { usePermissions } from '../../composables/usePermissions';
+
+const { can } = usePermissions();
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
@@ -193,7 +197,7 @@ async function convertToInvoice() {
     await axios.post(`/quotes/${route.params.id}/convert-to-invoice`);
     showToast(t('page.quotes.converted_success'), 'success');
     router.push({ name: 'Invoices' });
-  } catch { showToast(t('page.quotes.convert_error'), 'error'); } finally { converting.value = false; }
+  } catch (err) { toastApiError(err, showToast, t, 'page.quotes.convert_error'); } finally { converting.value = false; }
 }
 
 async function deleteQuote() {
@@ -202,7 +206,7 @@ async function deleteQuote() {
     await axios.delete(`/quotes/${route.params.id}`);
     showToast(t('page.quotes.deleted_success'), 'success');
     router.push({ name: 'Quotes' });
-  } catch { showToast(t('page.quotes.delete_error'), 'error'); }
+  } catch (err) { toastApiError(err, showToast, t, 'page.quotes.delete_error'); }
 }
 
 onMounted(fetchQuote);

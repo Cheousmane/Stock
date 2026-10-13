@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Support\CreditNoteQuantities;
+use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Support\CreditNoteQuantities;
-use App\Support\TenantContext;
 
 class CreditNoteRequest extends FormRequest
 {
@@ -22,6 +22,7 @@ class CreditNoteRequest extends FormRequest
         $routeParam = $this->route('credit_note');
         $cnId = $routeParam instanceof Model ? $routeParam->getKey() : $routeParam;
         $isPatch = $this->isMethod('patch');
+        $companyId = TenantContext::getCompanyId();
 
         return [
             'number' => [
@@ -30,24 +31,24 @@ class CreditNoteRequest extends FormRequest
                 'max:50',
                 Rule::unique('credit_notes', 'number')
                     ->where('company_id', TenantContext::getCompanyId())
-                    ->ignore($cnId)
+                    ->ignore($cnId),
             ],
-            'customer_id' => $isPatch ? ['sometimes', 'exists:customers,id'] : ['required', 'exists:customers,id'],
-            'invoice_id' => ['nullable', 'exists:invoices,id'],
+            'customer_id' => $isPatch ? ['sometimes', Rule::exists('customers', 'id')->where('company_id', $companyId)] : ['required', Rule::exists('customers', 'id')->where('company_id', $companyId)],
+            'invoice_id' => ['nullable', Rule::exists('invoices', 'id')->where('company_id', $companyId)],
             'status' => ['nullable', 'string', Rule::in(['draft', 'validated', 'refunded'])],
             'issue_date' => $isPatch ? ['sometimes', 'date'] : ['required', 'date'],
-            
+
             'discount_xof' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string'],
             'metadata' => ['nullable', 'array'],
 
             'items' => $isPatch ? ['sometimes', 'array', 'min:1'] : ['required', 'array', 'min:1'],
-            'items.*.product_id' => $isPatch ? ['sometimes', 'nullable', 'exists:products,id', 'required_without:items.*.description'] : ['nullable', 'exists:products,id', 'required_without:items.*.description'],
+            'items.*.product_id' => $isPatch ? ['sometimes', 'nullable', Rule::exists('products', 'id')->where('company_id', $companyId), 'required_without:items.*.description'] : ['nullable', Rule::exists('products', 'id')->where('company_id', $companyId), 'required_without:items.*.description'],
             'items.*.description' => ['nullable', 'string', 'max:255'],
-            'items.*.product_variant_id' => ['nullable', 'exists:product_variants,id'],
+            'items.*.product_variant_id' => ['nullable', Rule::exists('product_variants', 'id')->where('company_id', $companyId)],
             'items.*.quantity' => $isPatch ? ['sometimes', 'integer', 'min:1'] : ['required', 'integer', 'min:1'],
             'items.*.unit_price_xof' => $isPatch ? ['sometimes', 'integer', 'min:0'] : ['required', 'integer', 'min:0'],
-            'items.*.tax_id' => ['nullable', 'exists:taxes,id'],
+            'items.*.tax_id' => ['nullable', Rule::exists('taxes', 'id')->where('company_id', $companyId)],
         ];
     }
 
@@ -76,7 +77,7 @@ class CreditNoteRequest extends FormRequest
 
                 foreach ($items as $index => $item) {
                     $productId = isset($item['product_id']) ? (int) $item['product_id'] : 0;
-                    if ($productId <= 0 || !array_key_exists($productId, $available)) {
+                    if ($productId <= 0 || ! array_key_exists($productId, $available)) {
                         continue;
                     }
 

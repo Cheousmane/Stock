@@ -10,8 +10,10 @@ use App\Actions\Purchases\UpdatePurchaseOrderAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseOrderRequest;
 use App\Models\PurchaseOrder;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class PurchaseOrderController extends Controller
@@ -29,7 +31,8 @@ class PurchaseOrderController extends Controller
             ->when($status = $request->input('status'), function ($query) use ($status) {
                 $query->where('status', $status);
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
+
         return response()->json($purchaseOrders);
     }
 
@@ -45,6 +48,7 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder): JsonResponse
     {
         $this->authorize('view', $purchaseOrder);
+
         return response()->json($purchaseOrder->load('items', 'supplier', 'warehouse'));
     }
 
@@ -60,12 +64,13 @@ class PurchaseOrderController extends Controller
     public function markAsReceived(PurchaseOrder $purchaseOrder, MarkPurchaseOrderAsReceivedAction $action): JsonResponse
     {
         $this->authorize('update', $purchaseOrder);
-        
+
         try {
             $po = $action->execute($purchaseOrder);
+
             return response()->json([
                 'message' => 'Purchase order marked as received and stock updated.',
-                'purchase_order' => $po
+                'purchase_order' => $po,
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
@@ -76,15 +81,16 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('delete', $purchaseOrder);
         $purchaseOrder->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', PurchaseOrder::class);
+        $this->authorize('delete_purchase_order');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:purchase_orders,id',
+            'ids.*' => ['integer', Rule::exists('purchase_orders', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = PurchaseOrder::whereIn('id', $validated['ids'])->delete();
 

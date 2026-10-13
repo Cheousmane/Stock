@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Models\PosSession;
+use App\Models\Customer;
 use App\Models\PosSale;
 use App\Models\PosSaleItem;
+use App\Models\PosSession;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
@@ -14,6 +15,7 @@ use App\Support\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PosController extends Controller
 {
@@ -103,18 +105,19 @@ class PosController extends Controller
 
         foreach ($request->input('sales') as $saleData) {
             $session = PosSession::find($saleData['pos_session_id']);
-            if (!$session || $session->company_id !== $companyId || $session->status !== 'open') {
+            if (! $session || $session->company_id !== $companyId || $session->status !== 'open') {
                 $results[] = [
                     'id' => optional($saleData['id']) ?? null,
                     'success' => false,
                     'message' => 'Session invalide ou fermée',
                 ];
+
                 continue;
             }
 
             // Check stock availability
             $warehouse = Warehouse::where('company_id', $companyId)->first();
-            if (!$warehouse) {
+            if (! $warehouse) {
                 $warehouse = Warehouse::create([
                     'company_id' => $companyId,
                     'name' => 'Entrepôt principal',
@@ -124,12 +127,13 @@ class PosController extends Controller
             }
 
             $product = Product::where('company_id', $companyId)->where('id', $saleData['product_id'])->first();
-            if (!$product) {
+            if (! $product) {
                 $results[] = [
                     'id' => optional($saleData['id']) ?? null,
                     'success' => false,
                     'message' => "Produit introuvable: {$saleData['product_id']}",
                 ];
+
                 continue;
             }
 
@@ -144,6 +148,7 @@ class PosController extends Controller
                     'success' => false,
                     'message' => "Stock insuffisant pour {$product->name}",
                 ];
+
                 continue;
             }
 
@@ -153,7 +158,7 @@ class PosController extends Controller
                 $total = $subtotal;
                 $change = max(0, $saleData['amount_paid_xof'] - $total);
 
-                $receiptNumber = 'POS-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+                $receiptNumber = 'POS-'.date('Ymd').'-'.strtoupper(Str::random(6));
 
                 $sale = PosSale::create([
                     'company_id' => $companyId,
@@ -213,7 +218,7 @@ class PosController extends Controller
                 $results[] = [
                     'id' => optional($saleData['id']) ?? null,
                     'success' => false,
-                    'message' => 'Erreur: ' . $e->getMessage(),
+                    'message' => 'Erreur: '.$e->getMessage(),
                 ];
             }
         }
@@ -259,7 +264,7 @@ class PosController extends Controller
 
         $request->validate([
             'closing_cash_xof' => 'required|integer|min:0',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
         $closingCash = $request->integer('closing_cash_xof');
@@ -321,15 +326,15 @@ class PosController extends Controller
         $this->authorize('create', PosSale::class);
 
         $request->validate([
-            'pos_session_id' => 'required|exists:pos_sessions,id',
-            'customer_id' => 'nullable|exists:customers,id',
-            'payment_method' => 'required|in:cash,card,mobile_money',
-            'amount_paid_xof' => 'required|integer|min:0',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.product_variant_id' => 'nullable|exists:product_variants,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price_xof' => 'required|integer|min:0',
+            'pos_session_id' => ['required', Rule::exists('pos_sessions', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'customer_id' => ['nullable', Rule::exists('customers', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'payment_method' => ['required', 'in:cash,card,mobile_money'],
+            'amount_paid_xof' => ['required', 'integer', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'items.*.product_variant_id' => ['nullable', Rule::exists('product_variants', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price_xof' => ['required', 'integer', 'min:0'],
         ]);
 
         $user = $request->user();
@@ -346,7 +351,7 @@ class PosController extends Controller
         $items = $request->input('items');
 
         if ($request->filled('customer_id')) {
-            $customerExists = \App\Models\Customer::where('company_id', $companyId)
+            $customerExists = Customer::where('company_id', $companyId)
                 ->where('id', $request->input('customer_id'))
                 ->exists();
 
@@ -356,7 +361,7 @@ class PosController extends Controller
         }
 
         $warehouse = Warehouse::where('company_id', $companyId)->first();
-        if (!$warehouse) {
+        if (! $warehouse) {
             $warehouse = Warehouse::create([
                 'company_id' => $companyId,
                 'name' => 'Entrepôt principal',
@@ -366,12 +371,14 @@ class PosController extends Controller
         }
 
         $productIds = collect($items)->pluck('product_id')->unique()->all();
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $products = Product::where('company_id', $companyId)->whereIn('id', $productIds)->get()->keyBy('id');
 
         $stockErrors = [];
         foreach ($items as $item) {
             $product = $products->get($item['product_id']);
-            if (!$product) continue;
+            if (! $product) {
+                continue;
+            }
 
             $stock = WarehouseStock::where('warehouse_id', $warehouse->id)
                 ->where('product_id', $product->id)
@@ -380,11 +387,11 @@ class PosController extends Controller
             $availableQty = $stock ? $stock->quantity : 0;
 
             if ($item['quantity'] > $availableQty) {
-                $stockErrors[] = $product->name . ' (demandé: ' . $item['quantity'] . ', disponible: ' . $availableQty . ')';
+                $stockErrors[] = $product->name.' (demandé: '.$item['quantity'].', disponible: '.$availableQty.')';
             }
         }
 
-        if (!empty($stockErrors)) {
+        if (! empty($stockErrors)) {
             return response()->json([
                 'message' => 'Stock insuffisant pour les produits suivants :',
                 'errors' => ['stock' => $stockErrors],
@@ -401,7 +408,7 @@ class PosController extends Controller
             $total = $subtotal;
             $change = max(0, $request->input('amount_paid_xof') - $total);
 
-            $receiptNumber = 'POS-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+            $receiptNumber = 'POS-'.date('Ymd').'-'.strtoupper(Str::random(6));
 
             $sale = PosSale::create([
                 'company_id' => $companyId,
@@ -421,7 +428,9 @@ class PosController extends Controller
 
             foreach ($items as $item) {
                 $product = $products->get($item['product_id']);
-                if (!$product) continue;
+                if (! $product) {
+                    continue;
+                }
 
                 PosSaleItem::create([
                     'pos_sale_id' => $sale->id,
@@ -452,7 +461,7 @@ class PosController extends Controller
                     'quantity' => $item['quantity'],
                     'before_quantity' => $beforeQty,
                     'after_quantity' => $stock->quantity,
-                    'reason' => 'Vente POS ' . $receiptNumber,
+                    'reason' => 'Vente POS '.$receiptNumber,
                     'reference_type' => PosSale::class,
                     'reference_id' => $sale->id,
                     'created_by' => $user->id,
@@ -460,11 +469,13 @@ class PosController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['data' => $sale->load(['items', 'customer', 'session'])]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Erreur lors de la vente: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Erreur lors de la vente: '.$e->getMessage()], 500);
         }
     }
 
@@ -480,7 +491,7 @@ class PosController extends Controller
             ->withSum('sales', 'total_xof');
 
         if ($request->filled('search')) {
-            $search = '%' . $request->input('search') . '%';
+            $search = '%'.$request->input('search').'%';
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', $search)
                     ->orWhere('email', 'like', $search);
@@ -515,4 +526,3 @@ class PosController extends Controller
         return response()->json(['data' => $sales]);
     }
 }
-

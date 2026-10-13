@@ -15,9 +15,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\QuoteRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\QuoteResource;
+use App\Models\Invoice;
 use App\Models\Quote;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class QuoteController extends Controller
@@ -26,13 +29,13 @@ class QuoteController extends Controller
     {
         $this->authorize('viewAny', Quote::class);
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $query = Quote::with(['customer', 'items']);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 
@@ -49,6 +52,7 @@ class QuoteController extends Controller
         $dto = QuoteDTO::fromArray($request->validated());
         $quote = $action->execute($dto);
         $quote->load(['customer', 'items']);
+
         return response()->json(new QuoteResource($quote), Response::HTTP_CREATED);
     }
 
@@ -56,6 +60,7 @@ class QuoteController extends Controller
     {
         $this->authorize('view', $quote);
         $quote->load(['customer', 'items']);
+
         return response()->json(new QuoteResource($quote), Response::HTTP_OK);
     }
 
@@ -73,15 +78,16 @@ class QuoteController extends Controller
     {
         $this->authorize('delete', $quote);
         $quote->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', Quote::class);
+        $this->authorize('delete_quote');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:quotes,id',
+            'ids.*' => ['integer', Rule::exists('quotes', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = Quote::whereIn('id', $validated['ids'])->delete();
 
@@ -93,14 +99,17 @@ class QuoteController extends Controller
         $this->authorize('update', $quote);
         $quote = $action->execute($quote, QuoteStatus::Sent);
         $quote->load(['customer', 'items']);
+
         return response()->json(new QuoteResource($quote), Response::HTTP_OK);
     }
 
     public function markAsAccepted(Quote $quote, UpdateQuoteStatusAction $action): JsonResponse
     {
         $this->authorize('update', $quote);
+        $this->authorize('validate_quote');
         $quote = $action->execute($quote, QuoteStatus::Accepted);
         $quote->load(['customer', 'items']);
+
         return response()->json(new QuoteResource($quote), Response::HTTP_OK);
     }
 
@@ -109,15 +118,18 @@ class QuoteController extends Controller
         $this->authorize('update', $quote);
         $quote = $action->execute($quote, QuoteStatus::Rejected);
         $quote->load(['customer', 'items']);
+
         return response()->json(new QuoteResource($quote), Response::HTTP_OK);
     }
 
     public function convertToInvoice(Quote $quote, ConvertQuoteToInvoiceAction $action, CreateInvoiceAction $createInvoiceAction): JsonResponse
     {
         $this->authorize('update', $quote);
-        $this->authorize('create', \App\Models\Invoice::class);
+        $this->authorize('create', Invoice::class);
+        $this->authorize('convert_quote');
         $invoice = $action->execute($quote, $createInvoiceAction);
         $invoice->load(['customer', 'items']);
+
         return response()->json(new InvoiceResource($invoice), Response::HTTP_CREATED);
     }
 }

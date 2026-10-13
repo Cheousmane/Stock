@@ -45,7 +45,7 @@
 
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.payments.n_selected', { n: selectedIds.length }) }}</span>
-        <BaseButton variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
+        <BaseButton v-if="can('delete_payment')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
       </div>
 
@@ -92,7 +92,7 @@
                 </button>
               </template>
               <template #menu>
-                <button @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                <button v-if="can('delete_payment')" @click="confirmDelete(row)" class="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                   <span class="text-red-600"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
                 </button>
               </template>
@@ -123,6 +123,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted, inject, onBeforeUnmount, watch } from 'vue';
 import axios from 'axios';
+import { toastApiError } from '../../utils/api';
+import { usePermissions } from '../../composables/usePermissions';
+
+const { can } = usePermissions();
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
@@ -302,8 +306,8 @@ async function executeDelete() {
     await axios.delete(`/payments/${id}`);
     showToast(t('page.payments.delete_success'), 'success');
     fetchData(meta.value?.current_page || 1);
-  } catch {
-    showToast(t('common.generic_error'), 'error');
+  } catch (err) {
+    toastApiError(err, showToast, t, 'common.generic_error');
   }
 }
 
@@ -314,8 +318,8 @@ async function bulkDelete() {
     showToast(t('page.payments.bulk_delete_success'), 'success');
     selectedIds.value = [];
     fetchData(meta.value?.current_page || 1);
-  } catch {
-    showToast(t('common.error'), 'error');
+  } catch (err) {
+    toastApiError(err, showToast, t, 'common.error');
   }
 }
 

@@ -1,8 +1,14 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CheckSubscriptionQuota;
+use App\Http\Middleware\SecurityHeadersMiddleware;
+use App\Http\Middleware\TenantMiddleware;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,22 +18,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        $middleware->trustProxies(at: explode(',', (string) env('TRUSTED_PROXIES', '*')));
         $middleware->alias([
-            'tenant' => \App\Http\Middleware\TenantMiddleware::class,
-            'quota' => \App\Http\Middleware\CheckSubscriptionQuota::class,
-            'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'security.headers' => \App\Http\Middleware\SecurityHeadersMiddleware::class,
+            'tenant' => TenantMiddleware::class,
+            'quota' => CheckSubscriptionQuota::class,
+            'bindings' => SubstituteBindings::class,
+            'admin' => AdminMiddleware::class,
+            'security.headers' => SecurityHeadersMiddleware::class,
         ]);
 
-        $middleware->removeFromGroup('api', \Illuminate\Routing\Middleware\SubstituteBindings::class);
+        $middleware->removeFromGroup('api', SubstituteBindings::class);
 
         // Apply security headers to all routes
-        $middleware->prependToGroup('web', \App\Http\Middleware\SecurityHeadersMiddleware::class);
-        $middleware->prependToGroup('api', \App\Http\Middleware\SecurityHeadersMiddleware::class);
+        $middleware->prependToGroup('web', SecurityHeadersMiddleware::class);
+        $middleware->prependToGroup('api', SecurityHeadersMiddleware::class);
     })
-->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule): void {
+    ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping();
         $schedule->command('stock:alerts')->dailyAt('08:05')->withoutOverlapping();
         $schedule->command('companies:manage-statuses')->dailyAt('08:10')->withoutOverlapping();

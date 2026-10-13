@@ -22,10 +22,10 @@ class EventController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('type', 'like', "%{$search}%");
+                        ->orWhere('type', 'like', "%{$search}%");
                 });
             })
-            ->paginate($request->integer('per_page', 20));
+            ->paginate(min($request->integer('per_page', 20), 100));
 
         return EventResource::collection($events)->response();
     }
@@ -33,6 +33,7 @@ class EventController extends Controller
     public function show(Event $event): JsonResponse
     {
         $this->authorize('view', $event);
+
         return response()->json(new EventResource($event), Response::HTTP_OK);
     }
 
@@ -56,6 +57,7 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
         $event->update($request->validated());
+
         return response()->json(new EventResource($event), Response::HTTP_OK);
     }
 
@@ -63,6 +65,7 @@ class EventController extends Controller
     {
         $this->authorize('delete', $event);
         $event->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

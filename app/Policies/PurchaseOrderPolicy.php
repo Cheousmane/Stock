@@ -21,17 +21,17 @@ class PurchaseOrderPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('create_purchase_order');
+        return $user->can('create_purchase_order') || $user->hasRole('admin');
     }
 
     public function update(User $user, PurchaseOrder $purchaseOrder): bool
     {
-        return $user->company_id === $purchaseOrder->company_id && $user->can('update_purchase_order');
+        return $user->company_id === $purchaseOrder->company_id && ($user->can('update_purchase_order') || $user->hasRole('admin'));
     }
 
     public function delete(User $user, PurchaseOrder $purchaseOrder): bool
     {
-        return $user->company_id === $purchaseOrder->company_id && $user->can('delete_purchase_order');
+        return $user->company_id === $purchaseOrder->company_id && ($user->can('delete_purchase_order') || $user->hasRole('admin'));
     }
 
     public function restore(User $user, PurchaseOrder $purchaseOrder): bool

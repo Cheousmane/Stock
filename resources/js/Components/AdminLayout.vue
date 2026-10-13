@@ -92,6 +92,7 @@
           <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shrink-0 shadow-md shadow-emerald-500/20">{{ userInitial }}</span>
           <div class="min-w-0 flex-1 leading-tight" :class="sidebarCollapsed ? 'lg:hidden' : ''">
             <p class="text-[13px] font-bold text-sidebar-text truncate">{{ userName || 'Utilisateur' }}</p>
+            <p v-if="roleLabel" class="text-[10px] font-extrabold text-emerald-600 truncate tracking-wide uppercase">{{ roleLabel }}</p>
             <p class="text-[11px] text-sidebar-text-secondary truncate">{{ companyName }}</p>
           </div>
         </div>
@@ -141,6 +142,7 @@
           <!-- Quick Create Action -->
           <div class="relative" v-click-outside="() => quickCreateOpen = false">
             <button
+              v-if="can('create_invoice') || can('access_pos') || can('create_product') || can('create_customer')"
               @click="quickCreateOpen = !quickCreateOpen"
               class="inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] transition-all"
             >
@@ -155,6 +157,7 @@
                 {{ $t('header.quick_create') }}
               </div>
               <router-link
+                v-if="can('create_invoice')"
                 to="/invoices/create"
                 @click="quickCreateOpen = false"
                 class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-emerald-500/[0.07] rounded-xl transition-colors"
@@ -163,6 +166,7 @@
                 {{ $t('header.new_invoice') }}
               </router-link>
               <router-link
+                v-if="can('access_pos')"
                 to="/pos"
                 @click="quickCreateOpen = false"
                 class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-emerald-500/[0.07] rounded-xl transition-colors"
@@ -171,6 +175,7 @@
                 {{ $t('header.pos') }}
               </router-link>
               <router-link
+                v-if="can('create_product')"
                 to="/products/create"
                 @click="quickCreateOpen = false"
                 class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-blue-500/[0.07] rounded-xl transition-colors"
@@ -179,6 +184,7 @@
                 {{ $t('header.new_product') }}
               </router-link>
               <router-link
+                v-if="can('create_customer')"
                 to="/customers/create"
                 @click="quickCreateOpen = false"
                 class="flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-text-primary hover:bg-violet-500/[0.07] rounded-xl transition-colors"
@@ -354,6 +360,7 @@ const searchInput = ref(null)
 const searchResults = ref([])
 const userName = ref('')
 const userEmail = ref('')
+const userRole = ref('')
 const userPermissions = ref([])
 const companyName = ref('')
 const companyPlan = ref(null)
@@ -396,6 +403,19 @@ document.addEventListener('keydown', (e) => {
 
 const userInitial = computed(() => (userName.value || 'U').charAt(0).toUpperCase())
 
+const roleLabels = {
+  admin: 'Administrateur',
+  manager: 'Gestionnaire',
+  accountant: 'Comptable',
+  warehouse_manager: "Gestionnaire d'entrepôt",
+  sales: 'Commercial',
+  employee: 'Employé',
+}
+const roleLabel = computed(() => {
+  if (isSuperAdmin.value) return 'Super Admin'
+  return roleLabels[userRole.value] || userRole.value || ''
+})
+
 const abbreviatedName = computed(() => {
   const words = companyName.value.trim().split(/\s+/)
   if (words.length <= 1) return companyName.value || 'FactureStock'
@@ -405,8 +425,8 @@ const abbreviatedName = computed(() => {
 const allNavItems = [
   { label: 'Tableau de bord', to: '/dashboard', icon: HomeIcon, key: 'nav.dashboard', permission: 'view_dashboard' },
   { divider: true, key: 'nav.sales', label: 'Ventes' },
-  { label: 'Caisse (POS)', to: '/pos', icon: ComputerDesktopIcon, key: 'nav.pos', permission: null },
-  { label: 'Sessions caisse', to: '/pos/sessions', icon: ClockIcon, key: 'nav.pos_sessions', permission: null },
+  { label: 'Caisse (POS)', to: '/pos', icon: ComputerDesktopIcon, key: 'nav.pos', permission: 'access_pos' },
+  { label: 'Sessions caisse', to: '/pos/sessions', icon: ClockIcon, key: 'nav.pos_sessions', permission: 'access_pos' },
   { label: 'Produits', to: '/products', icon: CubeIcon, key: 'nav.products', permission: 'view_product' },
   { label: 'Clients', to: '/customers', icon: UsersIcon, key: 'nav.customers', permission: 'view_customer' },
   { label: 'Fournisseurs', to: '/suppliers', icon: BriefcaseIcon, key: 'nav.suppliers', permission: 'view_supplier' },
@@ -419,7 +439,7 @@ const allNavItems = [
   { divider: true, key: 'nav.finance', label: 'Finance' },
   { label: 'Paiements', to: '/payments', icon: CreditCardIcon, key: 'nav.payments', permission: 'view_payment' },
   { label: 'Dépenses', to: '/expenses', icon: BanknotesIcon, key: 'nav.expenses', permission: 'view_expenses' },
-  { label: 'Capital', to: '/capital', icon: CurrencyDollarIcon, key: 'nav.capital', permission: null },
+  { label: 'Capital', to: '/capital', icon: CurrencyDollarIcon, key: 'nav.capital', permission: 'view_capital' },
   { divider: true, key: 'nav.management', label: 'Gestion' },
   { label: 'Stock', to: '/stock', icon: ArchiveBoxIcon, key: 'nav.stock', permission: 'view_stock' },
   { label: 'Catégories', to: '/categories', icon: TagIcon, key: 'nav.categories', permission: 'view_category' },
@@ -478,37 +498,39 @@ function hideTooltip() {
 }
 
 const searchPages = computed(() => [
-  { title: t('nav.dashboard'), subtitle: t('nav.system'), url: '/dashboard', icon: HomeIcon },
-  { title: t('nav.pos'), subtitle: t('nav.sales'), url: '/pos', icon: ComputerDesktopIcon },
-  { title: t('nav.pos_sessions'), subtitle: t('nav.sales'), url: '/pos/sessions', icon: ClockIcon },
-  { title: t('nav.products'), subtitle: t('nav.sales'), url: '/products', icon: CubeIcon },
-  { title: t('nav.customers'), subtitle: t('nav.sales'), url: '/customers', icon: UsersIcon },
-  { title: t('nav.suppliers'), subtitle: t('nav.sales'), url: '/suppliers', icon: BriefcaseIcon },
-  { title: t('nav.invoices'), subtitle: t('nav.documentation'), url: '/invoices', icon: DocumentTextIcon },
-  { title: t('nav.quotes'), subtitle: t('nav.documentation'), url: '/quotes', icon: DocumentDuplicateIcon },
-  { title: t('nav.credit_notes'), subtitle: t('nav.documentation'), url: '/credit-notes', icon: ArrowUturnLeftIcon },
-  { title: t('nav.purchase_orders'), subtitle: t('nav.documentation'), url: '/purchase-orders', icon: ShoppingCartIcon },
-  { title: t('nav.delivery_notes'), subtitle: t('nav.documentation'), url: '/delivery-notes', icon: TruckIcon },
-  { title: t('nav.payments'), subtitle: t('nav.finance'), url: '/payments', icon: CreditCardIcon },
-  { title: t('nav.expenses'), subtitle: t('nav.finance'), url: '/expenses', icon: BanknotesIcon },
-  { title: t('nav.capital'), subtitle: t('nav.finance'), url: '/capital', icon: CurrencyDollarIcon },
-  { title: t('nav.stock'), subtitle: t('nav.management'), url: '/stock', icon: ArchiveBoxIcon },
-  { title: t('nav.categories'), subtitle: t('nav.management'), url: '/categories', icon: TagIcon },
-  { title: t('nav.units'), subtitle: t('nav.management'), url: '/units', icon: ScaleIcon },
-  { title: t('nav.warehouses'), subtitle: t('nav.management'), url: '/warehouses', icon: BuildingStorefrontIcon },
-  { title: t('nav.users'), subtitle: t('nav.system'), url: '/users', icon: Cog6ToothIcon },
-  { title: t('nav.activity_logs'), subtitle: t('nav.system'), url: '/activity-logs', icon: ClockIcon },
-  { title: t('nav.settings'), subtitle: t('nav.system'), url: '/settings', icon: Cog6ToothIcon },
-  { title: t('nav.admin_panel'), subtitle: t('nav.system'), url: '/admin/dashboard', icon: Cog6ToothIcon },
-  { title: t('admin.companies'), subtitle: t('nav.system'), url: '/admin/companies', icon: BuildingOfficeIcon },
-  { title: t('admin.logins'), subtitle: t('nav.system'), url: '/admin/login-logs', icon: ClockIcon },
+  { title: t('nav.dashboard'), subtitle: t('nav.system'), url: '/dashboard', icon: HomeIcon, permission: 'view_dashboard' },
+  { title: t('nav.pos'), subtitle: t('nav.sales'), url: '/pos', icon: ComputerDesktopIcon, permission: 'access_pos' },
+  { title: t('nav.pos_sessions'), subtitle: t('nav.sales'), url: '/pos/sessions', icon: ClockIcon, permission: 'access_pos' },
+  { title: t('nav.products'), subtitle: t('nav.sales'), url: '/products', icon: CubeIcon, permission: 'view_product' },
+  { title: t('nav.customers'), subtitle: t('nav.sales'), url: '/customers', icon: UsersIcon, permission: 'view_customer' },
+  { title: t('nav.suppliers'), subtitle: t('nav.sales'), url: '/suppliers', icon: BriefcaseIcon, permission: 'view_supplier' },
+  { title: t('nav.invoices'), subtitle: t('nav.documentation'), url: '/invoices', icon: DocumentTextIcon, permission: 'view_invoice' },
+  { title: t('nav.quotes'), subtitle: t('nav.documentation'), url: '/quotes', icon: DocumentDuplicateIcon, permission: 'view_quote' },
+  { title: t('nav.credit_notes'), subtitle: t('nav.documentation'), url: '/credit-notes', icon: ArrowUturnLeftIcon, permission: 'view_credit_note' },
+  { title: t('nav.purchase_orders'), subtitle: t('nav.documentation'), url: '/purchase-orders', icon: ShoppingCartIcon, permission: 'view_purchase_order' },
+  { title: t('nav.delivery_notes'), subtitle: t('nav.documentation'), url: '/delivery-notes', icon: TruckIcon, permission: 'view_delivery_note' },
+  { title: t('nav.payments'), subtitle: t('nav.finance'), url: '/payments', icon: CreditCardIcon, permission: 'view_payment' },
+  { title: t('nav.expenses'), subtitle: t('nav.finance'), url: '/expenses', icon: BanknotesIcon, permission: 'view_expenses' },
+  { title: t('nav.capital'), subtitle: t('nav.finance'), url: '/capital', icon: CurrencyDollarIcon, permission: 'view_capital' },
+  { title: t('nav.stock'), subtitle: t('nav.management'), url: '/stock', icon: ArchiveBoxIcon, permission: 'view_stock' },
+  { title: t('nav.categories'), subtitle: t('nav.management'), url: '/categories', icon: TagIcon, permission: 'view_category' },
+  { title: t('nav.units'), subtitle: t('nav.management'), url: '/units', icon: ScaleIcon, permission: 'view_unit' },
+  { title: t('nav.warehouses'), subtitle: t('nav.management'), url: '/warehouses', icon: BuildingStorefrontIcon, permission: 'view_warehouse' },
+  { title: t('nav.users'), subtitle: t('nav.system'), url: '/users', icon: Cog6ToothIcon, permission: 'manage_users' },
+  { title: t('nav.activity_logs'), subtitle: t('nav.system'), url: '/activity-logs', icon: ClockIcon, permission: 'view_activity_logs' },
+  { title: t('nav.settings'), subtitle: t('nav.system'), url: '/settings', icon: Cog6ToothIcon, permission: 'manage_settings' },
+  { title: t('nav.admin_panel'), subtitle: t('nav.system'), url: '/admin/dashboard', icon: Cog6ToothIcon, superAdminOnly: true },
+  { title: t('admin.companies'), subtitle: t('nav.system'), url: '/admin/companies', icon: BuildingOfficeIcon, superAdminOnly: true },
+  { title: t('admin.logins'), subtitle: t('nav.system'), url: '/admin/login-logs', icon: ClockIcon, superAdminOnly: true },
 ])
 
 watch(searchQuery, async (q) => {
   if (q.length < 2) { searchResults.value = []; return }
   const ql = q.toLowerCase()
   searchResults.value = searchPages.filter(p =>
-    p.title.toLowerCase().includes(ql) || p.subtitle.toLowerCase().includes(ql)
+    (!p.superAdminOnly || isSuperAdmin.value) &&
+    (!p.permission || can(p.permission)) &&
+    (p.title.toLowerCase().includes(ql) || p.subtitle.toLowerCase().includes(ql))
   )
 })
 
@@ -532,12 +554,14 @@ onMounted(async () => {
     if (u.name) userName.value = u.name
     if (u.email) userEmail.value = u.email
     if (u.is_super_admin) isSuperAdmin.value = u.is_super_admin
+    if (u.roles?.length) userRole.value = u.roles[0]
     if (u.permissions?.length) userPermissions.value = u.permissions
-    else {
+    if (!u.permissions?.length || !u.roles?.length) {
       const { data } = await axios.get('/auth/me')
       const fresh = data.user ?? data.data ?? data
       localStorage.setItem('user', JSON.stringify(fresh))
       if (fresh.permissions) userPermissions.value = fresh.permissions
+      if (fresh.roles?.length) userRole.value = fresh.roles[0]
       if (fresh.name) userName.value = fresh.name
       if (fresh.email) userEmail.value = fresh.email
       if (fresh.is_super_admin) isSuperAdmin.value = fresh.is_super_admin

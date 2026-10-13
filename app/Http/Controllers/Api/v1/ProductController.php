@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -37,15 +38,15 @@ class ProductController extends Controller
     {
         $this->authorize('viewAny', Product::class);
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $query = Product::with('category');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%");
             });
         }
 
@@ -75,7 +76,8 @@ class ProductController extends Controller
             $product->update(['image' => $request->file('image')->store('products', 'public')]);
         }
 
-        Cache::forget("dashboard.aggregates.v2." . TenantContext::getCompanyId());
+        Cache::forget('dashboard.aggregates.v2.'.TenantContext::getCompanyId());
+
         return response()->json(new ProductResource($product->fresh()), Response::HTTP_CREATED);
     }
 
@@ -86,6 +88,7 @@ class ProductController extends Controller
     {
         $this->authorize('view', $product);
         $product->load('category');
+
         return response()->json(new ProductResource($product), Response::HTTP_OK);
     }
 
@@ -117,7 +120,8 @@ class ProductController extends Controller
             }
         });
 
-        Cache::forget("dashboard.aggregates.v2." . TenantContext::getCompanyId());
+        Cache::forget('dashboard.aggregates.v2.'.TenantContext::getCompanyId());
+
         return response()->json(new ProductResource($product->fresh()), Response::HTTP_OK);
     }
 
@@ -179,7 +183,7 @@ class ProductController extends Controller
         if ($difference > 0) {
             Expense::create([
                 'company_id' => $companyId,
-                'description' => 'Ajustement stock : ' . $product->name . ' (+' . $absQty . ')',
+                'description' => 'Ajustement stock : '.$product->name.' (+'.$absQty.')',
                 'category' => 'stock',
                 'amount' => $absQty * $unitCost,
                 'date' => now(),
@@ -195,6 +199,7 @@ class ProductController extends Controller
     {
         $this->authorize('delete', $product);
         $product->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
@@ -203,9 +208,10 @@ class ProductController extends Controller
      */
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', Product::class);
-        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:products,id']);
+        $this->authorize('delete_product');
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => ['integer', Rule::exists('products', 'id')->where('company_id', TenantContext::getCompanyId())]]);
         $count = Product::whereIn('id', $validated['ids'])->delete();
+
         return response()->json(['deleted' => $count], Response::HTTP_OK);
     }
 
@@ -220,8 +226,8 @@ class ProductController extends Controller
 
         $newProduct = DB::transaction(function () use ($product) {
             $copy = $product->replicate(['uuid', 'created_at', 'updated_at']);
-            $copy->name = $product->name . ' (copie)';
-            $copy->sku = $product->sku . '-COPY-' . strtoupper(Str::random(4));
+            $copy->name = $product->name.' (copie)';
+            $copy->sku = $product->sku.'-COPY-'.strtoupper(Str::random(4));
             // L'uuid sera automatiquement regenere par le hook creating du modele
             $copy->push();
 

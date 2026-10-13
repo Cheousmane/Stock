@@ -65,6 +65,7 @@ class PermissionSeeder extends Seeder
             'view_profits', 'export_profits',
             'view_expenses', 'view_events', 'view_activity_logs',
             'view_capital',
+            'access_pos',
         ];
     }
 
@@ -86,6 +87,7 @@ class PermissionSeeder extends Seeder
             'create_invoice', 'view_invoice', 'update_invoice',
             'send_invoice',
             'create_quote', 'view_quote', 'update_quote', 'convert_quote',
+            'validate_quote',
             'create_payment', 'view_payment',
             'create_supplier_payment', 'view_supplier_payment',
             'create_warehouse', 'view_warehouse', 'update_warehouse',
@@ -96,6 +98,7 @@ class PermissionSeeder extends Seeder
             'manage_settings',
             'export_data', 'view_dashboard',
             'view_expenses', 'view_events', 'view_activity_logs',
+            'view_capital', 'access_pos',
         ];
     }
 
@@ -119,6 +122,7 @@ class PermissionSeeder extends Seeder
             'export_data', 'view_dashboard',
             'view_profits',
             'view_expenses',
+            'view_capital', 'access_pos',
         ];
     }
 
@@ -138,6 +142,7 @@ class PermissionSeeder extends Seeder
             'view_tax',
             'view_dashboard',
             'view_expenses', 'view_events', 'view_activity_logs',
+            'access_pos',
         ];
     }
 
@@ -148,13 +153,16 @@ class PermissionSeeder extends Seeder
             'view_product_variant',
             'create_customer', 'view_customer', 'update_customer',
             'create_invoice', 'view_invoice', 'update_invoice',
+            'send_invoice',
             'view_credit_note',
             'create_quote', 'view_quote', 'update_quote', 'convert_quote',
+            'validate_quote',
             'view_payment',
             'view_stock',
             'view_delivery_note',
             'export_data', 'view_dashboard',
             'view_expenses',
+            'access_pos',
         ];
     }
 

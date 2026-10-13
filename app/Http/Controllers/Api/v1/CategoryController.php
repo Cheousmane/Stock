@@ -24,13 +24,13 @@ class CategoryController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('slug', 'like', "%{$search}%");
+                        ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
             ->when($isActive = $request->input('is_active'), function ($query) use ($isActive) {
                 $query->where('is_active', $isActive === '1');
             })
-            ->paginate($request->integer('per_page', 15));
+            ->paginate(min($request->integer('per_page', 15), 100));
 
         return CategoryResource::collection($categories)->response();
     }
@@ -40,12 +40,14 @@ class CategoryController extends Controller
         $this->authorize('create', Category::class);
         $dto = CategoryDTO::fromArray($request->validated());
         $category = $action->execute($dto);
+
         return response()->json(new CategoryResource($category), Response::HTTP_CREATED);
     }
 
     public function show(Category $category): JsonResponse
     {
         $this->authorize('view', $category);
+
         return response()->json(new CategoryResource($category), Response::HTTP_OK);
     }
 
@@ -54,6 +56,7 @@ class CategoryController extends Controller
         $this->authorize('update', $category);
         $dto = CategoryDTO::fromArray($request->validated());
         $category = $action->execute($category, $dto);
+
         return response()->json(new CategoryResource($category), Response::HTTP_OK);
     }
 
@@ -61,6 +64,7 @@ class CategoryController extends Controller
     {
         $this->authorize('delete', $category);
         $category->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

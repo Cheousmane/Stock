@@ -9,7 +9,6 @@ use App\Models\Customer;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Payment;
 use App\Models\Product;
 use App\Support\TenantContext;
 use Illuminate\Support\Collection;
@@ -19,13 +18,14 @@ use Illuminate\Support\Facades\DB;
 class AnalyticsService
 {
     private const CACHE_TTL = 300;
+
     private const CACHE_PREFIX = 'analytics';
 
     public function overview(): array
     {
         $companyId = TenantContext::getCompanyId();
 
-        return Cache::remember(self::CACHE_PREFIX . ".{$companyId}.overview", self::CACHE_TTL, function () use ($companyId) {
+        return Cache::remember(self::CACHE_PREFIX.".{$companyId}.overview", self::CACHE_TTL, function () use ($companyId) {
             $now = now();
             $startThisMonth = $now->copy()->startOfMonth()->format('Y-m-d H:i:s');
             $endThisMonth = $now->copy()->endOfMonth()->format('Y-m-d H:i:s');
@@ -116,7 +116,7 @@ class AnalyticsService
     public function revenueGrowth(?int $months = 12): Collection
     {
         $companyId = TenantContext::getCompanyId();
-        $cacheKey = self::CACHE_PREFIX . ".{$companyId}.revenue_growth.{$months}";
+        $cacheKey = self::CACHE_PREFIX.".{$companyId}.revenue_growth.{$months}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $months) {
             $startDate = now()->subMonths($months - 1)->startOfMonth();
@@ -165,7 +165,7 @@ class AnalyticsService
     public function topProducts(?int $limit = 10): Collection
     {
         $companyId = TenantContext::getCompanyId();
-        $cacheKey = self::CACHE_PREFIX . ".{$companyId}.top_products.{$limit}";
+        $cacheKey = self::CACHE_PREFIX.".{$companyId}.top_products.{$limit}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $limit) {
             $results = InvoiceItem::where('invoice_items.company_id', $companyId)
@@ -211,7 +211,7 @@ class AnalyticsService
     public function topCustomers(?int $limit = 10): Collection
     {
         $companyId = TenantContext::getCompanyId();
-        $cacheKey = self::CACHE_PREFIX . ".{$companyId}.top_customers.{$limit}";
+        $cacheKey = self::CACHE_PREFIX.".{$companyId}.top_customers.{$limit}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $limit) {
             $results = InvoiceItem::where('invoice_items.company_id', $companyId)
@@ -256,7 +256,7 @@ class AnalyticsService
         $companyId = TenantContext::getCompanyId();
 
         return Cache::remember(
-            self::CACHE_PREFIX . ".{$companyId}.recent_invoices.{$limit}",
+            self::CACHE_PREFIX.".{$companyId}.recent_invoices.{$limit}",
             self::CACHE_TTL,
             fn () => Invoice::where('company_id', $companyId)
                 ->with('customer:id,name')
@@ -279,7 +279,7 @@ class AnalyticsService
         $companyId = TenantContext::getCompanyId();
 
         return Cache::remember(
-            self::CACHE_PREFIX . ".{$companyId}.expenses_by_category",
+            self::CACHE_PREFIX.".{$companyId}.expenses_by_category",
             self::CACHE_TTL,
             fn () => Expense::where('company_id', $companyId)
                 ->select('category', DB::raw('SUM(amount) as total_xof'), DB::raw('COUNT(*) as count'))
@@ -289,23 +289,35 @@ class AnalyticsService
         );
     }
 
-    public function clearCache(): void
+    public function clearCache(?int $companyId = null): void
     {
-        $companyId = TenantContext::getCompanyId();
-        $prefix = self::CACHE_PREFIX . ".{$companyId}.";
+        $companyId ??= TenantContext::getCompanyId();
+        $prefix = self::CACHE_PREFIX.".{$companyId}.";
 
         $keys = [
             "{$prefix}overview",
-            "{$prefix}revenue_growth.12",
-            "{$prefix}revenue_growth.6",
-            "{$prefix}top_products.10",
-            "{$prefix}top_customers.10",
-            "{$prefix}recent_invoices.10",
             "{$prefix}expenses_by_category",
         ];
+
+        // Variantes paramétrées (le frontend appelle avec months/limit variables).
+        foreach ([1, 3, 6, 12, 24, 60] as $months) {
+            $keys[] = "{$prefix}revenue_growth.{$months}";
+        }
+        foreach ([5, 10, 20, 50, 100] as $limit) {
+            $keys[] = "{$prefix}top_products.{$limit}";
+            $keys[] = "{$prefix}top_customers.{$limit}";
+        }
+        foreach ([5, 10, 20, 50] as $limit) {
+            $keys[] = "{$prefix}recent_invoices.{$limit}";
+        }
 
         foreach ($keys as $key) {
             Cache::forget($key);
         }
+    }
+
+    public static function forgetForCompany(int $companyId): void
+    {
+        (new self)->clearCache($companyId);
     }
 }

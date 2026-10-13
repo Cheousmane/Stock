@@ -25,10 +25,10 @@ class ExpenseController extends Controller
             ->when($search = $request->input('search'), function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('description', 'like', "%{$search}%")
-                      ->orWhere('category', 'like', "%{$search}%");
+                        ->orWhere('category', 'like', "%{$search}%");
                 });
             })
-            ->paginate($request->integer('per_page', 20));
+            ->paginate(min($request->integer('per_page', 20), 100));
 
         return ExpenseResource::collection($expenses)->response();
     }
@@ -52,6 +52,7 @@ class ExpenseController extends Controller
     {
         $this->authorize('delete', $expense);
         $expense->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

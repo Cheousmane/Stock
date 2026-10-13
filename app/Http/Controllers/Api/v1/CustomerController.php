@@ -11,8 +11,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
+use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomerController extends Controller
@@ -21,16 +23,16 @@ class CustomerController extends Controller
     {
         $this->authorize('viewAny', Customer::class);
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $query = Customer::query();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('tax_number', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('tax_number', 'like', "%{$search}%");
             });
         }
 
@@ -46,12 +48,14 @@ class CustomerController extends Controller
         $this->authorize('create', Customer::class);
         $dto = CustomerDTO::fromArray($request->validated());
         $customer = $action->execute($dto);
+
         return response()->json(new CustomerResource($customer), Response::HTTP_CREATED);
     }
 
     public function show(Customer $customer): JsonResponse
     {
         $this->authorize('view', $customer);
+
         return response()->json(new CustomerResource($customer), Response::HTTP_OK);
     }
 
@@ -60,6 +64,7 @@ class CustomerController extends Controller
         $this->authorize('update', $customer);
         $dto = CustomerDTO::fromArray($request->validated());
         $customer = $action->execute($customer, $dto);
+
         return response()->json(new CustomerResource($customer), Response::HTTP_OK);
     }
 
@@ -67,15 +72,16 @@ class CustomerController extends Controller
     {
         $this->authorize('delete', $customer);
         $customer->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     public function bulkDelete(Request $request): JsonResponse
     {
-        $this->authorize('delete', Customer::class);
+        $this->authorize('delete_customer');
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'integer|exists:customers,id',
+            'ids.*' => ['integer', Rule::exists('customers', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
         $count = Customer::whereIn('id', $validated['ids'])->delete();
 

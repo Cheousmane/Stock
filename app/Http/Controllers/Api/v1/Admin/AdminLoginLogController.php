@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\v1\Admin;
 
+use App\Exports\AdminLoginLogsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LoginLogResource;
 use App\Models\LoginLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Excel;
 
 class AdminLoginLogController extends Controller
 {
@@ -19,7 +21,7 @@ class AdminLoginLogController extends Controller
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('email', 'like', "%{$search}%")
-                      ->orWhere('ip_address', 'like', "%{$search}%");
+                        ->orWhere('ip_address', 'like', "%{$search}%");
                 });
             })
             ->when($request->boolean('failed'), function ($query) {
@@ -35,7 +37,7 @@ class AdminLoginLogController extends Controller
                 $query->where('company_id', $companyId);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate(min($request->integer('per_page', 20), 100));
 
         return LoginLogResource::collection($logs)->response();
     }
@@ -49,7 +51,7 @@ class AdminLoginLogController extends Controller
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('email', 'like', "%{$search}%")
-                      ->orWhere('ip_address', 'like', "%{$search}%");
+                        ->orWhere('ip_address', 'like', "%{$search}%");
                 });
             })
             ->when($request->boolean('failed'), function ($query) {
@@ -69,9 +71,9 @@ class AdminLoginLogController extends Controller
             ->get();
 
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\AdminLoginLogsExport($logs),
-            'connexions-' . date('Y-m-d-His') . '.csv',
-            \Maatwebsite\Excel\Excel::CSV
+            new AdminLoginLogsExport($logs),
+            'connexions-'.date('Y-m-d-His').'.csv',
+            Excel::CSV
         );
     }
 
@@ -81,10 +83,10 @@ class AdminLoginLogController extends Controller
     public function summary(): JsonResponse
     {
         $hourlyRaw = LoginLog::select(
-                DB::raw('HOUR(created_at) as hour'),
-                DB::raw('SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as success_count'),
-                DB::raw('SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as fail_count')
-            )
+            DB::raw('HOUR(created_at) as hour'),
+            DB::raw('SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as success_count'),
+            DB::raw('SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as fail_count')
+        )
             ->where('created_at', '>=', now()->subHours(24))
             ->groupBy('hour')
             ->orderBy('hour')

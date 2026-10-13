@@ -192,6 +192,7 @@
     "warning": "Warning",
     "info": "Information",
     "logout": "Logout",
+    "no_permission": "You don't have the required permissions",
     "refresh": "Refresh",
     "update": "Update",
     "retry": "Retry",

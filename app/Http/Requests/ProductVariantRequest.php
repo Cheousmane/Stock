@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Support\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProductVariantRequest extends FormRequest
 {
@@ -18,8 +20,8 @@ class ProductVariantRequest extends FormRequest
         $variantId = $this->route('product_variant');
 
         return [
-            'product_id' => 'nullable|exists:products,id',
-            'sku' => 'nullable|string|max:100|unique:product_variants,sku,' . $variantId . ',id',
+            'product_id' => ['nullable', Rule::exists('products', 'id')->where('company_id', TenantContext::getCompanyId())],
+            'sku' => 'nullable|string|max:100|unique:product_variants,sku,'.$variantId.',id',
             'barcode' => 'nullable|string|max:100',
             'price_xof' => 'nullable|integer|min:0',
             'purchase_price_xof' => 'nullable|integer|min:0',
