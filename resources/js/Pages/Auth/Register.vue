@@ -128,6 +128,18 @@
                 <p v-if="errors.name" class="field-error-msg">{{ errors.name[0] }}</p>
               </div>
 
+              <!-- Company slug -->
+              <div class="field-group">
+                <label class="field-label">Domaine de l'entreprise <span class="field-req">*</span></label>
+                <div class="field-wrap" :class="{ 'field-focused': focused === 'slug', 'field-error': errors.company_slug }">
+                  <div class="field-icon">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.493 2.853a.75.75 0 00-1.486-.205L7.545 6H4.198a.75.75 0 000 1.5h3.14l-.53 3.013a.75.75 0 001.486.205l.499-2.836A12.627 12.627 0 0112 8.25a12.627 12.627 0 013.207.411l.499 2.836a.75.75 0 001.486-.205l-.53-3.013h3.14a.75.75 0 000-1.5h-3.347l-.462-3.147a.75.75 0 00-1.486.205l.462 3.147H9.493l-.462-3.147zM12 15a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                  </div>
+                  <input v-model="form.company_slug" type="text" required placeholder="mon-entreprise" class="field-input" @input="slugTouched = true" @focus="focused='slug'" @blur="focused=''" />
+                </div>
+                <p v-if="errors.company_slug" class="field-error-msg">{{ errors.company_slug[0] }}</p>
+              </div>
+
               <!-- Email -->
               <div class="field-group">
                 <label class="field-label">Email <span class="field-req">*</span></label>
@@ -282,7 +294,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -318,6 +330,15 @@ const googleAvatar = ref('');
 const form = reactive({
   name: '', email: '', password: '', password_confirmation: '',
   company_name: '', company_slug: '', industry: '', size: '', otherIndustry: ''
+});
+const slugTouched = ref(false);
+
+function slugify(value) {
+  return (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+watch(() => form.name, (name) => {
+  if (!slugTouched.value) form.company_slug = slugify(name);
 });
 
 // Password strength
