@@ -45,7 +45,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            // Timeout borné : sans cela, un SMTP injoignable bloque la requête
+            // jusqu'au timeout TCP système (inscription, renvoi de code...).
+            'timeout' => (int) env('MAIL_TIMEOUT', 10),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
@@ -82,8 +85,8 @@ return [
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
+                'resend',
                 'smtp',
-                'log',
             ],
             'retry_after' => 60,
         ],
