@@ -26,11 +26,11 @@ class RegisterCompanyRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Pas de ->uncompromised() : l'API haveibeenpwned est une dépendance
+        // réseau externe sur le chemin critique d'inscription. En cas de
+        // timeout/blocage egress, la validation lève une 500 non rattrapée.
+        // La robustesse locale (12 caractères mixtes) reste exigée.
         $password = Password::min(8)->mixedCase()->letters()->numbers()->symbols();
-
-        if (!app()->environment('testing')) {
-            $password = $password->uncompromised();
-        }
 
         return [
             'company_name' => ['required', 'string', 'max:255'],

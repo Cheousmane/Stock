@@ -441,11 +441,6 @@
       </div>
       <div class="footer-bottom">
         <p>© 2026 SIDIBE CORPORATE. Tous droits réservés.</p>
-        <div class="footer-trust">
-          <span>🔒 SSL</span>
-          <span>🇸🇳 Made in Africa</span>
-          <span>⚡ 99.9% uptime</span>
-        </div>
       </div>
     </footer>
   </div>
