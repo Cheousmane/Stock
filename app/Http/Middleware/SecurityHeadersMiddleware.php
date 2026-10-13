@@ -39,6 +39,7 @@ class SecurityHeadersMiddleware
 
         $csp = [
             "default-src 'self'",
+            'upgrade-insecure-requests',
             "script-src 'self' https://www.googletagmanager.com https://accounts.google.com".($viteOrigin ? " {$viteOrigin}" : ''),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com".($viteOrigin ? " {$viteOrigin}" : ''),
             "font-src 'self' data: https://fonts.gstatic.com".($viteOrigin ? " {$viteOrigin}" : ''),
