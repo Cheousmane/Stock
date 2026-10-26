@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AccountingAccount extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'company_id',
@@ -44,7 +44,7 @@ class AccountingAccount extends Model
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public children(): HasMany
+    public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
     }

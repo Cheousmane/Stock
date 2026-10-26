@@ -7,14 +7,16 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Support\Money;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 final class WhatsAppService
 {
     private string $apiBaseUrl;
+
     private string $phoneNumberId;
+
     private string $accessToken;
 
     public function __construct()
@@ -28,6 +30,7 @@ final class WhatsAppService
     {
         if (empty($this->accessToken) || empty($this->phoneNumberId)) {
             Log::warning('WhatsApp service not configured - skipping message send');
+
             return ['success' => false, 'error' => 'WhatsApp API not configured'];
         }
 
@@ -42,7 +45,7 @@ final class WhatsAppService
             ];
 
             // Merge template data
-            if (!empty($templateData)) {
+            if (! empty($templateData)) {
                 $payload['template']['components'] = [];
                 foreach ($templateData as $key => $value) {
                     $payload['template']['components'][] = [
@@ -66,12 +69,13 @@ final class WhatsAppService
                 ];
             }
 
-            $errorMessage = $response->json('error')?.message ?? 'Erreur WhatsApp API: ' . $response->status();
+            $errorMessage = $response->json('error')?->message ?? 'Erreur WhatsApp API: '.$response->status();
             Log::error('WhatsApp send error', ['response' => $response->json()]);
 
             return ['success' => false, 'error' => $errorMessage];
         } catch (\Throwable $e) {
             Log::error('WhatsApp exception', ['error' => $e->getMessage()]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -79,14 +83,14 @@ final class WhatsAppService
     public function sendInvoicePaidNotification(Invoice $invoice, ?Company $company = null): array
     {
         $customer = $invoice->customer;
-        if (!$customer || empty($customer->phone)) {
+        if (! $customer || empty($customer->phone)) {
             return ['success' => false, 'error' => 'Customer phone number not available'];
         }
 
         $templateData = [
             'customer_name' => $customer->name ?? '',
             'invoice_number' => $invoice->number ?? '',
-            'amount' => \App\Support\Money::format($invoice->total_xof, $invoice->company?->metadata['currency'] ?? 'XOF'),
+            'amount' => Money::format($invoice->total_xof, $invoice->company?->metadata['currency'] ?? 'XOF'),
             'payment_date' => now()->format('d/m/Y'),
         ];
 
@@ -101,14 +105,14 @@ final class WhatsAppService
     public function sendInvoiceOverdueReminder(Invoice $invoice, ?Company $company = null): array
     {
         $customer = $invoice->customer;
-        if (!$customer || empty($customer->phone)) {
+        if (! $customer || empty($customer->phone)) {
             return ['success' => false, 'error' => 'Customer phone number not available'];
         }
 
         $templateData = [
             'customer_name' => $customer->name ?? '',
             'invoice_number' => $invoice->number ?? '',
-            'amount' => \App\Support\Money::format($invoice->balance_due_xof, $invoice->company?->metadata['currency'] ?? 'XOF'),
+            'amount' => Money::format($invoice->balance_due_xof, $invoice->company?->metadata['currency'] ?? 'XOF'),
             'due_date' => $invoice->due_date?->format('d/m/Y') ?? '',
         ];
 
@@ -123,14 +127,14 @@ final class WhatsAppService
     public function sendQuoteAcceptedNotification(Quote $quote, ?Company $company = null): array
     {
         $customer = $quote->customer;
-        if (!$customer || empty($customer->phone)) {
+        if (! $customer || empty($customer->phone)) {
             return ['success' => false, 'error' => 'Customer phone number not available'];
         }
 
         $templateData = [
             'customer_name' => $customer->name ?? '',
             'quote_number' => $quote->number ?? '',
-            'amount' => \App\Support\Money::format($quote->total_xof, $quote->company?->metadata['currency'] ?? 'XOF'),
+            'amount' => Money::format($quote->total_xof, $quote->company?->metadata['currency'] ?? 'XOF'),
         ];
 
         return $this->sendMessage(

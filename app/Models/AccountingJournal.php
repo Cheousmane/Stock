@@ -8,10 +8,11 @@ use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AccountingJournal extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'company_id',
@@ -33,12 +34,12 @@ class AccountingJournal extends Model
         return $this->belongsTo(Company::class);
     }
 
-    debitEntries(): HasMany
+    public function debitEntries(): HasMany
     {
         return $this->hasMany(AccountingEntry::class)->where('entry_type', 'debit');
     }
 
-    creditEntries(): HasMany
+    public function creditEntries(): HasMany
     {
         return $this->hasMany(AccountingEntry::class)->where('entry_type', 'credit');
     }

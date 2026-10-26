@@ -6,13 +6,10 @@ namespace App\Services;
 
 use App\Models\AccountingAccount;
 use App\Models\AccountingEntry;
-use App\Models\AccountingJournal;
 use App\Models\Company;
 use App\Models\Invoice;
-use App\Models\PosSale;
 use App\Models\Payment;
 use App\Models\PurchaseOrder;
-use App\Models\SupplierPayment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -35,7 +32,7 @@ final class AccountingService
             $entries[] = [
                 'account_code' => $this->getOrCreateAccountCode($company, 'accounts_receivable'),
                 'amount' => $invoice->total_xof,
-                'description' => "Facture #{$invoice->number} - {$invoice->customer?->name ?? 'Client'}",
+                'description' => sprintf('Facture #%s - %s', $invoice->number, $invoice->customer?->name ?? 'Client'),
                 'entry_date' => $invoice->issue_date,
                 'reference_type' => 'invoice',
                 'reference_id' => $invoice->id,
@@ -72,7 +69,7 @@ final class AccountingService
             $entries[] = [
                 'account_code' => $this->getOrCreateAccountCode($company, 'purchases'),
                 'amount' => $po->total_xof,
-                'description' => "Bon d'achat #{$po->number} - {$po->supplier?->name ?? 'Fournisseur'}",
+                'description' => sprintf("Bon d'achat #%s - %s", $po->number, $po->supplier?->name ?? 'Fournisseur'),
                 'entry_date' => $po->created_at,
                 'reference_type' => 'purchase_order',
                 'reference_id' => $po->id,
@@ -119,7 +116,7 @@ final class AccountingService
             $entries[] = [
                 'account_code' => $this->getOrCreateAccountCode($company, 'revenue_sales'),
                 'amount' => $payment->amount_xof,
-                'description' => "Recouvrement cash - {$payment->invoice?->number ?? 'inconnu'}",
+                'description' => sprintf('Recouvrement cash - %s', $payment->invoice?->number ?? 'inconnu'),
                 'entry_date' => $payment->payment_date,
                 'reference_type' => 'payment',
                 'reference_id' => $payment->id,
@@ -201,7 +198,7 @@ final class AccountingService
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return Collection::make();
         }
 
@@ -230,7 +227,7 @@ final class AccountingService
             ->where('is_active', true)
             ->first();
 
-        if (!$capitalAccount) {
+        if (! $capitalAccount) {
             return 0;
         }
 
@@ -260,6 +257,6 @@ final class AccountingService
             ->where('is_active', true)
             ->first();
 
-        return $account ? $account->code : 'GEN-' . strtoupper($accountType);
+        return $account ? $account->code : 'GEN-'.strtoupper($accountType);
     }
 }
