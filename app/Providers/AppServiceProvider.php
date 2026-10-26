@@ -69,10 +69,16 @@ use App\Repositories\Eloquent\InvoiceRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist as PermissionDoesNotExistException;
 use Spatie\Permission\PermissionRegistrar;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -113,6 +119,25 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // MAIL_MAILER=brevo : envoi via l'API HTTP Brevo (symfony/brevo-mailer).
+        // Évite de dépendre d'un port SMTP sortant, souvent bloqué en production.
+        Mail::extend('brevo', function (array $config): TransportInterface {
+            $key = trim((string) ($config['key'] ?? ''));
+
+            if ($key === '') {
+                throw new InvalidArgumentException(
+                    'BREVO_API_KEY est manquante : impossible d\'envoyer un e-mail via Brevo.'
+                );
+            }
+
+            $client = HttpClient::create([
+                'timeout' => max(1, (int) ($config['timeout'] ?? 10)),
+            ]);
+
+            return (new BrevoTransportFactory(client: $client))
+                ->create(new Dsn('brevo+api', 'default', $key));
+        });
+
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }

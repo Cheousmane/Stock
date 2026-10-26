@@ -289,6 +289,7 @@
     "resend_in": "Renvoyer dans {seconds}s",
     "code_resent": "Un nouveau code de vérification a été envoyé.",
     "resend_error": "Impossible d'envoyer le code. Réessayez dans quelques minutes.",
+    "resend_throttled": "Trop de demandes. Attendez quelques minutes avant de renvoyer un code.",
     "verification_error": "Échec de la vérification. Veuillez réessayer.",
     "email_not_sent": "L'e-mail n'a pas pu être envoyé. Corrigez si besoin votre adresse puis cliquez sur « Renvoyer le code ».",
     "step_account": "Compte",

@@ -30,7 +30,7 @@ return [
     | your mailers below. You may also add additional mailers if needed.
     |
     | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
+    |            "postmark", "resend", "brevo", "log", "array",
     |            "failover", "roundrobin"
     |
     */
@@ -66,6 +66,14 @@ return [
 
         'resend' => [
             'transport' => 'resend',
+        ],
+
+        // Transport personnalisé enregistré dans AppServiceProvider::boot().
+        // Envoi via l'API HTTP Brevo (port 443), donc aucun port SMTP à ouvrir.
+        'brevo' => [
+            'transport' => 'brevo',
+            'key' => env('BREVO_API_KEY'),
+            'timeout' => (int) env('MAIL_TIMEOUT', 10),
         ],
 
         'sendmail' => [

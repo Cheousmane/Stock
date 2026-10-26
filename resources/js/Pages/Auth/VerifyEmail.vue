@@ -187,7 +187,9 @@ async function resend() {
     success.value = t('auth.code_resent');
     startCooldown(60);
   } catch (err) {
-    if (err.response?.data?.errors?.email) {
+    if (err.response?.status === 429) {
+      error.value = t('auth.resend_throttled');
+    } else if (err.response?.data?.errors?.email) {
       error.value = err.response.data.errors.email[0];
     } else {
       error.value = err.response?.data?.message || t('auth.resend_error');
