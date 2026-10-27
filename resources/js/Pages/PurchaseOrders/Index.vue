@@ -140,7 +140,7 @@
           <input v-model.number="paymentForm.amount_xof" type="number" min="1" :max="paymentTarget ? balanceDue(paymentTarget) : undefined"
             class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_method') }}</label>
             <select v-model="paymentForm.method"

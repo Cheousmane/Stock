@@ -1,6 +1,6 @@
 <template>
   <!-- Page de réinitialisation du mot de passe avec token -->
-  <div class="flex min-h-screen">
+  <div class="flex min-h-screen min-h-dvh">
     <!-- Panneau gauche - Marque et présentation -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -22,7 +22,10 @@
     </div>
 
     <!-- Panneau droit - Formulaire de réinitialisation -->
-    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 bg-[var(--color-surface-secondary)]">
+    <div class="relative flex-1 flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--color-surface-secondary)]">
+      <div class="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div class="w-full max-w-sm">
         <!-- Logo mobile (caché sur desktop) -->
         <div class="text-center mb-8 lg:hidden">
@@ -33,7 +36,7 @@
         </div>
 
         <!-- Carte formulaire -->
-        <div class="p-8 rounded-xl bg-[var(--color-surface)] shadow-[var(--shadow-modal)] dark:border dark:border-[var(--color-border)]">
+        <div class="p-6 sm:p-8 rounded-xl bg-[var(--color-surface)] shadow-[var(--shadow-modal)] dark:border dark:border-[var(--color-border)]">
           <!-- En-tête -->
           <div class="text-center mb-7">
             <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Réinitialiser le mot de passe</h1>
@@ -62,7 +65,7 @@
                   required
                   autocomplete="new-password"
                   placeholder="••••••••"
-                  class="block w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                  class="block w-full px-3.5 py-2.5 pr-11 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -85,7 +88,7 @@
                 required
                 autocomplete="new-password"
                 placeholder="••••••••"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
+                class="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
             </div>
             <!-- Bouton de soumission -->
@@ -118,6 +121,7 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 import AppLogo from '../../Components/AppLogo.vue';
+import ThemeToggle from '../../Components/ThemeToggle.vue';
 
 // Récupération du token et email depuis l'URL (query params)
 const route = useRoute();

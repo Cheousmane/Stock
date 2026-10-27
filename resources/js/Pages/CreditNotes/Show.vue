@@ -50,7 +50,8 @@
 
           <div class="mb-6">
             <h3 class="text-sm font-medium text-text-secondary mb-3">{{ $t('page.credit_notes.lines_word') }}</h3>
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[480px] text-sm">
               <thead>
                 <tr class="border-b border-border">
                   <th class="py-2 text-left font-medium text-text-tertiary">{{ $t('page.products.title') }}</th>
@@ -68,10 +69,11 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
 
           <div class="flex justify-end pt-4 border-t border-border">
-            <div class="w-64 space-y-2">
+            <div class="w-full max-w-xs space-y-2 sm:w-64">
               <div class="flex justify-between text-sm">
                 <span class="text-text-tertiary">{{ $t('common.subtotal') }}</span>
                 <span class="font-medium text-text-primary">{{ formatXOF(cn.subtotal_xof) }}</span>

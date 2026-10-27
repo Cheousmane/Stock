@@ -48,7 +48,7 @@
             <p class="text-sm font-medium text-text-primary truncate max-w-[250px]">{{ row.title }}</p>
           </template>
           <template #cell-type="{ row }">
-            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', 'bg-gray-100 text-gray-700 border-gray-200']">{{ $t(typeMap[row.type] || 'page.events.type_other') }}</span>
+            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700']">{{ $t(typeMap[row.type] || 'page.events.type_other') }}</span>
           </template>
           <template #cell-start_date="{ row }">
             <span class="text-sm text-text-secondary">{{ formatDate(row.start_date) }}</span>

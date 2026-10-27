@@ -31,8 +31,8 @@
           </template>
         </BasePageHeader>
 
-        <div class="bg-surface border border-border rounded-xl p-8">
-          <div class="flex justify-between pb-8 mb-8 border-b border-border">
+        <div class="bg-surface border border-border rounded-xl p-4 sm:p-8">
+          <div class="flex flex-wrap gap-4 justify-between pb-6 sm:pb-8 mb-6 sm:mb-8 border-b border-border">
             <div>
               <h2 class="text-xl font-bold text-text-primary">{{ invoice.number }}</h2>
               <p class="mt-1 text-sm text-text-tertiary">{{ $t('invoice.issue_date') }} : {{ invoice.issue_date }}</p>
@@ -51,7 +51,8 @@
             <p v-if="invoice.customer?.city" class="text-sm text-text-tertiary">{{ invoice.customer.city }}</p>
           </div>
 
-          <table class="w-full mb-8">
+          <div class="overflow-x-auto">
+          <table class="w-full min-w-[520px] mb-8">
             <thead>
               <tr class="border-b border-border">
                 <th class="pb-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('invoice.description') }}</th>
@@ -69,9 +70,10 @@
               </tr>
             </tbody>
           </table>
+          </div>
 
           <div class="flex justify-end">
-            <div class="w-64 space-y-2">
+            <div class="w-full max-w-xs space-y-2 sm:w-64">
               <div class="flex justify-between text-sm">
                 <span class="text-text-tertiary">{{ $t('invoice.subtotal') }}</span>
                 <span class="text-text-primary">{{ formatXOF(invoice.subtotal_xof) }}</span>
@@ -117,11 +119,11 @@ const sendingEmail = ref(false);
 
 const statusMap = {
   draft: { class: 'bg-surface-tertiary text-text-secondary', label: 'status.draft' },
-  sent: { class: 'bg-blue-50 text-blue-700', label: 'status.sent' },
-  partial: { class: 'bg-yellow-50 text-yellow-700', label: 'status.partial' },
-  paid: { class: 'bg-green-50 text-green-700', label: 'status.paid' },
-  cancelled: { class: 'bg-red-50 text-red-700', label: 'status.cancelled' },
-  overdue: { class: 'bg-amber-50 text-amber-700', label: 'status.overdue' },
+  sent: { class: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', label: 'status.sent' },
+  partial: { class: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300', label: 'status.partial' },
+  paid: { class: 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300', label: 'status.paid' },
+  cancelled: { class: 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300', label: 'status.cancelled' },
+  overdue: { class: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', label: 'status.overdue' },
 };
 
 function statusClass(s) { return statusMap[s]?.class || 'bg-surface-tertiary text-text-secondary'; }

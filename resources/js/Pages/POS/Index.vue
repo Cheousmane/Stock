@@ -304,7 +304,7 @@
           <div class="flex justify-between"><span>{{ $t('page.pos.expected_cash') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.expected_closing_cash_xof) }}</span></div>
           <div class="flex justify-between"><span>{{ $t('page.pos.actual_count') }}</span><span class="tabular-nums">{{ formatMoney(ticketZ?.closing_cash_xof) }}</span></div>
           <div class="flex justify-between font-bold mt-1"
-            :class="(ticketZ?.cash_difference_xof ?? 0) === 0 ? 'text-emerald-600' : 'text-red-600'">
+            :class="(ticketZ?.cash_difference_xof ?? 0) === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
             <span>{{ $t('page.pos.cash_gap') }}</span>
             <span class="tabular-nums">{{ formatMoney(ticketZ?.cash_difference_xof) }}</span>
           </div>

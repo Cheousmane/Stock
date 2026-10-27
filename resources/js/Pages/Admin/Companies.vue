@@ -430,8 +430,8 @@ function debouncedSearch() {
 }
 
 function statusClass(status) {
-  const map = { active: 'bg-emerald-100 text-emerald-700', suspended: 'bg-red-100 text-red-700', trial: 'bg-amber-100 text-amber-700', disabled: 'bg-gray-100 text-gray-500' }
-  return map[status] || 'bg-gray-100 text-gray-500'
+  const map = { active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', suspended: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300', trial: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', disabled: 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400' }
+  return map[status] || 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400'
 }
 
 function sizeLabel(size) {
@@ -466,10 +466,10 @@ function timelineDotClass(event) {
 }
 
 function eventBadgeClass(event) {
-  if (event === 'created') return 'bg-emerald-50 text-emerald-600'
-  if (event === 'updated') return 'bg-blue-50 text-blue-600'
-  if (event === 'deleted') return 'bg-rose-50 text-rose-600'
-  return 'bg-gray-50 text-gray-600'
+  if (event === 'created') return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300'
+  if (event === 'updated') return 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300'
+  if (event === 'deleted') return 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300'
+  return 'bg-gray-50 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300'
 }
 
 async function fetchCompanies(page = 1) {

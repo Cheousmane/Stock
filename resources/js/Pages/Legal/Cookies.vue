@@ -1,15 +1,18 @@
 <template>
-  <div class="min-h-screen bg-surface-secondary text-text-primary antialiased">
+  <div class="min-h-screen min-h-dvh bg-surface-secondary text-text-primary antialiased">
     <header class="sticky top-0 z-30 border-b border-border bg-surface/80 backdrop-blur-xl">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
         <router-link to="/" class="flex items-center gap-2.5 group">
           <AppLogo :size="34" />
           <span class="text-sm font-extrabold tracking-tight">SIDIBE CORPORATE</span>
         </router-link>
-        <router-link to="/" class="ml-auto inline-flex items-center gap-1.5 text-sm font-bold text-text-secondary hover:text-emerald-600 transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12l7.5-7.5M3 12h18" /></svg>
-          Accueil
-        </router-link>
+        <div class="ml-auto flex items-center gap-1.5">
+          <ThemeToggle />
+          <router-link to="/" class="inline-flex items-center gap-1.5 text-sm font-bold text-text-secondary hover:text-emerald-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12l7.5-7.5M3 12h18" /></svg>
+            <span class="hidden sm:inline">Accueil</span>
+          </router-link>
+        </div>
       </div>
     </header>
 
@@ -39,7 +42,8 @@
           </section>
 
           <section class="rounded-2xl border border-border/70 overflow-hidden">
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[560px] text-sm">
               <thead>
                 <tr class="bg-surface-secondary/60 text-left text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">
                   <th class="px-4 py-3">Nom</th>
@@ -53,6 +57,7 @@
                 <tr><td class="px-4 py-3 font-bold text-text-primary">XSRF-TOKEN, session</td><td class="px-4 py-3">Sécurité anti-CSRF</td><td class="px-4 py-3">Session</td></tr>
               </tbody>
             </table>
+            </div>
           </section>
 
           <section id="contact" class="scroll-mt-24 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20 p-5">
@@ -69,6 +74,7 @@
 
 <script setup>
 import AppLogo from '../../Components/AppLogo.vue'
+import ThemeToggle from '../../Components/ThemeToggle.vue'
 
 function print() { window.print() }
 

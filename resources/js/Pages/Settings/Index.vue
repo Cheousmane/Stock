@@ -25,7 +25,7 @@
                 </div>
                 <div class="flex-1">
                   <input ref="logoInput" type="file" accept="image/*" @change="onLogoChange"
-                    class="block w-full text-sm text-text-tertiary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                    class="block w-full text-sm text-text-tertiary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-500/15 dark:file:text-emerald-300 dark:hover:file:bg-emerald-500/25" />
                   <div class="flex gap-2 mt-2">
                     <BaseButton v-if="selectedLogo" variant="primary" size="xs" type="button" @click="uploadLogo" :loading="uploadingLogo">
                       {{ uploadingLogo ? 'Upload...' : 'Uploader le logo' }}
@@ -77,7 +77,7 @@
               { value: 'GBP', label: 'GBP (£)' },
             ]" />
 
-            <div class="flex gap-3 pt-4 border-t border-border">
+            <div class="flex flex-wrap gap-3 pt-4 border-t border-border">
               <BaseButton type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
             </div>
           </form>
@@ -86,7 +86,7 @@
         <!-- Legal & Payment Info -->
         <BaseCard :title="$t('settings.legal_payment_title')" :subtitle="$t('settings.legal_payment_subtitle')" padding="lg">
           <form @submit.prevent="submit" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseSelect v-model="form.locale" :label="$t('settings.doc_language')" :options="[
                 { value: 'fr', label: 'Français' },
                 { value: 'en', label: 'English' },
@@ -103,7 +103,7 @@
             </div>
             <div class="pt-3 border-t border-border">
               <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">{{ $t('settings.legal_ids') }}</div>
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <BaseInput v-model="form.legal_rc" label="RC (Registre de commerce)" />
                 <BaseInput v-model="form.legal_ifu" label="IFU / NIF" />
                 <BaseInput v-model="form.legal_rccm" label="RCCM" />
@@ -111,13 +111,13 @@
             </div>
             <div class="pt-3 border-t border-border">
               <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">{{ $t('settings.bank_details') }}</div>
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <BaseInput v-model="form.bank_name" :label="$t('payment.bank')" :placeholder="$t('settings.ph_bank')" />
                 <BaseInput v-model="form.bank_account" :label="$t('settings.bank_account')" :placeholder="$t('settings.ph_account')" />
                 <BaseInput v-model="form.bank_swift" :label="$t('settings.bank_swift')" :placeholder="$t('settings.ph_swift')" />
               </div>
             </div>
-            <div class="flex gap-3 pt-4 border-t border-border">
+            <div class="flex flex-wrap gap-3 pt-4 border-t border-border">
               <BaseButton type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
             </div>
           </form>
@@ -126,11 +126,11 @@
         <!-- Email Configuration -->
         <BaseCard :title="$t('settings.email_config')" padding="lg">
           <form @submit.prevent="saveEmailConfig" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="mailForm.mail_host" :label="$t('settings.smtp_host')" :placeholder="$t('settings.smtp_host_placeholder')" />
               <BaseInput v-model="mailForm.mail_port" :label="$t('settings.smtp_port')" :placeholder="$t('settings.smtp_port_placeholder')" />
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="mailForm.mail_username" :label="$t('settings.smtp_username')" :placeholder="$t('settings.smtp_username_placeholder')" />
               <BaseInput v-model="mailForm.mail_password" type="password" :label="$t('settings.smtp_password')" />
             </div>
@@ -139,17 +139,17 @@
               { value: 'ssl', label: 'SSL' },
               { value: '', label: $t('common.none') },
             ]" />
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="mailForm.mail_from_address" :label="$t('settings.from_address')" placeholder="noreply@example.com" />
               <BaseInput v-model="mailForm.mail_from_name" :label="$t('settings.from_name')" :placeholder="$t('settings.from_name_placeholder')" />
             </div>
-            <div class="flex gap-3 pt-4 border-t border-border">
+            <div class="flex flex-wrap gap-3 pt-4 border-t border-border">
               <BaseButton type="submit" :loading="mailSaving">{{ $t('common.save') }}</BaseButton>
               <BaseButton variant="secondary" type="button" :loading="mailTesting" @click="testMailConfig">
                 {{ $t('settings.test_config') }}
               </BaseButton>
             </div>
-            <p v-if="mailTestResult" :class="['text-sm', mailTestResult.success ? 'text-green-600' : 'text-red-600']">{{ mailTestResult.message }}</p>
+            <p v-if="mailTestResult" :class="['text-sm', mailTestResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400']">{{ mailTestResult.message }}</p>
           </form>
         </BaseCard>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="pro-table-wrap">
-    <div class="overflow-x-auto">
-      <table class="w-full">
+    <div class="overflow-x-auto overscroll-x-contain">
+      <table class="w-full min-w-[680px]">
         <thead>
             <tr class="pro-table-head">
             <th v-if="selectable" class="w-10 px-4 py-3">

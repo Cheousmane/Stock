@@ -39,10 +39,10 @@
                 </div>
               </div>
               <div class="flex items-center gap-3">
-                <span v-if="currentSubscription.trial_ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-amber-200 bg-amber-50 text-amber-700">
+                <span v-if="currentSubscription.trial_ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300">
                   {{ $t('subscription.trial_until', { date: formatDate(currentSubscription.trial_ends_at) }) }}
                 </span>
-                <span v-else-if="currentSubscription.ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-rose-200 bg-rose-50 text-rose-700">
+                <span v-else-if="currentSubscription.ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/15 dark:text-rose-300">
                   {{ $t('subscription.ends_on', { date: formatDate(currentSubscription.ends_at) }) }}
                 </span>
                 <BaseBadge variant="success">{{ $t('subscription.active_badge') }}</BaseBadge>

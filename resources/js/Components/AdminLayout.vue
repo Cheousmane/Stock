@@ -11,7 +11,7 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[272px] bg-sidebar-surface border-r border-sidebar-border shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)] transition-[width,transform] duration-100 ease-out"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[min(272px,85vw)] bg-sidebar-surface border-r border-sidebar-border shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)] transition-[width,transform] duration-100 ease-out"
       :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[272px]']"
     >
       <!-- Logo -->
@@ -58,6 +58,7 @@
             <router-link
               v-else
               :to="item.to"
+              @click="sidebarOpen = false"
               class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-100"
               :class="[
                 isActive(item.to)
@@ -127,7 +128,7 @@
       <!-- Top navbar -->
       <header class="sticky top-0 z-30 border-b border-border bg-surface/75 backdrop-blur-xl">
         <div class="flex items-center gap-2.5 h-[68px] px-4 lg:px-8 max-w-[1440px] mx-auto w-full">
-        <button @click="sidebarOpen = true" class="flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface text-text-secondary shadow-sm active:scale-95 transition">
+        <button @click="sidebarOpen = true" class="flex lg:hidden items-center justify-center w-10 h-10 shrink-0 rounded-xl border border-border bg-surface text-text-secondary shadow-sm active:scale-95 transition">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
@@ -138,13 +139,13 @@
           <span v-if="companyPlan" class="hidden xl:inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-[11px] font-extrabold text-violet-600 whitespace-nowrap">{{ companyPlan.name }}</span>
         </div>
 
-        <div class="flex items-center gap-2 ml-auto">
+        <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           <!-- Quick Create Action -->
           <div class="relative" v-click-outside="() => quickCreateOpen = false">
             <button
               v-if="can('create_invoice') || can('access_pos') || can('create_product') || can('create_customer')"
               @click="quickCreateOpen = !quickCreateOpen"
-              class="inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] transition-all"
+              class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] transition-all shrink-0"
             >
               <PlusIcon class="w-4 h-4" />
               <span class="hidden sm:inline">{{ $t('header.new') }}</span>
@@ -208,7 +209,7 @@
           </button>
           <button
             @click="searchOpen = true"
-            class="flex sm:hidden items-center justify-center w-10 h-10 text-text-secondary rounded-xl border border-border bg-surface shadow-sm"
+            class="flex sm:hidden items-center justify-center w-10 h-10 shrink-0 text-text-secondary rounded-xl border border-border bg-surface shadow-sm"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -276,7 +277,7 @@
         <div class="px-4 lg:px-8 pt-5 lg:pt-7 max-w-[1440px] mx-auto w-full">
           <slot name="header" />
         </div>
-        <main class="px-4 lg:px-8 pb-8 pt-4 max-w-[1440px] mx-auto w-full">
+        <main class="px-4 lg:px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4 max-w-[1440px] mx-auto w-full">
           <slot />
         </main>
       </div>
@@ -284,10 +285,10 @@
 
     <!-- Search modal -->
     <Teleport to="body">
-      <div v-if="searchOpen" class="fixed inset-0 z-[200] flex items-start justify-center pt-[15vh]" @click.self="searchOpen = false">
+      <div v-if="searchOpen" class="fixed inset-0 z-[200] flex items-start justify-center px-3 sm:px-4 pt-[10vh] sm:pt-[15vh]" @click.self="searchOpen = false">
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm modal-fade-enter-active" />
         <div class="relative w-full max-w-xl bg-surface border border-border/70 rounded-3xl shadow-modal overflow-hidden modal-pop-enter-active">
-            <div class="flex items-center gap-3 px-5 border-b border-border/70">
+            <div class="flex items-center gap-3 px-4 sm:px-5 border-b border-border/70">
               <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
@@ -300,7 +301,7 @@
               />
               <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-[10px] font-extrabold text-text-tertiary bg-surface-tertiary border border-border rounded-lg">ESC</kbd>
             </div>
-            <div class="p-2 max-h-80 overflow-y-auto">
+            <div class="p-2 max-h-[60dvh] sm:max-h-80 overflow-y-auto">
               <p v-if="searchQuery.length < 2" class="py-8 text-center text-sm text-text-tertiary">
                 {{ $t('header.search_hint') }}
               </p>
@@ -329,7 +330,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useI18n } from 'vue-i18n'
@@ -395,10 +396,30 @@ async function refreshCompany() {
 
 watch(sidebarCollapsed, (v) => localStorage.setItem('sidebarCollapsed', v))
 watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
+watch(() => route.fullPath, () => {
+  sidebarOpen.value = false
+  dropdownOpen.value = false
+  quickCreateOpen.value = false
+  searchOpen.value = false
+})
+watch([sidebarOpen, searchOpen], ([menuOpen, searching]) => {
+  document.body.style.overflow = menuOpen || searching ? 'hidden' : ''
+})
 
-document.addEventListener('keydown', (e) => {
+function onGlobalKeydown(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchOpen.value = true }
-  if (e.key === 'Escape') searchOpen.value = false
+  if (e.key === 'Escape') {
+    searchOpen.value = false
+    sidebarOpen.value = false
+    dropdownOpen.value = false
+    quickCreateOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', onGlobalKeydown))
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onGlobalKeydown)
+  document.body.style.overflow = ''
 })
 
 const userInitial = computed(() => (userName.value || 'U').charAt(0).toUpperCase())

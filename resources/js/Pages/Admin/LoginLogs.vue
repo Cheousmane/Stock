@@ -56,7 +56,8 @@
 
       <div class="rounded-xl bg-surface border border-border shadow-sm overflow-hidden">
         <div v-if="loading" class="p-8 text-center text-sm text-text-tertiary">Chargement...</div>
-        <table v-else class="w-full">
+        <div v-else class="overflow-x-auto">
+        <table class="w-full min-w-[760px]">
           <thead>
             <tr class="border-b border-border text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider">
               <th class="px-4 py-3">Statut</th>
@@ -80,9 +81,10 @@
             </tr>
           </tbody>
         </table>
+        </div>
         <div v-if="!loading && logs.length === 0" class="p-8 text-center text-sm text-text-tertiary">Aucun log trouvé</div>
 
-        <div v-if="pagination" class="flex items-center justify-between px-4 py-3 border-t border-border">
+        <div v-if="pagination" class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-border">
           <p class="text-xs text-text-tertiary">{{ pagination.from }}-{{ pagination.to }} sur {{ pagination.total }}</p>
           <div class="flex items-center gap-1">
             <button :disabled="!pagination.prev_page_url" @click="goToPage(pagination.current_page - 1)" class="px-3 py-1 text-sm rounded-lg border border-border hover:bg-surface-tertiary disabled:opacity-40">&larr;</button>
@@ -96,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import SuperAdminLayout from './SuperAdminLayout.vue'
 import {
@@ -109,6 +111,7 @@ import {
   Legend
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
+import { useTheme } from '@/composables/useTheme'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -121,17 +124,18 @@ const total24h = ref(0)
 const failed24h = ref(0)
 const exporting = ref(false)
 const chartDataHourly = ref(null)
+const { isDark } = useTheme()
 
-const chartOptionsHourly = {
+const chartOptionsHourly = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   resizeDelay: 100,
-  plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true } }, tooltip: { mode: 'index', intersect: false } },
+  plugins: { legend: { position: 'top', align: 'end', labels: { color: isDark.value ? '#9ca3af' : '#6b7280', boxWidth: 10, usePointStyle: true } }, tooltip: { mode: 'index', intersect: false } },
   scales: {
-    x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0, callback: v => `${v}h` } },
-    y: { stacked: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { precision: 0 } }
+    x: { stacked: true, grid: { display: false }, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', maxRotation: 0, callback: v => `${v}h` } },
+    y: { stacked: true, border: { display: false }, grid: { color: isDark.value ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', precision: 0 } }
   }
-}
+}))
 
 let debounceTimer = null
 function debouncedSearch() {

@@ -1,12 +1,14 @@
 <template>
   <Teleport to="body">
-    <div v-if="modelValue" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="close">
+    <div v-if="modelValue" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4" @click.self="close">
       <Transition name="modal-fade">
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
       </Transition>
       <Transition name="modal-pop">
         <div
-          class="modal-pop-enter-active relative bg-surface border border-border/70 rounded-3xl shadow-modal w-full"
+          role="dialog"
+          aria-modal="true"
+          class="modal-pop-enter-active relative bg-surface border border-border/70 rounded-3xl shadow-modal w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain"
           :class="sizeClasses[size]"
         >
         <div v-if="$slots.header || title" class="flex items-start justify-between gap-4 p-6 pb-0">
@@ -23,7 +25,7 @@
         <div :class="['p-5', { 'pt-4': $slots.header || title }]">
           <slot />
         </div>
-        <div v-if="$slots.footer" class="flex items-center justify-end gap-3 px-5 pb-5">
+        <div v-if="$slots.footer" class="flex flex-wrap items-center justify-end gap-3 px-5 pb-5">
           <slot name="footer" />
         </div>
         </div>
@@ -33,6 +35,8 @@
 </template>
 
 <script setup>
+import { onBeforeUnmount, onMounted } from 'vue'
+
 const props = defineProps({
   // Accepte un booleen ou un objet (pratique pour stocker l'element a supprimer)
   modelValue: { default: false },
@@ -46,6 +50,13 @@ const emit = defineEmits(['update:modelValue'])
 function close() {
   emit('update:modelValue', false)
 }
+
+function onKeydown(event) {
+  if (event.key === 'Escape' && props.modelValue) close()
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
 const sizeClasses = {
   sm: 'max-w-sm',

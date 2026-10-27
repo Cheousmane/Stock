@@ -350,76 +350,6 @@ table td {
     --color-sidebar-text-active: #34d399;
     --color-sidebar-logo-bg: linear-gradient(135deg, #34d399, #059669);
 
-    --color-white: #141414;
-    --color-black: #f0f0f0;
-
-    /* Gray overrides */
-    --color-gray-50: #1e1e1e;
-    --color-gray-100: #2a2a2a;
-    --color-gray-200: #333333;
-    --color-gray-300: #4b5563;
-    --color-gray-400: #6b7280;
-    --color-gray-500: #9ca3af;
-    --color-gray-600: #b0b0b0;
-    --color-gray-700: #d1d5db;
-    --color-gray-800: #e5e7eb;
-    --color-gray-900: #f3f4f6;
-    --color-gray-950: #f9fafb;
-
-    /* Primary overrides — muted accents */
-    --color-primary-50: #022c22;
-    --color-primary-100: #064e3b;
-    --color-primary-200: #065f46;
-    --color-primary-400: #059669;
-    --color-primary-500: #10b981;
-    --color-primary-600: #34d399;
-    --color-primary-700: #6ee7b7;
-
-    /* Semantic colors */
-    --color-red-50: #1f0a0a;
-    --color-red-100: #3b1111;
-    --color-red-200: #521717;
-    --color-red-300: #7f1d1d;
-    --color-red-400: #b91c1c;
-    --color-red-500: #ef4444;
-    --color-red-600: #f87171;
-    --color-red-700: #fca5a5;
-
-    --color-amber-50: #2a1a04;
-    --color-amber-100: #452a07;
-    --color-amber-200: #78350f;
-    --color-amber-300: #92400e;
-    --color-amber-400: #d97706;
-    --color-amber-500: #f59e0b;
-    --color-amber-600: #fbbf24;
-
-    --color-blue-50: #0c1f3a;
-    --color-blue-100: #14305e;
-    --color-blue-200: #1e3a5f;
-    --color-blue-300: #1e40af;
-    --color-blue-400: #2563eb;
-    --color-blue-500: #3b82f6;
-    --color-blue-600: #60a5fa;
-    --color-blue-700: #93c5fd;
-
-    --color-green-50: #022c22;
-    --color-green-100: #064e3b;
-    --color-green-200: #065f46;
-    --color-green-300: #047857;
-    --color-green-400: #059669;
-    --color-green-500: #10b981;
-    --color-green-600: #34d399;
-    --color-green-700: #6ee7b7;
-
-    --color-purple-50: #1f0a33;
-    --color-purple-100: #3b0f5c;
-    --color-purple-200: #4c1d95;
-    --color-purple-300: #5b21b6;
-    --color-purple-400: #7c3aed;
-    --color-purple-500: #a855f7;
-    --color-purple-600: #c084fc;
-    --color-purple-700: #d8b4fc;
-
     /* Shadow overrides */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.35), 0 1px 2px -1px rgb(0 0 0 / 0.3);
@@ -680,6 +610,8 @@ tbody tr:nth-child(n+13) { animation-delay: 0ms; }
 .pro-page-btn:hover:not(:disabled) { border-color: rgb(16 185 129 / 0.5); color: var(--color-primary-600); }
 .pro-page-btn:active:not(:disabled) { transform: scale(0.95); }
 .pro-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.dark .pro-eyebrow { color: var(--color-primary-400); }
+.dark .pro-page-btn:hover:not(:disabled) { color: var(--color-primary-400); }
 
 /* Skeletons + empty states */
 .pro-skeleton { position: relative; overflow: hidden; background: var(--color-surface-tertiary); border-radius: 0.75rem; }
@@ -758,8 +690,10 @@ html.dark .auth-footer a { color: #737373; }
 html.dark .auth-footer a:hover { color: #d4d4d4; }
 
 /* Floating theme switch on auth pages */
-.auth-theme-btn {
+.auth-theme-toggle {
     position: absolute; top: 20px; right: 20px; z-index: 20;
+}
+.auth-theme-btn {
     display: flex; align-items: center; justify-content: center;
     width: 40px; height: 40px; border-radius: 12px;
     background: var(--color-surface);
@@ -772,6 +706,27 @@ html.dark .auth-footer a:hover { color: #d4d4d4; }
 .auth-theme-btn:hover { color: var(--color-primary-600); border-color: rgb(16 185 129 / 0.5); transform: translateY(-1px); }
 .auth-theme-btn:active { transform: scale(0.94); }
 .auth-theme-btn svg { width: 19px; height: 19px; }
+
+/* Tableaux : garder une largeur lisible et laisser le scroll horizontal sur mobile */
+.pro-table-wrap .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+@media (max-width: 767px) {
+    .auth-theme-toggle {
+        top: 14px;
+        right: 14px;
+    }
+    .auth-theme-btn {
+        width: 36px;
+        height: 36px;
+    }
+    .pro-table-wrap table { min-width: 680px; }
+    .pro-card { border-radius: 1.25rem; }
+    .pro-pagination { padding: 0.875rem 1rem; }
+    .pro-title { font-size: 1.35rem; }
+}
 
 /* Scrollbars */
 .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgb(16 185 129 / 0.35) transparent; }

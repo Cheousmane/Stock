@@ -39,8 +39,8 @@
           </template>
         </BasePageHeader>
 
-        <div class="bg-surface border border-border rounded-xl p-8">
-          <div class="flex justify-between pb-8 mb-8 border-b border-border">
+        <div class="bg-surface border border-border rounded-xl p-4 sm:p-8">
+          <div class="flex flex-wrap gap-4 justify-between pb-6 sm:pb-8 mb-6 sm:mb-8 border-b border-border">
             <div>
               <h2 class="text-xl font-bold text-text-primary">{{ quote.number }}</h2>
               <p class="mt-1 text-sm text-text-tertiary">{{ $t('common.date') }} : {{ quote.issue_date }}</p>
@@ -57,7 +57,8 @@
             <p v-if="quote.customer?.email" class="text-sm text-text-tertiary">{{ quote.customer.email }}</p>
           </div>
 
-          <table class="w-full mb-8">
+          <div class="overflow-x-auto">
+          <table class="w-full min-w-[520px] mb-8">
             <thead>
               <tr class="border-b border-border">
                 <th class="pb-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.description') }}</th>
@@ -75,9 +76,10 @@
               </tr>
             </tbody>
           </table>
+          </div>
 
           <div class="flex justify-end">
-            <div class="w-64 space-y-2">
+            <div class="w-full max-w-xs space-y-2 sm:w-64">
               <div class="flex justify-between text-sm">
                 <span class="text-text-tertiary">Sous-total</span>
                 <span class="text-text-primary">{{ formatXOF(quote.subtotal_xof) }}</span>
@@ -128,10 +130,10 @@ const converting = ref(false);
 
 const statusMap = {
   draft: { class: 'bg-surface-tertiary text-text-secondary', label: t('status.draft') },
-  sent: { class: 'bg-blue-50 text-blue-700', label: t('status.sent') },
-  accepted: { class: 'bg-green-50 text-green-700', label: t('status.accepted') },
-  rejected: { class: 'bg-red-50 text-red-700', label: t('status.rejected') },
-  converted: { class: 'bg-purple-50 text-purple-700', label: t('status.converted') },
+  sent: { class: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', label: t('status.sent') },
+  accepted: { class: 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300', label: t('status.accepted') },
+  rejected: { class: 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300', label: t('status.rejected') },
+  converted: { class: 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300', label: t('status.converted') },
 };
 
 function statusClass(s) { return statusMap[s]?.class || 'bg-surface-tertiary text-text-secondary'; }

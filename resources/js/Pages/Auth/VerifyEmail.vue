@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen">
+  <div class="flex min-h-screen min-h-dvh">
     <!-- Left Panel - Branding -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div class="absolute inset-0 animate-[bgShift_20s_ease-in-out_infinite_alternate]"></div>
@@ -21,7 +21,10 @@
     </div>
 
     <!-- Right Panel - Form -->
-    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--color-surface-secondary)]">
+    <div class="relative flex-1 flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--color-surface-secondary)]">
+      <div class="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div class="w-full max-w-sm">
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
@@ -30,7 +33,7 @@
           </router-link>
         </div>
 
-        <div class="p-8 rounded-xl bg-[var(--color-surface)] shadow-[var(--shadow-modal)] dark:border dark:border-[var(--color-border)]">
+        <div class="p-6 sm:p-8 rounded-xl bg-[var(--color-surface)] shadow-[var(--shadow-modal)] dark:border dark:border-[var(--color-border)]">
           <div class="text-center mb-7">
             <div class="mx-auto mb-4 flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10">
               <span class="text-emerald-500"><EnvelopeIcon class="w-6 h-6" /></span>
@@ -63,7 +66,7 @@
                 required
                 :disabled="!!prefilledEmail"
                 placeholder="vous@exemple.com"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300 disabled:opacity-60"
+                class="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300 disabled:opacity-60"
               />
             </div>
             <div class="opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.16,1,0.3,1)_0.2s_forwards]">
@@ -77,7 +80,7 @@
                 maxlength="6"
                 pattern="\d{6}"
                 placeholder="••••••"
-                class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300 tracking-[0.3em] text-center"
+                class="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300 tracking-[0.3em] text-center"
               />
               <p v-if="errors.code" class="mt-1.5 text-xs text-red-500">{{ errors.code[0] }}</p>
             </div>
@@ -129,6 +132,7 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { EnvelopeIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/vue/24/outline';
 import AppLogo from '../../Components/AppLogo.vue';
+import ThemeToggle from '../../Components/ThemeToggle.vue';
 import { switchLocale } from '../../i18n';
 
 const route = useRoute();

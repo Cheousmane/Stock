@@ -60,10 +60,9 @@
 
     <!-- ── Right Panel ── -->
     <div class="auth-right">
-      <button @click="toggleTheme" class="auth-theme-btn" :title="isDark ? 'Mode clair' : 'Mode sombre'" aria-label="Basculer le thème">
-        <svg v-if="isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
-        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
-      </button>
+      <div class="auth-theme-toggle">
+        <ThemeToggle button-class="auth-theme-btn" />
+      </div>
       <!-- Mobile logo -->
       <div class="auth-mobile-logo">
         <router-link to="/" class="auth-logo">
@@ -187,10 +186,10 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { switchLocale } from '../../i18n';
 import { useSuggestions } from '../../composables/useSuggestions';
-import { useTheme } from '../../composables/useTheme';
 import { isGoogleConfigured } from '../../utils/google';
 import AppLogo from '../../Components/AppLogo.vue';
 import GoogleSignInButton from '../../Components/GoogleSignInButton.vue';
+import ThemeToggle from '../../Components/ThemeToggle.vue';
 
 const REMEMBER_EMAIL_KEY = 'remembered_email';
 const { saveValue: saveEmailSuggestion } = useSuggestions('login_email');
@@ -199,13 +198,6 @@ const { t } = useI18n();
 
 const loading = ref(false);
 const error = ref('');
-const { setTheme } = useTheme();
-const isDark = ref(false);
-onMounted(() => { isDark.value = document.documentElement.classList.contains('dark'); });
-function toggleTheme() {
-  isDark.value = !isDark.value;
-  setTheme(isDark.value ? 'dark' : 'light');
-}
 const showPassword = ref(false);
 const focused = ref('');
 const form = reactive({ email: '', password: '', remember: false });
@@ -290,7 +282,7 @@ async function login() {
 
 /* ── Root ── */
 .auth-root {
-  display: flex; min-height: 100vh;
+  display: flex; min-height: 100vh; min-height: 100dvh;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   background: #0a0a0a;
 }
@@ -383,6 +375,7 @@ async function login() {
   justify-content: center; padding: 40px 24px;
   background: #fafafa;
   position: relative;
+  overflow-y: auto;
 }
 
 .auth-mobile-logo {
@@ -508,5 +501,27 @@ async function login() {
 .auth-footer a:hover { color: #374151; }
 .auth-footer-sep { opacity: 0.4; }
 
-/* Dark mode is driven by the app theme (html.dark) — see app.css */
+@media (max-width: 640px) {
+  .auth-right {
+    justify-content: flex-start;
+    padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
+  }
+  .auth-mobile-logo { margin-bottom: 20px; }
+  .auth-card { padding: 24px 20px; border-radius: 20px; }
+  .auth-card-header { margin-bottom: 24px; }
+  .auth-card-title { font-size: 22px; }
+  .auth-form { gap: 16px; }
+  .field-label-row { flex-wrap: wrap; gap: 6px; }
+  .field-input { font-size: 16px; }
+  .auth-footer {
+    position: static; margin-top: 24px; padding-bottom: env(safe-area-inset-bottom);
+    flex-wrap: wrap; text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-right { padding-left: 12px; padding-right: 12px; }
+  .auth-card { padding: 20px 16px; }
+  .auth-card-title { font-size: 20px; }
+}
 </style>

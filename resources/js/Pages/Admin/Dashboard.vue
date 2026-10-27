@@ -333,6 +333,7 @@ import {
 } from 'chart.js'
 import { Line, Bar } from 'vue-chartjs'
 import { trackEvent } from '@/composables/useAnalytics'
+import { useTheme } from '@/composables/useTheme'
 import {
   BuildingOfficeIcon, BanknotesIcon, ReceiptPercentIcon, UsersIcon,
   ExclamationTriangleIcon, ClockIcon, ShieldExclamationIcon, InformationCircleIcon
@@ -377,30 +378,31 @@ function trackAlertClick(alertTitle, alertSeverity) {
 
 const chartDataRegistrations = ref(null)
 const chartDataLogins = ref(null)
+const { isDark } = useTheme()
 
-const chartOptionsRegistrations = {
+const chartOptionsRegistrations = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   resizeDelay: 100,
   plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: '#0f172a', padding: 12, cornerRadius: 12 } },
   scales: {
-    x: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } },
-    y: { border: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { precision: 0 } }
+    x: { grid: { display: false }, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', font: { size: 11, weight: 'bold' } } },
+    y: { border: { display: false }, grid: { color: isDark.value ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', precision: 0 } }
   },
   interaction: { mode: 'nearest', axis: 'x', intersect: false },
   elements: { line: { tension: 0.45, borderWidth: 3 }, point: { radius: 0, hoverRadius: 6 } }
-}
+}))
 
-const chartOptionsLogins = {
+const chartOptionsLogins = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   resizeDelay: 100,
   plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: '#0f172a', padding: 12, cornerRadius: 12 } },
   scales: {
-    x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } },
-    y: { stacked: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { precision: 0 } }
+    x: { stacked: true, grid: { display: false }, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', font: { size: 11, weight: 'bold' } } },
+    y: { stacked: true, border: { display: false }, grid: { color: isDark.value ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { color: isDark.value ? '#9ca3af' : '#6b7280', precision: 0 } }
   }
-}
+}))
 
 function formatXof(v) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(v || 0)

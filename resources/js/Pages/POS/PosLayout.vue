@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex flex-col bg-surface-secondary text-text-primary overflow-hidden antialiased">
+  <div class="h-screen h-dvh flex flex-col bg-surface-secondary text-text-primary overflow-hidden antialiased">
     <!-- Header -->
     <header class="relative bg-surface/85 backdrop-blur-xl border-b border-border/70 shrink-0 z-30">
       <div class="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500" />
@@ -29,6 +29,7 @@
             <svg class="w-3.5 h-3.5 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             {{ clock }}
           </span>
+          <ThemeToggle />
           <router-link to="/pos/sessions" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-surface text-[13px] font-extrabold text-text-secondary hover:text-text-primary hover:border-emerald-400/50 shadow-sm active:scale-95 transition">
             {{ $t('page.pos_sessions.title') }}
           </router-link>
@@ -46,6 +47,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import AppLogo from '../../Components/AppLogo.vue';
+import ThemeToggle from '../../Components/ThemeToggle.vue';
 
 const props = defineProps({
   session: Object

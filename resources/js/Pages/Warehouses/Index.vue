@@ -57,7 +57,7 @@
             <span class="text-sm text-text-secondary">{{ row.city || '—' }}</span>
           </template>
           <template #cell-is_active="{ row }">
-            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', row.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200']">
+            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', row.is_active ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25' : 'bg-gray-50 text-gray-500 border-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700']">
               <span class="w-1.5 h-1.5 rounded-full" :class="row.is_active ? 'bg-green-500' : 'bg-gray-400'"></span>
               {{ row.is_active ? $t('status.active') : $t('status.inactive') }}
             </span>

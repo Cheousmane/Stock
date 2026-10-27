@@ -18,10 +18,10 @@
       </div>
 
       <template v-else-if="data">
-        <BaseCard class="bg-green-50 border-green-200">
-          <p class="text-sm font-medium text-green-700">{{ $t('capital.calculated_label') }}</p>
-          <p class="mt-1 text-4xl font-black text-green-700">{{ formatXOF(data.calculated) }}</p>
-          <p v-if="data.is_manual" class="mt-1 text-xs text-green-500">
+        <BaseCard class="bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/25">
+          <p class="text-sm font-medium text-green-700 dark:text-green-300">{{ $t('capital.calculated_label') }}</p>
+          <p class="mt-1 text-4xl font-black text-green-700 dark:text-green-300">{{ formatXOF(data.calculated) }}</p>
+          <p v-if="data.is_manual" class="mt-1 text-xs text-green-500 dark:text-green-400">
             {{ $t('capital.last_updated') }}: {{ formatDate(data.capital_updated_at) }}
           </p>
         </BaseCard>
@@ -45,25 +45,25 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg dark:bg-blue-500/10">
               <div>
-                <p class="text-sm font-medium text-blue-700">{{ $t('capital.revenue') }}</p>
-                <p class="text-xs text-blue-400">{{ $t('capital.revenue_desc') }}</p>
+                <p class="text-sm font-medium text-blue-700 dark:text-blue-300">{{ $t('capital.revenue') }}</p>
+                <p class="text-xs text-blue-400 dark:text-blue-400">{{ $t('capital.revenue_desc') }}</p>
               </div>
-              <p class="text-lg font-bold text-blue-700">+ {{ formatXOF(data.revenue) }}</p>
+              <p class="text-lg font-bold text-blue-700 dark:text-blue-300">+ {{ formatXOF(data.revenue) }}</p>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-rose-50 rounded-lg">
+            <div class="flex items-center justify-between p-4 bg-rose-50 rounded-lg dark:bg-rose-500/10">
               <div>
-                <p class="text-sm font-medium text-rose-700">{{ $t('capital.outflows') }}</p>
-                <p class="text-xs text-rose-400">{{ $t('capital.outflows_desc') }}</p>
+                <p class="text-sm font-medium text-rose-700 dark:text-rose-300">{{ $t('capital.outflows') }}</p>
+                <p class="text-xs text-rose-400 dark:text-rose-400">{{ $t('capital.outflows_desc') }}</p>
               </div>
-              <p class="text-lg font-bold text-rose-700">- {{ formatXOF(data.outflows) }}</p>
+              <p class="text-lg font-bold text-rose-700 dark:text-rose-300">- {{ formatXOF(data.outflows) }}</p>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-green-50 border border-green-100 rounded-lg">
-              <p class="text-sm font-bold text-green-700">{{ $t('capital.calculated') }}</p>
-              <p class="text-xl font-black text-green-700">{{ formatXOF(data.calculated) }}</p>
+            <div class="flex items-center justify-between p-4 bg-green-50 border border-green-100 rounded-lg dark:bg-green-500/10 dark:border-green-500/25">
+              <p class="text-sm font-bold text-green-700 dark:text-green-300">{{ $t('capital.calculated') }}</p>
+              <p class="text-xl font-black text-green-700 dark:text-green-300">{{ formatXOF(data.calculated) }}</p>
             </div>
           </div>
         </BaseCard>

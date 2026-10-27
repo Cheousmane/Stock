@@ -177,14 +177,14 @@ const deleteTarget = ref(null);
 let debounceTimer = null;
 
 const statusMap = {
-  draft: { class: 'bg-gray-100 text-gray-700 border-gray-200', dot: 'bg-gray-400', label: 'status.draft' },
-  sent: { class: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'status.sent' },
-  accepted: { class: 'bg-green-100 text-green-700 border-green-200', dot: 'bg-green-500', label: 'status.accepted' },
-  rejected: { class: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-500', label: 'status.rejected' },
-  converted: { class: 'bg-purple-100 text-purple-700 border-purple-200', dot: 'bg-purple-500', label: 'status.converted' },
+  draft: { class: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700', dot: 'bg-gray-400', label: 'status.draft' },
+  sent: { class: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25', dot: 'bg-blue-500', label: 'status.sent' },
+  accepted: { class: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', dot: 'bg-green-500', label: 'status.accepted' },
+  rejected: { class: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25', dot: 'bg-red-500', label: 'status.rejected' },
+  converted: { class: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/25', dot: 'bg-purple-500', label: 'status.converted' },
 };
 
-function statusClass(s) { return statusMap[s]?.class || 'bg-gray-100 text-gray-700 border-gray-200'; }
+function statusClass(s) { return statusMap[s]?.class || 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700'; }
 function statusDotClass(s) { return statusMap[s]?.dot || 'bg-gray-400'; }
 function statusLabel(s) { return statusMap[s]?.label || s; }
 

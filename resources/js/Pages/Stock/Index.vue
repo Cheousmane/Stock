@@ -103,11 +103,11 @@
                 <tr v-for="m in movements" :key="m.id" class="hover:bg-surface-secondary/80 transition-colors">
                   <td class="px-4 py-3 text-sm text-text-primary">{{ m.product?.name }}</td>
                   <td class="px-4 py-3 text-center">
-                    <span :class="['px-2.5 py-1 text-xs font-medium rounded-full border', m.type === 'in' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200']">
+                    <span :class="['px-2.5 py-1 text-xs font-medium rounded-full border', m.type === 'in' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25']">
                       {{ m.type === 'in' ? $t('page.stock.type_in') : $t('page.stock.type_out') }}
                     </span>
                   </td>
-                  <td class="px-4 py-3 text-sm text-right font-medium tabular-nums" :class="m.type === 'in' ? 'text-green-600' : 'text-red-600'">{{ m.type === 'in' ? '+' : '-' }}{{ m.quantity }}</td>
+                  <td class="px-4 py-3 text-sm text-right font-medium tabular-nums" :class="m.type === 'in' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">{{ m.type === 'in' ? '+' : '-' }}{{ m.quantity }}</td>
                   <td class="hidden md:table-cell px-4 py-3 text-sm text-text-secondary">{{ m.reason || '—' }}</td>
                   <td class="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">{{ m.created_at }}</td>
                 </tr>
@@ -205,10 +205,10 @@ watch([search, perPage], () => {
 usePolling(() => fetchData(meta.value?.current_page || 1, { silent: true }));
 
 function stockStatus(p) {
-  if (!p.min_stock) return { class: 'bg-green-50 text-green-700 border-green-200', label: 'status.ok' };
-  if (p.quantity <= 0) return { class: 'bg-red-50 text-red-700 border-red-200', label: 'status.out_of_stock' };
-  if (p.quantity <= p.min_stock) return { class: 'bg-orange-50 text-orange-700 border-orange-200', label: 'status.low_stock' };
-  return { class: 'bg-green-50 text-green-700 border-green-200', label: 'status.ok' };
+  if (!p.min_stock) return { class: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', label: 'status.ok' };
+  if (p.quantity <= 0) return { class: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25', label: 'status.out_of_stock' };
+  if (p.quantity <= p.min_stock) return { class: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/25', label: 'status.low_stock' };
+  return { class: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', label: 'status.ok' };
 }
 
 async function fetchData(page = 1, { silent = false } = {}) {

@@ -34,8 +34,8 @@
 
         <!-- Tabs -->
         <div class="border-b border-border">
-          <button @click="tab = 'invoices'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'invoices' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.invoices_tab') }}</button>
-          <button @click="tab = 'quotes'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'quotes' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.quotes_tab') }}</button>
+          <button @click="tab = 'invoices'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'invoices' ? 'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.invoices_tab') }}</button>
+          <button @click="tab = 'quotes'" :class="['px-4 py-3 text-sm font-medium border-b-2 transition-colors', tab === 'quotes' ? 'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400' : 'border-transparent text-text-tertiary hover:text-text-primary']">{{ $t('page.customers.quotes_tab') }}</button>
         </div>
 
         <div v-if="tabLoading" class="flex justify-center py-8">
@@ -45,7 +45,8 @@
         <div v-else-if="tab === 'invoices'">
           <div v-if="invoices.length === 0" class="py-8 text-center text-text-tertiary">{{ $t('page.invoices.no_invoices') }}</div>
           <div v-else class="bg-surface border border-border rounded-xl overflow-hidden">
-            <table class="min-w-full divide-y divide-border">
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] divide-y divide-border">
               <thead class="bg-surface-secondary">
                 <tr>
                   <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.invoices.number') }}</th>
@@ -69,13 +70,15 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
         <div v-else-if="tab === 'quotes'">
           <div v-if="quotes.length === 0" class="py-8 text-center text-text-tertiary">{{ $t('page.quotes.no_quotes') }}</div>
           <div v-else class="bg-surface border border-border rounded-xl overflow-hidden">
-            <table class="min-w-full divide-y divide-border">
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] divide-y divide-border">
               <thead class="bg-surface-secondary">
                 <tr>
                   <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.quotes.number') }}</th>
@@ -99,6 +102,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </template>

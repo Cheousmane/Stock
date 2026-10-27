@@ -1,66 +1,124 @@
 <template>
-  <div class="relative" v-click-outside="() => open = false">
-    <button @click="open = !open"
-      class="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
-      :title="$t('component.theme.' + current)">
-      <SunIcon v-if="resolvedTheme === 'light'" class="w-5 h-5" />
-      <MoonIcon v-else-if="resolvedTheme === 'dark'" class="w-5 h-5" />
-      <ComputerDesktopIcon v-else class="w-5 h-5" />
+  <div ref="root" class="relative">
+    <button
+      ref="buttonRef"
+      type="button"
+      @click="open = !open"
+      :class="buttonClasses"
+      :title="label"
+      :aria-label="label"
+      aria-haspopup="menu"
+      :aria-expanded="open"
+    >
+      <component :is="currentIcon" class="w-5 h-5" />
     </button>
-    <div v-if="open"
-      class="absolute right-0 z-50 mt-2 w-36 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-      <button v-for="opt in options" :key="opt.value" @click="select(opt.value)"
-        :class="[
-          'flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors',
-          current === opt.value ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-50 dark:hover:bg-gray-700'
-        ]">
-        <component :is="opt.icon" class="w-4 h-4" />
-        {{ $t(opt.label) }}
-      </button>
-    </div>
+
+    <Transition name="dropdown-in">
+      <div v-if="open" :class="menuClasses" role="menu">
+        <p class="px-3 pt-2 pb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-text-tertiary">
+          {{ $t('component.theme.label') }}
+        </p>
+        <button
+          v-for="opt in options"
+          :key="opt.value"
+          type="button"
+          role="menuitemradio"
+          :aria-checked="current === opt.value"
+          @click="select(opt.value)"
+          :class="[
+            'flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] font-semibold text-left rounded-xl transition-colors',
+            current === opt.value
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
+          ]"
+        >
+          <component :is="opt.icon" class="w-4 h-4 shrink-0" />
+          <span class="flex-1">{{ $t(opt.label) }}</span>
+          <CheckIcon v-if="current === opt.value" class="w-4 h-4 shrink-0" />
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline';
+import {
+  CheckIcon,
+  ComputerDesktopIcon,
+  MoonIcon,
+  SunIcon,
+} from '@heroicons/vue/24/outline';
 import { useTheme } from '../composables/useTheme';
 
-// Click outside directive
-const vClickOutside = {
-  mounted(el, binding) {
-    el.__clickOutside = (event) => {
-      if (!el.contains(event.target)) binding.value();
-    };
-    document.addEventListener('click', el.__clickOutside);
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el.__clickOutside);
-  },
-};
+const props = defineProps({
+  buttonClass: { type: String, default: '' },
+  menuClass: { type: String, default: '' },
+});
 
-const { t: $t } = useI18n();
+const { t } = useI18n();
 const { current, setTheme } = useTheme();
 
+const root = ref(null);
+const buttonRef = ref(null);
 const open = ref(false);
 
 const options = [
+  { value: 'system', label: 'component.theme.auto', icon: ComputerDesktopIcon },
   { value: 'light', label: 'component.theme.light', icon: SunIcon },
   { value: 'dark', label: 'component.theme.dark', icon: MoonIcon },
-  { value: 'system', label: 'component.theme.system', icon: ComputerDesktopIcon },
 ];
+
+const currentIcon = computed(() => {
+  if (current.value === 'dark') return MoonIcon;
+  if (current.value === 'light') return SunIcon;
+  return ComputerDesktopIcon;
+});
+
+const label = computed(() => {
+  if (current.value === 'system') return t('component.theme.auto');
+  return t(`component.theme.${current.value}`);
+});
+
+const buttonClasses = computed(() => props.buttonClass || [
+  'flex items-center justify-center w-9 h-9 rounded-xl',
+  'text-text-secondary hover:text-text-primary',
+  'bg-transparent hover:bg-surface-tertiary border border-transparent hover:border-border',
+  'active:scale-95 transition-all',
+].join(' '));
+
+const menuClasses = computed(() => props.menuClass || [
+  'absolute right-0 z-50 mt-2 w-44 p-1.5',
+  'bg-surface border border-border/70 rounded-2xl',
+  'shadow-xl shadow-neutral-950/[0.08]',
+].join(' '));
 
 function select(value) {
   setTheme(value);
   open.value = false;
+  buttonRef.value?.focus();
 }
 
-const resolvedTheme = computed(() => {
-  if (current.value === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+function onDocumentClick(event) {
+  if (!open.value) return;
+  if (root.value && !root.value.contains(event.target)) open.value = false;
+}
+
+function onKeydown(event) {
+  if (event.key === 'Escape' && open.value) {
+    open.value = false;
+    buttonRef.value?.focus();
   }
-  return current.value;
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick);
+  document.addEventListener('keydown', onKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick);
+  document.removeEventListener('keydown', onKeydown);
 });
 </script>

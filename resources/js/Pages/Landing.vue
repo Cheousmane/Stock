@@ -26,10 +26,9 @@
 
         <!-- Actions -->
         <div class="nav-actions">
-          <button class="theme-btn" @click="isDark = !isDark" :aria-label="isDark ? 'Mode clair' : 'Mode sombre'">
-            <svg v-if="!isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
-          </button>
+          <div class="landing-theme-toggle">
+            <ThemeToggle button-class="landing-theme-trigger" />
+          </div>
           <router-link to="/login" class="nav-login">Connexion</router-link>
           <router-link to="/register" class="btn-primary nav-cta">
             Démarrer gratuitement
@@ -38,7 +37,7 @@
         </div>
 
         <!-- Mobile hamburger -->
-        <button class="nav-hamburger" @click="mobileOpen = !mobileOpen">
+        <button class="nav-hamburger" @click="mobileOpen = !mobileOpen" :aria-expanded="mobileOpen" aria-label="Ouvrir le menu">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -48,6 +47,21 @@
         <a href="#features" class="mobile-link" @click="mobileOpen = false; scrollTo('features')">Fonctionnalités</a>
         <a href="#how" class="mobile-link" @click="mobileOpen = false; scrollTo('how')">Comment ça marche</a>
         <a href="#pricing" class="mobile-link" @click="mobileOpen = false; scrollTo('pricing')">Tarifs</a>
+        <div class="mobile-theme">
+          <span class="mobile-theme-label">Apparence</span>
+          <div class="mobile-theme-options">
+            <button
+              v-for="opt in themeOptions"
+              :key="opt.value"
+              type="button"
+              class="mobile-theme-option"
+              :class="{ active: theme === opt.value }"
+              @click="setTheme(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
         <div class="mobile-actions">
           <router-link to="/login" class="btn-ghost w-full text-center">Connexion</router-link>
           <router-link to="/register" class="btn-primary w-full text-center">Démarrer gratuitement</router-link>
@@ -449,9 +463,16 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import AppLogo from '../Components/AppLogo.vue';
+import ThemeToggle from '../Components/ThemeToggle.vue';
+import { useTheme } from '../composables/useTheme';
 
 // ── Theme ──
-const isDark = ref(false);
+const { current: theme, isDark, setTheme } = useTheme();
+const themeOptions = [
+  { value: 'system', label: 'Auto' },
+  { value: 'light', label: 'Clair' },
+  { value: 'dark', label: 'Sombre' },
+];
 
 // ── Scroll state ──
 const scrolled = ref(false);
@@ -646,6 +667,7 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
   color: var(--text);
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .landing-root.dark {
@@ -736,14 +758,15 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
 }
 .nav-link:hover { color: var(--text); background: var(--primary-light); }
 .nav-actions { display: flex; align-items: center; gap: 8px; }
-.theme-btn {
-  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+.landing-theme-toggle { display: flex; align-items: center; }
+.landing-theme-toggle :deep(.landing-theme-trigger) {
+  width: 36px; height: 36px; padding: 0; border-radius: 8px; border: 1px solid var(--border);
   background: var(--card-bg); cursor: pointer; color: var(--text2);
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
+  flex-shrink: 0; transition: all 0.2s;
 }
-.theme-btn svg { width: 16px; height: 16px; }
-.theme-btn:hover { color: var(--text); border-color: var(--primary); }
+.landing-theme-toggle :deep(.landing-theme-trigger svg) { width: 16px; height: 16px; }
+.landing-theme-toggle :deep(.landing-theme-trigger:hover) { color: var(--text); border-color: var(--primary); }
 .nav-login {
   padding: 7px 16px; font-size: 14px; font-weight: 500; border-radius: 8px;
   text-decoration: none; color: var(--text2); transition: color 0.2s;
@@ -1170,29 +1193,65 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
   .nav-links { display: none; }
   .nav-actions { display: none; }
   .nav-hamburger { display: flex; }
+  .nav-inner { padding: 0 16px; height: 60px; gap: 12px; }
   .mobile-menu {
     display: flex; flex-direction: column; gap: 4px;
-    padding: 12px 16px; background: var(--nav-bg);
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); background: var(--nav-bg);
     backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
     max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1);
   }
-  .mobile-menu.mobile-open { max-height: 400px; }
+  .mobile-menu.mobile-open { max-height: calc(100dvh - 60px); overflow-y: auto; }
   .mobile-link { padding: 10px 12px; border-radius: 8px; font-size: 15px; font-weight: 500; color: var(--text2); text-decoration: none; }
   .mobile-link:hover { background: var(--primary-light); color: var(--primary); }
+  .mobile-theme {
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 6px 0; padding: 12px; border-radius: 12px;
+    background: var(--card-bg); border: 1px solid var(--border);
+  }
+  .mobile-theme-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text3); }
+  .mobile-theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .mobile-theme-option {
+    padding: 9px 6px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text2); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .mobile-theme-option:hover { color: var(--text); border-color: var(--primary); }
+  .mobile-theme-option.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
   .mobile-actions { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; }
-  .hero { padding-top: 100px; }
+  .hero { padding: 96px 20px 60px; }
+  .hero-h1 { font-size: clamp(36px, 10vw, 56px); }
+  .hero-sub { font-size: 16px; margin-bottom: 32px; }
+  .hero-ctas { margin-bottom: 40px; }
+  .hero-trust { flex-wrap: wrap; margin-bottom: 44px; }
+  .mockup-browser { border-radius: 14px; }
+  .stats-bar { padding: 32px 20px; }
+  .stats-inner { gap: 20px 32px; }
+  .section { padding: 72px 20px; }
+  .section-sub { font-size: 16px; margin-bottom: 40px; }
+  .bento-card { padding: 22px; }
   .bento-grid { grid-template-columns: 1fr; }
   .bento-large { grid-column: span 1; }
   .steps-grid { grid-template-columns: 1fr 1fr; }
+  .pricing-card { padding: 28px 22px; }
+  .final-cta-section { padding: 72px 20px; }
+  .landing-footer { padding: 44px 20px 0; }
   .footer-links { flex-wrap: wrap; gap: 32px; }
-  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; padding-bottom: env(safe-area-inset-bottom); }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 480px) {
+  .nav-logo-text { font-size: 12px; }
   .steps-grid { grid-template-columns: 1fr; }
-  .hero-ctas { flex-direction: column; align-items: center; }
-  .final-cta-buttons { flex-direction: column; align-items: center; }
+  .hero-ctas { flex-direction: column; align-items: stretch; }
+  .hero-ctas .btn-xl { width: 100%; justify-content: center; }
+  .final-cta-buttons { flex-direction: column; align-items: stretch; }
+  .final-cta-buttons .btn-xl { width: 100%; justify-content: center; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .pricing-price { font-size: 44px; }
+  .extra-item { padding: 16px; }
+  .section-title { font-size: 28px; }
+  .stats-inner { justify-content: center; }
+  .stat-item { min-width: 40%; }
 }
 </style>

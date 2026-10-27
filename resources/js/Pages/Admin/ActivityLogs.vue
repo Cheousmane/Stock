@@ -40,7 +40,8 @@
           <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           <p class="text-sm font-medium text-text-tertiary">Chargement des interférences...</p>
         </div>
-        <table v-else class="w-full">
+        <div v-else class="overflow-x-auto">
+        <table class="w-full min-w-[860px]">
           <thead>
             <tr class="border-b border-border/50 text-left text-[11px] font-bold text-text-tertiary uppercase tracking-wider bg-surface-secondary/30">
               <th class="px-5 py-4">Date</th>
@@ -85,7 +86,8 @@
             </tr>
           </tbody>
         </table>
-        
+        </div>
+
         <div v-if="!loading && logs.length === 0" class="p-12 flex flex-col items-center justify-center text-center">
           <div class="w-16 h-16 bg-surface-tertiary rounded-2xl flex items-center justify-center mb-4 text-2xl">🕵️‍♂️</div>
           <p class="text-base font-bold text-text-primary">Aucune interférence trouvée</p>
@@ -184,10 +186,10 @@ function timeAgo(date) {
 }
 
 function eventBadgeClass(event) {
-  if (event === 'created') return 'bg-emerald-50 text-emerald-600 border-emerald-200'
-  if (event === 'updated') return 'bg-blue-50 text-blue-600 border-blue-200'
-  if (event === 'deleted') return 'bg-rose-50 text-rose-600 border-rose-200'
-  return 'bg-gray-50 text-gray-600 border-gray-200'
+  if (event === 'created') return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25'
+  if (event === 'updated') return 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25'
+  if (event === 'deleted') return 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/25'
+  return 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700'
 }
 
 function showDetails(log) {

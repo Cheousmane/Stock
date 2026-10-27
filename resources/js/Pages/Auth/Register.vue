@@ -56,10 +56,9 @@
 
     <!-- ── Right Panel ── -->
     <div class="auth-right">
-      <button @click="toggleTheme" class="auth-theme-btn" :title="isDark ? 'Mode clair' : 'Mode sombre'" aria-label="Basculer le thème">
-        <svg v-if="isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
-        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
-      </button>
+      <div class="auth-theme-toggle">
+        <ThemeToggle button-class="auth-theme-btn" />
+      </div>
       <!-- Mobile logo -->
       <div class="auth-mobile-logo">
         <router-link to="/" class="auth-logo">
@@ -300,10 +299,10 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { switchLocale } from '../../i18n';
 import { formatPrice, industryOptions } from '../../utils/format';
-import { useTheme } from '../../composables/useTheme';
 import { isGoogleConfigured } from '../../utils/google';
 import AppLogo from '../../Components/AppLogo.vue';
 import GoogleSignInButton from '../../Components/GoogleSignInButton.vue';
+import ThemeToggle from '../../Components/ThemeToggle.vue';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -311,12 +310,6 @@ const { t } = useI18n();
 const loading = ref(false);
 const error = ref('');
 const errors = reactive({});
-const { setTheme } = useTheme();
-const isDark = ref(false);
-function toggleTheme() {
-  isDark.value = !isDark.value;
-  setTheme(isDark.value ? 'dark' : 'light');
-}
 const showPwd = ref(false);
 const showConfirm = ref(false);
 const focused = ref('');
@@ -398,7 +391,6 @@ async function onGoogleCredential(idToken) {
 }
 
 onMounted(async () => {
-  isDark.value = document.documentElement.classList.contains('dark');
   try {
     const { data } = await axios.get('/subscriptions/plans');
     plans.value = Array.isArray(data) ? data : (data.data || []);
@@ -456,7 +448,7 @@ async function register() {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 .auth-root {
-  display: flex; min-height: 100vh;
+  display: flex; min-height: 100vh; min-height: 100dvh;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   background: #0a0a0a;
 }
@@ -635,4 +627,31 @@ margin-top: 24px; }
 .auth-footer a { color: #9ca3af; text-decoration: none; transition: color 0.2s; }
 .auth-footer a:hover { color: #374151; }
 .auth-footer-sep { opacity: 0.4; }
+
+@media (max-width: 640px) {
+  .auth-right {
+    justify-content: flex-start;
+    padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
+  }
+  .auth-mobile-logo { margin-bottom: 20px; }
+  .auth-card { padding: 24px 20px; border-radius: 20px; }
+  .auth-card-header { margin-bottom: 24px; }
+  .auth-card-title { font-size: 21px; }
+  .auth-form { gap: 16px; }
+  .field-row { grid-template-columns: 1fr; }
+  .field-input { font-size: 16px; }
+  .plan-card { padding: 16px; }
+  .step2-actions { flex-direction: column-reverse; align-items: stretch; }
+  .btn-back { justify-content: center; }
+  .auth-footer {
+    position: static; margin-top: 24px; padding-bottom: env(safe-area-inset-bottom);
+    flex-wrap: wrap; text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-right { padding-left: 12px; padding-right: 12px; }
+  .auth-card { padding: 20px 16px; }
+  .auth-card-title { font-size: 19px; }
+}
 </style>

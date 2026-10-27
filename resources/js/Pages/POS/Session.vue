@@ -3,8 +3,8 @@
     <div class="flex-1 flex items-center justify-center p-6 bg-surface-secondary">
       <div class="bg-surface p-8 rounded-2xl shadow-card w-full max-w-md border border-border">
         <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span class="text-emerald-600"><BanknotesIcon class="w-8 h-8" /></span>
+          <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-emerald-500/15 dark:text-emerald-400">
+            <span class="text-emerald-600 dark:text-emerald-400"><BanknotesIcon class="w-8 h-8" /></span>
           </div>
           <h2 class="text-2xl font-bold text-text-primary">{{ $t('page.pos_session.open_title') }}</h2>
           <p class="text-text-tertiary mt-2">{{ $t('page.pos_session.open_subtitle') }}</p>

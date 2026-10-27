@@ -1207,6 +1207,8 @@
       "title": "Top products"
     },
     "theme": {
+      "label": "Appearance",
+      "auto": "Auto",
       "light": "Light",
       "dark": "Dark",
       "system": "System",

@@ -1206,6 +1206,8 @@
       "title": "Top produits"
     },
     "theme": {
+      "label": "Apparence",
+      "auto": "Auto",
       "light": "Clair",
       "dark": "Sombre",
       "system": "Système"

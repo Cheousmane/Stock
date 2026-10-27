@@ -61,7 +61,7 @@
             <span class="text-sm text-text-secondary truncate max-w-[200px] block">{{ row.email }}</span>
           </template>
           <template #cell-is_online="{ row }">
-            <span v-if="row.is_online" class="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
+            <span v-if="row.is_online" class="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 dark:text-green-400">
               <span class="w-2 h-2 bg-green-500 rounded-full"></span>{{ $t('status.online') }}
             </span>
             <span v-else class="inline-flex items-center gap-1.5 text-xs font-medium text-text-tertiary">
@@ -71,7 +71,7 @@
           <template #cell-roles="{ row }">
             <div class="flex flex-wrap gap-1">
               <span v-for="role in row.roles" :key="role"
-                class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
+                class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded-full dark:bg-primary-500/15 dark:text-primary-300">
                 {{ $t(roleLabel(role)) }}
               </span>
               <span v-if="!row.roles.length" class="text-xs text-text-tertiary">—</span>

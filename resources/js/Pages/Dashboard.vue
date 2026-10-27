@@ -102,7 +102,7 @@
                       <ArrowTrendingUpIcon v-if="kpi.trend >= 0" class="w-3.5 h-3.5" />
                       <ArrowTrendingDownIcon v-else class="w-3.5 h-3.5" />
                     </span>
-                    <span :class="kpi.trend >= 0 ? 'text-emerald-600' : 'text-red-600'" class="text-xs font-semibold tabular-nums">
+                    <span :class="kpi.trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'" class="text-xs font-semibold tabular-nums">
                       {{ kpi.trend >= 0 ? '+' : '' }}{{ kpi.trend }}%
                     </span>
                   </div>
@@ -147,7 +147,7 @@
           <div class="lg:col-span-2 rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.recent_invoices_title') }}</h3>
-              <router-link to="/invoices" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1">
+              <router-link to="/invoices" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center gap-1">
                 <span>{{ $t('page.dashboard.view_all') }}</span>
                 <span>→</span>
               </router-link>
@@ -190,13 +190,13 @@
                     <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.low_stock_subtitle') }}</p>
                   </div>
                 </div>
-                <span v-if="lowStockCount > 0" class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold text-amber-600 bg-amber-500/15 border border-amber-500/20 rounded-full animate-pulse">
+                <span v-if="lowStockCount > 0" class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/20 rounded-full animate-pulse">
                   Alerte
                 </span>
               </div>
               <div class="flex items-baseline justify-between mt-2">
                 <p class="text-3xl font-bold font-mono text-text-primary tabular-nums">{{ lowStockCount }}</p>
-                <router-link to="/stock" class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors">
+                <router-link to="/stock" class="text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors">
                   {{ $t('page.dashboard.check_stock') }}
                 </router-link>
               </div>

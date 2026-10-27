@@ -45,7 +45,8 @@
 
         <BaseCard :title="$t('page.products.stock_by_warehouse')" padding="lg">
           <div v-if="stocks.length === 0" class="text-sm text-text-tertiary">{{ $t('page.products.no_stock') }}</div>
-          <table v-else class="min-w-full divide-y divide-border">
+          <div v-else class="overflow-x-auto">
+          <table class="w-full min-w-[480px] divide-y divide-border">
             <thead class="bg-surface-secondary">
               <tr>
                 <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('form.warehouse') }}</th>
@@ -61,11 +62,13 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </BaseCard>
 
         <BaseCard :title="$t('page.products.stock_movements')" padding="lg">
           <div v-if="movements.length === 0" class="text-sm text-text-tertiary">{{ $t('page.products.no_movements') }}</div>
-          <table v-else class="min-w-full divide-y divide-border">
+          <div v-else class="overflow-x-auto">
+          <table class="w-full min-w-[520px] divide-y divide-border">
             <thead class="bg-surface-secondary">
               <tr>
                 <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.date') }}</th>
@@ -87,6 +90,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </BaseCard>
       </template>
     </div>

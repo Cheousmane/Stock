@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface-secondary text-text-primary antialiased selection:bg-emerald-500/20">
+  <div class="min-h-screen min-h-dvh bg-surface-secondary text-text-primary antialiased selection:bg-emerald-500/20">
     <!-- Ambient background -->
     <div class="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
       <div class="absolute -top-32 left-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-500/10" />
@@ -13,7 +13,7 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[272px] border-r border-sidebar-border bg-sidebar-surface transition-[width,transform] duration-100 ease-out shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)]"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[min(272px,85vw)] border-r border-sidebar-border bg-sidebar-surface transition-[width,transform] duration-100 ease-out shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)]"
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         sidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[272px]'
@@ -73,6 +73,7 @@
               :key="item.to"
               :to="item.to"
               :title="sidebarCollapsed ? item.label : ''"
+              @click="sidebarOpen = false"
               class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-100"
               :class="[
                 isActive(item.to)
@@ -109,6 +110,7 @@
       <div class="p-3 border-t border-sidebar-border space-y-1 bg-sidebar-surface/60">
         <router-link
           to="/dashboard"
+          @click="sidebarOpen = false"
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover border border-dashed border-sidebar-border hover:border-solid transition-all"
           :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
           :title="$t('admin.back_to_app')"
@@ -142,7 +144,7 @@
       <!-- Topbar -->
       <header class="sticky top-0 z-30 border-b border-border bg-surface/75 backdrop-blur-xl">
         <div class="flex items-center gap-3 h-[68px] px-4 lg:px-8 max-w-[1440px] mx-auto w-full">
-          <button @click="sidebarOpen = true" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface text-text-secondary hover:text-text-primary shadow-sm active:scale-95 transition">
+          <button @click="sidebarOpen = true" class="lg:hidden flex items-center justify-center w-10 h-10 shrink-0 rounded-xl border border-border bg-surface text-text-secondary hover:text-text-primary shadow-sm active:scale-95 transition">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
           </button>
 
@@ -157,7 +159,7 @@
           </div>
           <h1 class="sm:hidden text-base font-extrabold text-text-primary truncate">{{ currentPage }}</h1>
 
-          <div class="flex items-center gap-2 ml-auto">
+          <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
             <!-- Search -->
             <button @click="focusSearch" class="hidden md:flex items-center gap-2.5 pl-3.5 pr-2 py-2 w-64 rounded-xl border border-border bg-surface-secondary/70 text-sm text-text-tertiary hover:border-emerald-400/50 hover:bg-surface transition-all shadow-sm group">
               <svg class="w-4 h-4 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
@@ -210,7 +212,7 @@
 
       <!-- Content -->
       <div class="flex-1 w-full">
-        <main class="px-4 lg:px-8 py-6 lg:py-8 max-w-[1440px] mx-auto w-full">
+        <main class="px-4 lg:px-8 py-6 lg:py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] max-w-[1440px] mx-auto w-full">
           <Transition name="page" mode="out-in">
             <div :key="route.path">
               <slot />
@@ -258,6 +260,13 @@ const time = ref('')
 const today = ref(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
 
 watch(sidebarCollapsed, (v) => localStorage.setItem('superAdminSidebarCollapsed', v))
+watch(() => route.fullPath, () => {
+  sidebarOpen.value = false
+  menuOpen.value = false
+})
+watch(sidebarOpen, (open) => {
+  document.body.style.overflow = open ? 'hidden' : ''
+})
 
 const navSections = computed(() => [
   {
@@ -353,6 +362,7 @@ onUnmounted(() => {
   clearInterval(timer)
   document.removeEventListener('click', onClickOutside)
   document.removeEventListener('keydown', onKey)
+  document.body.style.overflow = ''
 })
 </script>
 

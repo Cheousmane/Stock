@@ -76,7 +76,7 @@
           <template #cell-difference="{ row }">
             <span v-if="row.cash_difference_xof !== null && row.cash_difference_xof !== undefined"
               class="text-sm tabular-nums font-medium"
-              :class="row.cash_difference_xof === 0 ? 'text-emerald-600' : 'text-red-600'">
+              :class="row.cash_difference_xof === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
               {{ formatXof(row.cash_difference_xof) }}
             </span>
             <span v-else class="text-sm text-text-tertiary">—</span>
