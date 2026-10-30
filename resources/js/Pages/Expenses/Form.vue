@@ -1,15 +1,10 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="$t('page.expenses.create')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Expenses' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="md" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ $t('page.expenses.create') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="space-y-4">
             <BaseInput v-model="form.description" :label="$t('form.description')" required :error="errors.description?.[0] || ''" />
@@ -30,11 +25,11 @@
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Expenses' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -47,24 +42,30 @@ import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
-import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
 const { t: $t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 const submitting = ref(false);
 const errors = reactive({});
 const form = reactive({
   description: '', category: '', amount: 0, date: new Date().toISOString().slice(0, 10),
 });
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Expenses' });
+}
 
 async function submit() {
   submitting.value = true;
   Object.assign(errors, {});
   try {
-    await axios.post('/expenses', form);
+    await axios.post('/expenses', { ...form });
     showToast($t('page.expenses.created'), 'success');
     router.push({ name: 'Expenses' });
   } catch (err) {
@@ -73,8 +74,11 @@ async function submit() {
       const first = Object.values(errors).flat()[0];
       if (first) showToast(first, 'error');
     } else {
-      showToast($t('common.validation_error'), 'error');
+      showToast($t('common.save_error'), 'error');
     }
-  } finally { submitting.value = false; }
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
+

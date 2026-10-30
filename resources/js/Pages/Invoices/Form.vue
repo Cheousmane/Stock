@@ -1,57 +1,59 @@
 <template>
   <AdminLayout>
-    <div class="max-w-4xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.invoices.edit') : $t('page.invoices.new')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Invoices' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="full" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.invoices.edit') : $t('page.invoices.new') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <BaseSelect v-model="form.customer_id" :label="$t('page.invoices.customer')" required
+            <BaseSelect v-model="form.customer_id" :label="$t('page.invoices.customer')" required class="sm:col-span-2"
               :options="customers.map(c => ({ value: c.id, label: `${c.name} (${c.email})` }))"
               :placeholder="$t('form.select_customer')" :error="errors.customer_id?.[0] || ''" />
-            <div></div>
             <BaseInput v-model="form.issue_date" type="date" :label="$t('invoice.issue_date')" required :error="errors.issue_date?.[0] || ''" />
             <BaseInput v-model="form.due_date" type="date" :label="$t('invoice.due_date')" required :error="errors.due_date?.[0] || ''" />
           </div>
         </BaseCard>
 
         <BaseCard>
-          <div class="space-y-2">
-            <div v-for="(line, index) in form.items" :key="index">
-              <div class="flex flex-wrap gap-2 items-start">
-                <select v-model="line.product_id" @change="selectProduct(index)"
-                  class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-                  <option value="">{{ $t('form.select') }}</option>
-                  <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
-                  <option value="other">{{ $t('common.other') }}</option>
-                </select>
-                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
-                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-                <input v-else v-model="line.description" type="text" :placeholder="$t('form.description')"
-                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
-                  class="w-20 bg-surface border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-2"
-                  :class="stockError(line) ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-primary-500/20'" />
-                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
-                  class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-                <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
-                <span v-if="line.product_id && line.product_id !== 'other'" class="py-2 text-xs text-text-tertiary">{{ $t('page.invoices.stock_available', { count: stockFor(line) }) }}</span>
-                <div class="flex items-center gap-1 py-1">
-                  <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
+          <div class="space-y-3">
+            <div class="pro-line-head">
+              <span>{{ $t('page.stock.product') }}</span>
+              <span>{{ $t('form.description') }}</span>
+              <span class="text-right">{{ $t('form.quantity') }}</span>
+              <span class="text-right">{{ $t('form.unit_price') }}</span>
+              <span class="text-right">{{ $t('invoice.total') }}</span>
+              <span />
+            </div>
+            <div v-for="(line, index) in form.items" :key="index" class="p-3 rounded-2xl bg-surface-secondary/40 border border-border/60 space-y-2">
+              <div class="pro-line-grid">
+                <div class="min-w-0 space-y-1">
+                  <select v-model="line.product_id" @change="selectProduct(index)" :aria-label="$t('page.stock.product')" class="pro-form-control font-semibold">
+                    <option value="">{{ $t('form.select') }}</option>
+                    <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
+                    <option value="other">{{ $t('common.other') }}</option>
+                  </select>
+                  <p v-if="line.product_id && line.product_id !== 'other'" class="text-[11px] font-medium text-text-tertiary">
+                    {{ $t('page.invoices.stock_available', { count: stockFor(line) }) }}
+                  </p>
+                </div>
+                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')" :aria-label="$t('form.name')" class="pro-form-control" />
+                <input v-else v-model="line.description" type="text" :placeholder="$t('form.description')" :aria-label="$t('form.description')" class="pro-form-control" />
+                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')" :aria-label="$t('form.quantity')"
+                  class="pro-form-control text-right font-mono font-semibold"
+                  :class="stockError(line) ? '!border-red-500 focus:!ring-red-500/15' : ''" />
+                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')" :aria-label="$t('form.unit_price')" class="pro-form-control text-right font-mono font-semibold" />
+                <span class="px-1 text-sm font-mono font-black text-text-primary text-left md:text-right tabular-nums">{{ formatXOF(line.total) }}</span>
+                <div class="flex items-center gap-1 md:justify-end">
+                  <button type="button" @click="addLine" class="pro-icon-btn" :title="$t('common.add_line')">
                     <PlusIcon class="w-4 h-4" />
                   </button>
-                  <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
+                  <button type="button" @click="removeLine(index)" class="pro-icon-btn hover:!text-red-600 hover:!bg-red-500/10" :title="$t('common.remove_line')">
                     <XMarkIcon class="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <p v-if="stockError(line)" class="mt-1 text-xs font-medium text-red-500">
+              <p v-if="stockError(line)" class="text-xs font-bold text-red-500">
                 {{ $t('page.invoices.stock_insufficient') }} ({{ $t('page.invoices.stock_available', { count: stockFor(line) }) }})
               </p>
             </div>
@@ -60,35 +62,38 @@
 
         <BaseCard>
           <div class="flex justify-end">
-            <div class="w-64 space-y-2">
-              <div class="flex justify-between text-sm">
+            <div class="w-72 space-y-3 p-4 rounded-2xl bg-surface-secondary/40 border border-border/70">
+              <div class="flex justify-between text-xs font-semibold">
                 <span class="text-text-tertiary">{{ $t('invoice.subtotal') }}</span>
-                <span class="font-medium text-text-primary">{{ formatXOF(subtotal) }}</span>
+                <span class="font-bold font-mono text-text-primary tabular-nums">{{ formatXOF(subtotal) }}</span>
               </div>
-              <div class="flex justify-between text-sm items-center gap-2">
+              <div class="flex justify-between text-xs font-semibold items-center gap-2">
                 <span class="text-text-tertiary">{{ $t('invoice.tax') }}</span>
-                <input v-model.number="form.tax_rate" type="number" min="0" step="0.01" class="w-20 bg-surface border border-border rounded px-2 py-1 text-sm text-text-primary text-right" />
-                <span class="font-medium text-text-primary w-24 text-right">{{ formatXOF(tax) }}</span>
+                <div class="flex items-center gap-1.5">
+                  <input v-model.number="form.tax_rate" type="number" min="0" step="0.01" class="w-16 bg-surface border border-border/80 rounded-lg px-2 py-1 text-xs font-mono text-text-primary text-right focus:outline-none focus:border-emerald-500" />
+                  <span class="text-[11px] text-text-tertiary">%</span>
+                </div>
+                <span class="font-bold font-mono text-text-primary w-24 text-right tabular-nums">{{ formatXOF(tax) }}</span>
               </div>
-              <div class="flex justify-between text-sm items-center gap-2">
+              <div class="flex justify-between text-xs font-semibold items-center gap-2">
                 <span class="text-text-tertiary">{{ $t('invoice.discount') }}</span>
-                <input v-model.number="form.discount" type="number" min="0" step="1" class="w-20 bg-surface border border-border rounded px-2 py-1 text-sm text-text-primary text-right" />
-                <span class="font-medium text-text-primary w-24 text-right">{{ formatXOF(form.discount || 0) }}</span>
+                <input v-model.number="form.discount" type="number" min="0" step="1" class="w-20 bg-surface border border-border/80 rounded-lg px-2 py-1 text-xs font-mono text-text-primary text-right focus:outline-none focus:border-emerald-500" />
+                <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400 w-24 text-right tabular-nums">-{{ formatXOF(form.discount || 0) }}</span>
               </div>
-              <div class="flex justify-between text-base font-bold border-t border-border pt-2">
+              <div class="flex justify-between text-base font-black border-t border-border/80 pt-3">
                 <span class="text-text-primary">{{ $t('invoice.total') }}</span>
-                <span class="text-text-primary">{{ formatXOF(total) }}</span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">{{ formatXOF(total) }}</span>
               </div>
             </div>
           </div>
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Invoices' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ isEdit ? $t('common.save') : $t('page.invoices.create') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -100,13 +105,14 @@ import axios from 'axios';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
 import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 
 const route = useRoute();
 const router = useRouter();
@@ -115,6 +121,12 @@ const submitting = ref(false);
 const customers = ref([]);
 const products = ref([]);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Invoices' });
+}
 
 const form = reactive({
   customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '',
@@ -270,3 +282,6 @@ async function submit() {
   }
 }
 </script>
+
+
+

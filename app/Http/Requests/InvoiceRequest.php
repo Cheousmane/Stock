@@ -15,6 +15,20 @@ class InvoiceRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'customer_id' => 'client',
+            'issue_date' => 'date d\'émission',
+            'due_date' => 'date d\'échéance',
+            'items' => 'lignes',
+            'items.*.product_id' => 'produit',
+            'items.*.description' => 'description',
+            'items.*.quantity' => 'quantité',
+            'items.*.unit_price_xof' => 'prix unitaire',
+        ];
+    }
+
     public function rules(): array
     {
         $isPatch = $this->isMethod('patch');

@@ -1,32 +1,32 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader eyebrow="Ventes" :title="$t('page.customers.title')" :subtitle="meta ? $t('page.customers.title') + ' · ' + meta.total : undefined">
+      <BasePageHeader eyebrow="Ventes" :title="$t('page.customers.title')" :subtitle="meta ? $t('page.customers.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'CustomerCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.customers.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.customers.new') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" :placeholder="$t('page.customers.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+      <div class="pro-filterbar">
+        <BaseInput v-model="search" :placeholder="$t('page.customers.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: `10 ${$t('common.per_page')}` },
           { value: 25, label: `25 ${$t('common.per_page')}` },
           { value: 50, label: `50 ${$t('common.per_page')}` },
           { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.customers.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="can('delete_customer')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -38,7 +38,7 @@
       <template v-else-if="customers.length === 0">
         <BaseEmptyState :title="$t('page.customers.title')" :description="hasActiveFilters ? $t('common.no_results') : $t('page.customers.empty')">
           <BaseButton v-if="!hasActiveFilters" variant="primary" size="sm" :to="{ name: 'CustomerCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.customers.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.customers.new') }}
           </BaseButton>
           <button v-else @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -59,7 +59,7 @@
           @row-click="viewCustomer"
           selectable
           :selected-ids="selectedIds"
-          @update:selectedIds="selectedIds = $event"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-name="{ row }">
             <div class="flex items-center gap-3">

@@ -4,18 +4,18 @@
       <BasePageHeader eyebrow="Ventes" :title="$t('page.invoices.title')" :subtitle="meta ? $t('page.invoices.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'InvoiceCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.invoices.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.invoices.new') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.invoices.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="statusFilter" :options="[
           { value: '', label: $t('page.invoices.all_statuses') },
@@ -32,10 +32,10 @@
           { value: 50, label: `50 ${$t('common.per_page')}` },
           { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.invoices.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="can('delete_invoice')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -47,7 +47,7 @@
       <template v-else-if="invoices.length === 0">
         <BaseEmptyState :title="$t('page.invoices.no_invoices')" :description="search || statusFilter ? $t('page.invoices.no_results') : $t('page.invoices.empty')">
           <BaseButton v-if="!search && !statusFilter" variant="primary" size="sm" :to="{ name: 'InvoiceCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.invoices.create_first') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.invoices.create_first') }}
           </BaseButton>
           <button v-else @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -69,7 +69,7 @@
           @row-click="viewInvoice"
           selectable
           :selected-ids="selectedIds"
-          @update:selectedIds="selectedIds = $event"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-number="{ row }">
             <p class="text-sm font-medium text-text-primary">{{ row.number }}</p>
@@ -84,10 +84,9 @@
             <span class="text-sm font-medium text-text-primary">{{ formatXOF(row.total_xof) }}</span>
           </template>
           <template #cell-status="{ row }">
-            <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border', statusClass(row.status)]">
-              <span class="w-1.5 h-1.5 rounded-full" :class="statusDotClass(row.status)"></span>
+            <BaseBadge :variant="statusVariant(row.status)" dot>
               {{ $t(statusLabel(row.status)) }}
-            </span>
+            </BaseBadge>
           </template>
           <template #actions="{ row }">
             <BaseDropdown align="right">
@@ -143,6 +142,7 @@ const { can } = usePermissions();
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
+import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
 import BaseTable from '../../Components/ui/BaseTable.vue';
@@ -174,16 +174,15 @@ const deleteTarget = ref(null);
 let debounceTimer = null;
 
 const statusMap = {
-  draft: { class: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700', dot: 'bg-gray-400', label: 'status.draft' },
-  sent: { class: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25', dot: 'bg-blue-500', label: 'status.sent' },
-  partial: { class: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/15 dark:text-yellow-300 dark:border-yellow-500/25', dot: 'bg-yellow-500', label: 'status.partial' },
-  paid: { class: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', dot: 'bg-green-500', label: 'status.paid' },
-  cancelled: { class: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25', dot: 'bg-red-500', label: 'status.cancelled' },
-  overdue: { class: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/25', dot: 'bg-orange-500', label: 'status.overdue' },
+  draft: { variant: 'default', label: 'status.draft' },
+  sent: { variant: 'info', label: 'status.sent' },
+  partial: { variant: 'warning', label: 'status.partial' },
+  paid: { variant: 'success', label: 'status.paid' },
+  cancelled: { variant: 'danger', label: 'status.cancelled' },
+  overdue: { variant: 'warning', label: 'status.overdue' },
 };
 
-function statusClass(s) { return statusMap[s]?.class || 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700'; }
-function statusDotClass(s) { return statusMap[s]?.dot || 'bg-gray-400'; }
+function statusVariant(s) { return statusMap[s]?.variant || 'default'; }
 function statusLabel(s) { return statusMap[s]?.label || s; }
 
 const hasActiveFilters = computed(() => search.value || statusFilter.value);

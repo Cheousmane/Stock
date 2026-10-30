@@ -4,14 +4,14 @@
       <BasePageHeader eyebrow="Gestion" :title="$t('page.events.title')" :subtitle="meta ? $t('page.events.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'EventCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.events.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.events.create') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.events.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: `10 ${$t('common.per_page')}` },
           { value: 25, label: `25 ${$t('common.per_page')}` },
@@ -26,7 +26,7 @@
       <template v-else-if="events.length === 0">
         <BaseEmptyState :title="$t('page.events.title')" :description="$t('page.events.empty')">
           <BaseButton variant="primary" size="sm" :to="{ name: 'EventCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.events.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.events.create') }}
           </BaseButton>
         </BaseEmptyState>
       </template>

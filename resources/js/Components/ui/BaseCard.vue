@@ -7,10 +7,10 @@
     ]"
   >
     <!-- Affiche l'en-tete si titre, sous-titre, slot header ou actions sont presents -->
-    <div v-if="$slots.header || title || subtitle || $slots.actions" class="flex items-start justify-between gap-4 mb-4">
+    <div v-if="$slots.header || title || subtitle || $slots.actions" class="flex items-start justify-between gap-4 mb-5">
       <div v-if="title || subtitle" class="min-w-0">
         <h3 v-if="title" class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ title }}</h3>
-        <p v-if="subtitle" class="mt-0.5 text-xs font-medium text-text-tertiary">{{ subtitle }}</p>
+        <p v-if="subtitle" class="mt-1 text-xs font-medium text-text-tertiary">{{ subtitle }}</p>
       </div>
       <div v-if="$slots.actions" class="flex items-center gap-2 shrink-0">
         <slot name="actions" />
@@ -31,7 +31,7 @@ defineProps({
 const paddingClasses = {
   none: 'p-0',
   sm: 'p-3',
-  md: 'p-4',
-  lg: 'p-5',
+  md: 'p-4 sm:p-5',
+  lg: 'p-5 sm:p-6',
 }
 </script>

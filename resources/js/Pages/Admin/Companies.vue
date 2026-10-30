@@ -14,7 +14,7 @@
       </div>
 
       <!-- Filters -->
-      <div class="flex flex-col lg:flex-row lg:items-center gap-3 p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+      <div class="pro-filterbar">
         <label class="flex items-center gap-2.5 flex-1 min-w-0 px-3.5 py-2.5 rounded-2xl bg-surface-secondary/70 border border-border/60 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition">
           <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
           <input v-model="filters.search" placeholder="Rechercher entreprise, slug, email…" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary placeholder:font-medium outline-none" @input="debouncedSearch" />
@@ -39,34 +39,34 @@
 
       <!-- Stats -->
       <div v-if="companyStats" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="p-4 rounded-3xl bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-400/40 transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-400/40 transition-all">
           <p class="text-xl font-black tabular-nums text-text-primary">{{ companyStats.total }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary mt-0.5">Total</p>
         </div>
-        <div class="p-4 rounded-3xl bg-emerald-500/[0.06] border border-emerald-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-emerald-500/[0.06] border border-emerald-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
           <p class="text-xl font-black tabular-nums text-emerald-600">{{ companyStats.active }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600/80 mt-0.5">Actives</p>
         </div>
-        <div class="p-4 rounded-3xl bg-rose-500/[0.06] border border-rose-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-rose-500/[0.06] border border-rose-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
           <p class="text-xl font-black tabular-nums text-rose-500">{{ companyStats.suspended }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-rose-500/80 mt-0.5">Suspendues</p>
         </div>
-        <div class="p-4 rounded-3xl bg-amber-500/[0.07] border border-amber-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-amber-500/[0.07] border border-amber-500/20 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
           <p class="text-xl font-black tabular-nums text-amber-500">{{ companyStats.trial }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600/80 mt-0.5">Essai</p>
         </div>
-        <div class="p-4 rounded-3xl bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
           <p class="text-xl font-black tabular-nums text-text-primary">{{ companyStats.registrations_last_7_days }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary mt-0.5">7 jours</p>
         </div>
-        <div class="p-4 rounded-3xl bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div class="p-4 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
           <p class="text-xl font-black tabular-nums text-text-primary">{{ companyStats.registrations_last_30_days }}</p>
           <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary mt-0.5">30 jours</p>
         </div>
       </div>
 
       <!-- Table -->
-      <div class="rounded-3xl bg-surface border border-border/70 shadow-sm overflow-hidden">
+      <div class="rounded-[1.25rem] bg-surface border border-border/70 shadow-sm overflow-hidden">
         <div v-if="loading" class="p-6 space-y-3">
           <div v-for="i in 6" :key="i" class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-2xl bg-surface-tertiary animate-pulse shrink-0" />
@@ -114,7 +114,7 @@
         </table>
         </div>
         <div v-if="!loading && companies.length === 0" class="p-12 text-center">
-          <div class="mx-auto w-14 h-14 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-3 text-text-tertiary">
+          <div class="mx-auto w-14 h-14 rounded-[1.25rem] bg-surface-secondary border border-border flex items-center justify-center mb-3 text-text-tertiary">
             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.008v.008H6.75V6.75zm0 3h.008v.008H6.75v-.008zm0 3h.008v.008H6.75v-.008zm0 3h.008v.008H6.75v-.008zm0 3h.008v.008H6.75v-.008zm3.75-9h.008v.008h-.008V6.75zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm3.75-9h.008v.008h-.008V6.75zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" /></svg>
           </div>
           <p class="text-sm font-extrabold text-text-primary">Aucune entreprise trouvée</p>
@@ -146,7 +146,7 @@
                 <div class="absolute inset-0 opacity-[0.12]" style="background-image: radial-gradient(circle at 1px 1px, #fff 1px, transparent 0); background-size: 20px 20px;" />
               </div>
               <div class="relative flex items-start gap-4 p-5 sm:p-6">
-                <span class="flex items-center justify-center w-14 h-14 rounded-3xl bg-white/20 border border-white/30 backdrop-blur text-2xl font-black shadow-lg shrink-0">
+                <span class="flex items-center justify-center w-14 h-14 rounded-[1.25rem] bg-white/20 border border-white/30 backdrop-blur text-2xl font-black shadow-lg shrink-0">
                   {{ (selectedCompany.name || '?').charAt(0).toUpperCase() }}
                 </span>
                 <div class="min-w-0 flex-1">
@@ -188,7 +188,7 @@
             </div>
 
             <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-surface-secondary/40 space-y-4 custom-scrollbar">
-              <div v-if="selectedCompany.status === 'suspended'" class="flex items-center gap-3.5 p-4 rounded-3xl bg-rose-500/[0.07] border border-rose-500/25">
+              <div v-if="selectedCompany.status === 'suspended'" class="flex items-center gap-3.5 p-4 rounded-[1.25rem] bg-rose-500/[0.07] border border-rose-500/25">
                 <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-rose-500 text-white shadow-lg shadow-rose-500/30 shrink-0">
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
                 </span>
@@ -201,7 +201,7 @@
 
               <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <!-- Informations -->
-                <section class="lg:col-span-3 p-5 rounded-3xl bg-surface border border-border/70 shadow-sm">
+                <section class="lg:col-span-3 p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
                   <div class="flex items-center justify-between gap-3 mb-4">
                     <div>
                       <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Informations</h4>
@@ -299,7 +299,7 @@
                 </section>
 
                 <!-- Plan & usage -->
-                <section class="lg:col-span-2 p-5 rounded-3xl bg-surface border border-border/70 shadow-sm flex flex-col">
+                <section class="lg:col-span-2 p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm flex flex-col">
                   <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Plan & usage</h4>
                   <p class="text-xs font-medium text-text-tertiary">Abonnement et activité</p>
                   <div class="mt-4 flex items-center gap-3 p-3.5 rounded-2xl bg-violet-500/[0.07] border border-violet-500/20">
@@ -342,7 +342,7 @@
               </div>
 
               <!-- Historique -->
-              <section class="p-5 rounded-3xl bg-surface border border-border/70 shadow-sm">
+              <section class="p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
                   <div>
                     <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Historique récent</h4>
@@ -366,7 +366,7 @@
               </section>
 
               <!-- Zone dangereuse -->
-            <section v-if="!isOwnCompany" class="p-5 rounded-3xl border-2 border-dashed border-rose-500/40 bg-rose-500/[0.03]">
+            <section v-if="!isOwnCompany" class="p-5 rounded-[1.25rem] border-2 border-dashed border-rose-500/40 bg-rose-500/[0.03]">
               <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                 <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-rose-500 text-white shadow-lg shadow-rose-500/30 shrink-0">
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>

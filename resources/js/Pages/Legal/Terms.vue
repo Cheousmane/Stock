@@ -31,11 +31,11 @@
       </div>
 
       <div class="mt-8 grid lg:grid-cols-[220px_1fr] gap-6 items-start">
-        <nav class="hidden lg:block sticky top-24 p-4 rounded-3xl bg-surface border border-border/70 shadow-sm text-[13px] font-semibold space-y-1">
+        <nav class="hidden lg:block sticky top-24 p-4 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm text-[13px] font-semibold space-y-1">
           <a v-for="s in sections" :key="s.id" :href="'#' + s.id" class="block px-3 py-2 rounded-xl text-text-secondary hover:text-emerald-600 hover:bg-emerald-500/[0.07] transition">{{ s.n }}. {{ s.t }}</a>
         </nav>
 
-        <article class="pro-card !rounded-3xl p-6 sm:p-10 space-y-8 text-[15px] leading-relaxed">
+        <article class="pro-card p-6 sm:p-10 space-y-8 text-[15px] leading-relaxed">
           <section v-for="s in sections" :key="s.id" :id="s.id" class="scroll-mt-24">
             <h2 class="text-lg font-extrabold tracking-tight"><span class="text-emerald-600">{{ s.n }}.</span> {{ s.t }}</h2>
             <div class="mt-2.5 text-text-secondary space-y-2.5" v-html="s.html"></div>

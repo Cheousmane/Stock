@@ -1,32 +1,23 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.categories.edit') : $t('page.categories.create')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Categories' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" :subtitle="''" size="md" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.categories.edit') : $t('page.categories.create') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="space-y-4">
             <BaseInput v-model="form.name" :label="$t('form.name')" required :error="errors.name?.[0] || ''" />
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.description') }}</label>
-              <textarea v-model="form.description" rows="3"
-                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-            </div>
+            <BaseTextarea v-model="form.description" :label="$t('form.description')" :rows="3" />
           </div>
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Categories' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -39,17 +30,24 @@ import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
-import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const route = useRoute();
 const router = useRouter();
 const { t: $t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
 const form = reactive({ name: '', description: '' });
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Categories' });
+}
 
 onMounted(async () => {
   if (!isEdit.value) return;
@@ -88,3 +86,4 @@ async function submit() {
   }
 }
 </script>
+

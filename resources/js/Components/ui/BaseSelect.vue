@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-1.5">
-    <label v-if="label" :for="selectId" class="block text-sm font-medium text-text-primary mb-1.5">
+  <div class="space-y-1.5 min-w-0">
+    <label v-if="label" :for="selectId" class="block text-[13px] font-bold text-text-primary">
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
@@ -12,9 +12,9 @@
         @change="$emit('update:modelValue', $event.target.value)"
         v-bind="$attrs"
         :class="[
-          'block w-full bg-surface border rounded-2xl text-sm font-semibold text-text-primary focus:outline-none appearance-none cursor-pointer transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
+          'block w-full bg-surface border rounded-xl text-sm font-medium text-text-primary focus:outline-none appearance-none cursor-pointer transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
           sizeClasses[size],
-          error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
+          error ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border/80 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
           { 'opacity-50 bg-surface-tertiary cursor-not-allowed': disabled },
         ]"
       >
@@ -53,8 +53,8 @@ const uid = useId()
 const selectId = computed(() => `select-${uid}`)
 
 const sizeClasses = {
-  sm: 'px-2.5 py-1.5 text-xs pr-8',
-  md: 'px-3 py-2 text-sm pr-9',
-  lg: 'px-3.5 py-2.5 text-sm pr-9',
+  sm: 'px-3 py-2 text-xs pr-8',
+  md: 'px-3.5 py-2.5 text-sm pr-9',
+  lg: 'px-4 py-3 text-sm pr-9',
 }
 </script>

@@ -15,6 +15,17 @@ class DeliveryNoteRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'customer_id' => 'client',
+            'date' => 'date',
+            'items' => 'lignes',
+            'items.*.product_id' => 'produit',
+            'items.*.quantity' => 'quantité',
+        ];
+    }
+
     public function rules(): array
     {
         $isPatch = $this->isMethod('patch');

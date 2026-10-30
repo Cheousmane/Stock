@@ -1,13 +1,14 @@
 <template>
-  <div v-if="lastPage > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4">
+  <div v-if="lastPage > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-surface border border-border/70 shadow-sm px-5 py-3.5">
     <p class="text-xs font-bold text-text-tertiary tabular-nums">
-      {{ from }}–{{ to }} sur {{ total }}
+      {{ $t('common.showing_range', { from, to, total }) }}
     </p>
     <div class="flex items-center gap-1">
       <button
         @click="$emit('change', 1)"
         :disabled="currentPage <= 1"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="pro-page-btn"
+        :aria-label="$t('common.first_page')"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
@@ -16,19 +17,20 @@
       <button
         @click="$emit('change', currentPage - 1)"
         :disabled="currentPage <= 1"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="pro-page-btn"
+        :aria-label="$t('common.previous_page')"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
       <template v-for="p in visiblePages" :key="p">
-        <span v-if="p === '...'" class="px-2 text-xs text-text-tertiary">...</span>
+        <span v-if="p === '...'" class="px-2 text-xs font-bold text-text-tertiary">...</span>
         <button
           v-else
           @click="$emit('change', p)"
-          class="min-w-[32px] h-8 text-xs font-medium rounded-lg transition-all duration-150 active:scale-90"
-          :class="p === currentPage ? 'bg-primary-600 text-white shadow-sm' : 'text-text-secondary hover:bg-surface-tertiary'"
+          class="pro-page-btn font-bold text-xs"
+          :class="p === currentPage ? '!bg-gradient-to-br !from-emerald-500 !to-teal-600 !text-white !border-transparent shadow-sm shadow-emerald-500/25' : 'text-text-secondary hover:text-text-primary'"
         >
           {{ p }}
         </button>
@@ -36,7 +38,8 @@
       <button
         @click="$emit('change', currentPage + 1)"
         :disabled="currentPage >= lastPage"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="pro-page-btn"
+        :aria-label="$t('common.next_page')"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -45,7 +48,8 @@
       <button
         @click="$emit('change', lastPage)"
         :disabled="currentPage >= lastPage"
-        class="p-2 text-text-tertiary hover:text-text-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="pro-page-btn"
+        :aria-label="$t('common.last_page')"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 4.5l7.5 7.5-7.5 7.5m6-15l7.5 7.5-7.5 7.5" />

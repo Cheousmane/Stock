@@ -13,6 +13,16 @@ class ExpenseRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'description' => 'description',
+            'category' => 'catégorie',
+            'amount' => 'montant',
+            'date' => 'date',
+        ];
+    }
+
     public function rules(): array
     {
         return [

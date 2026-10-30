@@ -13,6 +13,16 @@ class CustomerRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'email' => 'email',
+            'phone' => 'téléphone',
+            'company_name' => 'entreprise',
+        ];
+    }
+
     public function rules(): array
     {
         return [

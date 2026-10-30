@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-1.5 min-w-0">
-    <label v-if="label" :for="inputId" class="block text-[13px] font-bold text-text-primary mb-1.5">
+    <label v-if="label" :for="inputId" class="block text-[13px] font-bold text-text-primary">
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
@@ -19,10 +19,10 @@
         @blur="$emit('blur', $event)"
         v-bind="$attrs"
         :class="[
-          'block w-full bg-surface border rounded-2xl text-sm font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-normal focus:outline-none transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
+          'block w-full bg-surface border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-normal focus:outline-none transition-all duration-200 shadow-2xs hover:border-text-tertiary/60',
           sizeClasses[size],
           { 'pl-10': $slots.prefix, 'pr-10': $slots.suffix || clearable },
-          error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
+          error ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/15' : 'border-border/80 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15',
           { 'opacity-50 bg-surface-tertiary cursor-not-allowed': disabled },
         ]"
       />
@@ -71,8 +71,8 @@ const uid = useId()
 const inputId = computed(() => `input-${uid}`)
 
 const sizeClasses = {
-  sm: 'px-2.5 py-1.5 text-xs',
-  md: 'px-3 py-2 text-sm',
-  lg: 'px-3.5 py-2.5 text-sm',
+  sm: 'px-3 py-2 text-xs',
+  md: 'px-3.5 py-2.5 text-sm',
+  lg: 'px-4 py-3 text-sm',
 }
 </script>

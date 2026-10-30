@@ -4,22 +4,23 @@
       <BasePageHeader eyebrow="Gestion" :title="$t('page.stock.title')" :subtitle="meta ? $t('page.stock.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchData(meta?.current_page || 1)" :title="$t('common.refresh')">
-            <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
+            <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'StockTransfer' }">
-            <span class="text-white"><ArrowRightIcon class="w-4 h-4" /></span>{{ $t('page.stock.transfer') }}
+            <ArrowRightIcon class="w-4 h-4" />{{ $t('page.stock.transfer') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" :placeholder="$t('page.stock.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+      <div class="pro-filterbar">
+        <BaseInput v-model="search" :placeholder="$t('page.stock.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: `10 ${$t('common.per_page')}` },
           { value: 25, label: `25 ${$t('common.per_page')}` },
           { value: 50, label: `50 ${$t('common.per_page')}` },
           { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
+        <button v-if="search" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
       <template v-if="loading">
@@ -58,7 +59,7 @@
             <span class="text-sm text-text-secondary tabular-nums">{{ row.min_stock ?? '—' }}</span>
           </template>
           <template #cell-status="{ row }">
-            <span :class="['px-2.5 py-1 text-xs font-medium rounded-full border', stockStatus(row).class]">{{ $t(stockStatus(row).label) }}</span>
+            <BaseBadge :variant="stockStatus(row).variant" dot>{{ $t(stockStatus(row).label) }}</BaseBadge>
           </template>
           <template #actions="{ row }">
             <BaseDropdown align="right">
@@ -85,36 +86,42 @@
         />
       </template>
 
-      <div v-if="movements.length > 0" class="mt-10">
-        <h2 class="text-xl font-bold text-text-primary">{{ $t('page.stock.movements_title') }}</h2>
-        <div class="mt-4 bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr class="bg-surface-secondary border-b border-border">
-                  <th class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-text-secondary uppercase">{{ $t('page.stock.product') }}</th>
-                  <th class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-text-secondary uppercase">{{ $t('page.stock.movement_type') }}</th>
-                  <th class="px-4 py-3 text-xs font-semibold tracking-wider text-right text-text-secondary uppercase">{{ $t('common.quantity') }}</th>
-                  <th class="hidden md:table-cell px-4 py-3 text-xs font-semibold tracking-wider text-left text-text-secondary uppercase">{{ $t('page.stock.reason') }}</th>
-                  <th class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-text-secondary uppercase">{{ $t('common.date') }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border">
-                <tr v-for="m in movements" :key="m.id" class="hover:bg-surface-secondary/80 transition-colors">
-                  <td class="px-4 py-3 text-sm text-text-primary">{{ m.product?.name }}</td>
-                  <td class="px-4 py-3 text-center">
-                    <span :class="['px-2.5 py-1 text-xs font-medium rounded-full border', m.type === 'in' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25']">
-                      {{ m.type === 'in' ? $t('page.stock.type_in') : $t('page.stock.type_out') }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 text-sm text-right font-medium tabular-nums" :class="m.type === 'in' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">{{ m.type === 'in' ? '+' : '-' }}{{ m.quantity }}</td>
-                  <td class="hidden md:table-cell px-4 py-3 text-sm text-text-secondary">{{ m.reason || '—' }}</td>
-                  <td class="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">{{ m.created_at }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div v-if="movements.length > 0" class="mt-8 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="pro-section-title">{{ $t('page.stock.movements_title') }}</h2>
+          <span class="text-xs font-medium text-text-tertiary">{{ $t('page.stock.last_movements', { count: movements.length }) }}</span>
         </div>
+        <BaseTable
+          :columns="[
+            { key: 'product_name', label: $t('page.stock.product') },
+            { key: 'type', label: $t('page.stock.movement_type'), align: 'center' },
+            { key: 'quantity', label: $t('common.quantity'), align: 'right' },
+            { key: 'reason', label: $t('page.stock.reason'), class: 'hidden md:table-cell' },
+            { key: 'created_at', label: $t('common.date') },
+          ]"
+          :rows="movements"
+          row-key="id"
+        >
+          <template #cell-product_name="{ row }">
+            <span class="text-sm font-semibold text-text-primary">{{ row.product?.name || '—' }}</span>
+          </template>
+          <template #cell-type="{ row }">
+            <BaseBadge :variant="row.type === 'in' ? 'success' : 'danger'" size="xs">
+              {{ row.type === 'in' ? $t('page.stock.type_in') : $t('page.stock.type_out') }}
+            </BaseBadge>
+          </template>
+          <template #cell-quantity="{ row }">
+            <span class="text-sm font-bold font-mono tabular-nums" :class="row.type === 'in' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+              {{ row.type === 'in' ? '+' : '-' }}{{ row.quantity }}
+            </span>
+          </template>
+          <template #cell-reason="{ row }">
+            <span class="text-sm text-text-secondary">{{ row.reason || '—' }}</span>
+          </template>
+          <template #cell-created_at="{ row }">
+            <span class="text-sm text-text-secondary whitespace-nowrap">{{ row.created_at }}</span>
+          </template>
+        </BaseTable>
       </div>
     </div>
 
@@ -150,6 +157,7 @@ import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseDropdown from '../../Components/ui/BaseDropdown.vue';
 import BaseModal from '../../Components/ui/BaseModal.vue';
+import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import { usePolling } from '../../composables/usePolling';
 import {
   ArrowRightIcon, ArrowPathIcon, EllipsisVerticalIcon, AdjustmentsHorizontalIcon,
@@ -205,10 +213,9 @@ watch([search, perPage], () => {
 usePolling(() => fetchData(meta.value?.current_page || 1, { silent: true }));
 
 function stockStatus(p) {
-  if (!p.min_stock) return { class: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', label: 'status.ok' };
-  if (p.quantity <= 0) return { class: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/25', label: 'status.out_of_stock' };
-  if (p.quantity <= p.min_stock) return { class: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/25', label: 'status.low_stock' };
-  return { class: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/25', label: 'status.ok' };
+  if (p.quantity <= 0) return { variant: 'danger', label: 'status.out_of_stock' };
+  if (p.min_stock && p.quantity <= p.min_stock) return { variant: 'warning', label: 'status.low_stock' };
+  return { variant: 'success', label: 'status.ok' };
 }
 
 async function fetchData(page = 1, { silent = false } = {}) {

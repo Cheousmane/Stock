@@ -1,15 +1,10 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.customers.edit') : $t('page.customers.new')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Customers' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="lg" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.customers.edit') : $t('page.customers.new') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <BaseInput v-model="form.company_name" :label="$t('form.company')" :error="errors.company_name?.[0] || ''" :list="suggestions.company_name" />
@@ -17,10 +12,8 @@
             <BaseInput v-model="form.email" type="email" :label="$t('form.email')" required :error="errors.email?.[0] || ''" :list="suggestions.email" />
             <BaseInput v-model="form.phone" type="tel" :label="$t('form.phone')" :error="errors.phone?.[0] || ''" :list="suggestions.phone" />
           </div>
-          <div class="mt-4 space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.address') }}</label>
-            <textarea v-model="form.address" rows="2"
-              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+          <div class="mt-4">
+            <BaseTextarea v-model="form.address" :label="$t('form.address')" :rows="2" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <BaseInput v-model="form.city" :label="$t('form.city')" :error="errors.city?.[0] || ''" />
@@ -30,11 +23,11 @@
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Customers' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -46,8 +39,10 @@ import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 import { useSuggestions } from '../../composables/useSuggestions';
 
@@ -77,10 +72,16 @@ const suggestions = {
 const route = useRoute();
 const router = useRouter();
 const { t: $t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Customers' });
+}
 const form = reactive({
   company_name: '', name: '', email: '', phone: '', address: '', city: '', postal_code: '', country: '',
 });
@@ -105,15 +106,24 @@ async function submit() {
       await axios.post('/customers', form);
       showToast($t('page.customers.created'), 'success');
     }
+    open.value = false;
     saveCompany(form.company_name);
     saveName(form.name);
     saveEmail(form.email);
     savePhone(form.phone);
-    router.push({ name: 'Customers' });
+    setTimeout(() => router.push({ name: 'Customers' }), 100);
   } catch (err) {
-    if (err.response?.status === 422) Object.assign(errors, err.response.data.errors || {});
+    if (err.response?.status === 422) {
+      Object.assign(errors, err.response.data.errors || {});
+      const first = Object.values(errors).flat()[0];
+      if (first) showToast(first, 'error');
+    } else {
+      showToast($t('common.save_error'), 'error');
+    }
   } finally {
     submitting.value = false;
   }
 }
 </script>
+
+

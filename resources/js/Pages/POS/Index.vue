@@ -35,7 +35,7 @@
         <div class="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar min-h-[180px]">
           <div class="max-w-[1200px] mx-auto">
             <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-4">
-              <div v-for="i in 10" :key="i" class="rounded-3xl bg-surface border border-border/60 overflow-hidden">
+              <div v-for="i in 10" :key="i" class="rounded-[1.25rem] bg-surface border border-border/60 overflow-hidden">
                 <div class="h-32 pro-skeleton !rounded-none" />
                 <div class="p-3 space-y-2"><div class="h-3.5 w-3/4 pro-skeleton" /><div class="h-3 w-1/2 pro-skeleton" /></div>
               </div>
@@ -49,7 +49,7 @@
             <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-max">
               <button
                 v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)"
-                class="group relative text-left bg-surface rounded-3xl shadow-sm border border-border/60 overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:border-emerald-400/70 active:scale-[0.97]"
+                class="group relative text-left bg-surface rounded-[1.25rem] shadow-sm border border-border/60 overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:border-emerald-400/70 active:scale-[0.97]"
               >
                 <div class="h-32 bg-surface-tertiary flex items-center justify-center relative overflow-hidden">
                   <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : '/storage/' + product.image"
@@ -104,7 +104,7 @@
 
         <div class="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar min-h-0">
           <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-center py-8">
-            <span class="flex items-center justify-center w-14 h-14 rounded-3xl bg-surface-secondary border border-border text-text-tertiary mb-3"><ShoppingCartIcon class="w-7 h-7" /></span>
+            <span class="flex items-center justify-center w-14 h-14 rounded-[1.25rem] bg-surface-secondary border border-border text-text-tertiary mb-3"><ShoppingCartIcon class="w-7 h-7" /></span>
             <p class="text-sm font-extrabold text-text-primary">{{ $t('page.pos.cart_empty') }}</p>
             <p class="text-xs font-medium text-text-tertiary mt-1 max-w-[220px]">{{ $t('page.pos.cart_hint') }}</p>
           </div>
@@ -195,7 +195,7 @@
         <div class="flex gap-3">
           <BaseButton variant="secondary" class="flex-1 !py-3.5" @click="showPaymentModal = false">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton class="flex-1 !py-3.5 !text-base" :loading="paying" @click="confirmPayment">
-            <span class="text-white"><CheckIcon class="w-5 h-5" /></span>{{ $t('common.confirm') }} · {{ formatMoney(cartTotal) }}
+            <CheckIcon class="w-5 h-5" />{{ $t('common.confirm') }} · {{ formatMoney(cartTotal) }}
           </BaseButton>
         </div>
       </div>
@@ -259,10 +259,20 @@
             <span class="tabular-nums">{{ formatMoney(lastSale.change_returned_xof) }}</span>
           </div>
         </div>
+        <div class="flex items-center justify-between gap-3 pt-1">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('page.pos.paper_size') }}</span>
+          <div class="flex items-center gap-1.5">
+            <button v-for="size in paperSizes" :key="size.value" type="button" @click="printSize = size.value"
+              class="px-3 py-1.5 rounded-xl border text-[11px] font-extrabold transition-all"
+              :class="printSize === size.value ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25' : 'bg-surface text-text-secondary border-border hover:border-emerald-400/50 hover:text-text-primary'">
+              {{ size.label }}
+            </button>
+          </div>
+        </div>
         <div class="flex gap-3">
           <BaseButton variant="secondary" class="flex-1" @click="showReceipt = false">{{ $t('common.close') }}</BaseButton>
           <BaseButton class="flex-1" @click="printReceipt">
-            <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>{{ $t('page.pos.print_btn') }}
+            <PrinterIcon class="w-5 h-5" />{{ $t('page.pos.print_btn') }}
           </BaseButton>
         </div>
       </div>
@@ -282,7 +292,7 @@
         <div class="flex gap-3">
           <BaseButton variant="secondary" class="flex-1" @click="showCloseModal = false">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton class="flex-1" variant="danger" :loading="closing" @click="confirmCloseSession">
-            <span class="text-white"><CheckIcon class="w-5 h-5" /></span>{{ $t('page.pos.close_btn') }}
+            <CheckIcon class="w-5 h-5" />{{ $t('page.pos.close_btn') }}
           </BaseButton>
         </div>
       </div>
@@ -312,10 +322,20 @@
         <div v-if="(ticketZ?.cash_difference_xof ?? 0) !== 0" class="flex items-center gap-2.5 p-3 text-sm font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-2xl border border-red-200 dark:border-red-900/70">
           <ExclamationTriangleIcon class="w-4 h-4 shrink-0" /> {{ $t('page.pos.gap_detected') }}
         </div>
+        <div class="flex items-center justify-between gap-3 pt-1">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('page.pos.paper_size') }}</span>
+          <div class="flex items-center gap-1.5">
+            <button v-for="size in paperSizes" :key="size.value" type="button" @click="printSize = size.value"
+              class="px-3 py-1.5 rounded-xl border text-[11px] font-extrabold transition-all"
+              :class="printSize === size.value ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25' : 'bg-surface text-text-secondary border-border hover:border-emerald-400/50 hover:text-text-primary'">
+              {{ size.label }}
+            </button>
+          </div>
+        </div>
         <div class="flex gap-3">
           <BaseButton variant="secondary" class="flex-1" @click="finishClosing">{{ $t('page.pos.done_btn') }}</BaseButton>
           <BaseButton class="flex-1" @click="printTicketZ">
-            <span class="text-white"><PrinterIcon class="w-5 h-5" /></span>{{ $t('page.pos.print_btn') }}
+            <PrinterIcon class="w-5 h-5" />{{ $t('page.pos.print_btn') }}
           </BaseButton>
         </div>
       </div>
@@ -369,6 +389,16 @@ const closingCashCount = ref(0);
 const closing = ref(false);
 const showTicketZ = ref(false);
 const ticketZ = ref(null);
+
+// Impression tickets / tickets Z — formats papier thermique (58 mm / 80 mm)
+const printSize = ref('80mm');
+const paperSizes = [
+  { value: '58mm', label: '58 mm' },
+  { value: '80mm', label: '80 mm' },
+];
+const printPaper = computed(() => printSize.value === '58mm'
+  ? { width: '58mm', fontSize: '10px', titleSize: '12px' }
+  : { width: '80mm', fontSize: '12px', titleSize: '14px' });
 
 onMounted(async () => {
   await checkSession();
@@ -633,8 +663,8 @@ function printHtml(title, lines) {
   const area = document.getElementById('pos-print-area');
   if (!area) return;
   area.innerHTML = `
-    <div style="width:80mm;font-family:monospace;font-size:12px;color:#000;">
-      <div style="text-align:center;font-weight:bold;font-size:14px;">SIDIBE CORPORATE</div>
+    <div style="width:${printPaper.value.width};font-family:monospace;font-size:${printPaper.value.fontSize};color:#000;">
+      <div style="text-align:center;font-weight:bold;font-size:${printPaper.value.titleSize};">SIDIBE CORPORATE</div>
       <div style="text-align:center;margin-bottom:6px;">${title}</div>
       <div style="border-top:1px dashed #000;margin:4px 0;"></div>
       ${lines}
@@ -715,7 +745,6 @@ const handleGlobalKeydown = (e) => {
     position: absolute;
     left: 0;
     top: 0;
-    width: 80mm;
   }
 }
 

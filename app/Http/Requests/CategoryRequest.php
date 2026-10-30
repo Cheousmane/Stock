@@ -17,6 +17,14 @@ class CategoryRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'description' => 'description',
+        ];
+    }
+
     public function rules(): array
     {
         $routeParam = $this->route('category');

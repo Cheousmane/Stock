@@ -8,7 +8,7 @@
       </div>
 
       <!-- Brute force alert -->
-      <div v-if="bruteForceIps.length > 0" class="p-4 rounded-3xl bg-rose-500/[0.06] border border-rose-500/25 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm">
+      <div v-if="bruteForceIps.length > 0" class="p-4 rounded-[1.25rem] bg-rose-500/[0.06] border border-rose-500/25 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm">
         <div class="w-11 h-11 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/30">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
         </div>
@@ -20,7 +20,7 @@
       </div>
 
       <!-- Hourly chart -->
-      <div class="rounded-3xl bg-surface border border-border/70 shadow-sm p-6">
+      <div class="rounded-[1.25rem] bg-surface border border-border/70 shadow-sm p-6">
         <div class="flex items-center justify-between gap-3 mb-4">
           <div>
             <h3 class="text-base font-extrabold text-text-primary tracking-tight">Connexions par heure · 24h</h3>
@@ -38,20 +38,15 @@
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <input v-model="filters.search" placeholder="Email ou IP..." class="px-3.5 py-2 text-sm rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-64" @input="debouncedSearch" />
-        <label class="flex items-center gap-2 text-sm text-text-secondary">
-          <input type="checkbox" v-model="filters.failed" @change="fetchLogs" class="rounded border-border text-emerald-500 focus:ring-emerald-500" />
+        <div class="w-64 max-w-full">
+          <BaseInput :model-value="filters.search" placeholder="Email ou IP..." @update:modelValue="onSearch" />
+        </div>
+        <label class="flex items-center gap-2 text-sm font-semibold text-text-secondary">
+          <input type="checkbox" :checked="filters.failed" @change="e => { filters.failed = e.target.checked; fetchLogs() }" class="rounded border-border text-emerald-500 focus:ring-4 focus:ring-emerald-500/20" />
           Échecs uniquement
         </label>
-        <select v-model="filters.date_from" class="px-3.5 py-2 text-sm rounded-xl border border-border bg-surface text-text-primary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" @change="fetchLogs">
-          <option value="">Du...</option>
-          <option :value="daysAgo(1)">Hier</option>
-          <option :value="daysAgo(7)">7 jours</option>
-          <option :value="daysAgo(30)">30 jours</option>
-        </select>
-        <button @click="exportCsv" :disabled="exporting" class="px-3.5 py-2 text-sm font-medium rounded-xl bg-surface border border-border text-text-secondary hover:bg-surface-tertiary disabled:opacity-50">
-          {{ exporting ? 'Export en cours...' : '⬇ Exporter CSV' }}
-        </button>
+        <BaseSelect :model-value="filters.date_from" :options="dateOptions" placeholder="Du..." @update:modelValue="onDateChange" />
+        <BaseButton variant="secondary" :loading="exporting" @click="exportCsv">⬇ Exporter CSV</BaseButton>
       </div>
 
       <div class="rounded-xl bg-surface border border-border shadow-sm overflow-hidden">
@@ -112,6 +107,9 @@ import {
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 import { useTheme } from '@/composables/useTheme'
+import BaseInput from '../../Components/ui/BaseInput.vue'
+import BaseSelect from '../../Components/ui/BaseSelect.vue'
+import BaseButton from '../../Components/ui/BaseButton.vue'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -125,6 +123,13 @@ const failed24h = ref(0)
 const exporting = ref(false)
 const chartDataHourly = ref(null)
 const { isDark } = useTheme()
+
+const dateOptions = computed(() => [
+  { value: '', label: 'Du...' },
+  { value: daysAgo(1), label: 'Hier' },
+  { value: daysAgo(7), label: '7 jours' },
+  { value: daysAgo(30), label: '30 jours' },
+])
 
 const chartOptionsHourly = computed(() => ({
   responsive: true,
@@ -141,6 +146,16 @@ let debounceTimer = null
 function debouncedSearch() {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(fetchLogs, 300)
+}
+
+function onSearch(value) {
+  filters.search = value
+  debouncedSearch()
+}
+
+function onDateChange(value) {
+  filters.date_from = value
+  fetchLogs()
 }
 
 function daysAgo(n) {

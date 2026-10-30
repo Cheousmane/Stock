@@ -1,15 +1,15 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader eyebrow="Système" :title="$t('page.users.title')" :subtitle="meta ? $t('page.users.title') + ' · ' + meta.total : undefined">
+      <BasePageHeader eyebrow="Système" :title="$t('page.users.title')" :subtitle="meta ? $t('page.users.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton v-if="canManage" variant="primary" size="sm" :to="{ name: 'UserCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.users.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.users.create') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('common.search')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: `10 ${$t('common.per_page')}` },
@@ -17,7 +17,7 @@
           { value: 50, label: `50 ${$t('common.per_page')}` },
           { value: 100, label: `100 ${$t('common.per_page')}` },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
       <template v-if="loading">
@@ -26,7 +26,7 @@
       <template v-else-if="users.length === 0">
         <BaseEmptyState :title="$t('page.users.title')" :description="hasActiveFilters ? $t('common.no_results') : $t('page.users.empty')">
           <BaseButton v-if="!hasActiveFilters && canManage" variant="primary" size="sm" :to="{ name: 'UserCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.users.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.users.create') }}
           </BaseButton>
           <button v-else-if="hasActiveFilters" @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>

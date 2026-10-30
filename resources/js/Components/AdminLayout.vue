@@ -11,24 +11,28 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[min(272px,85vw)] bg-sidebar-surface border-r border-sidebar-border shadow-[4px_0_16px_-12px_rgb(0_0_0/0.15)] transition-[width,transform] duration-100 ease-out"
-      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[272px]']"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col w-[min(240px,82vw)] bg-sidebar-surface/95 backdrop-blur-xl border-r border-sidebar-border shadow-[4px_0_24px_-12px_rgb(0_0_0/0.06)] transition-[width,transform] duration-200 ease-out"
+      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-[240px]']"
     >
-      <!-- Logo -->
-      <div class="flex items-center gap-2.5 h-[68px] px-4 border-b border-sidebar-border shrink-0">
-        <button @click="sidebarOpen = false" class="p-2 rounded-xl lg:hidden hover:bg-sidebar-surface-hover text-sidebar-text-secondary">
+      <!-- Logo header -->
+      <div class="flex items-center gap-2 h-[60px] px-3.5 border-b border-sidebar-border/80 shrink-0">
+        <button
+          @click="sidebarOpen = false"
+          class="p-1.5 rounded-lg lg:hidden text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover active:scale-95 transition"
+          aria-label="Fermer le menu"
+        >
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <router-link to="/dashboard" class="group flex items-center gap-3 min-w-0 flex-1">
-          <AppLogo :size="40" />
-          <div class="min-w-0 overflow-hidden transition-opacity duration-100" :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'w-auto opacity-100'">
+        <router-link to="/dashboard" class="group flex items-center gap-2.5 min-w-0 flex-1">
+          <AppLogo :size="34" />
+          <div class="min-w-0 overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'w-auto opacity-100'">
             <div class="whitespace-nowrap">
-              <p class="text-[15px] font-extrabold tracking-tight text-sidebar-text truncate">{{ abbreviatedName }}</p>
-              <p class="text-[10px] font-bold text-sidebar-text-secondary truncate tracking-[0.12em] uppercase">{{ companyName }}</p>
-              <p v-if="companyPlan" class="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 truncate tracking-wider bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-px">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <p class="text-[13px] font-black tracking-tight text-sidebar-text truncate group-hover:text-emerald-600 transition-colors">{{ abbreviatedName }}</p>
+              <p class="text-[9px] font-semibold text-sidebar-text-secondary truncate leading-tight">{{ companyName }}</p>
+              <p v-if="companyPlan" class="mt-0.5 inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 truncate tracking-wider bg-emerald-500/10 border border-emerald-500/20 rounded-full px-1.5 py-px">
+                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 {{ companyPlan.name }}
@@ -38,77 +42,78 @@
         </router-link>
         <button
           @click="sidebarCollapsed = !sidebarCollapsed"
-          class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover border border-transparent hover:border-sidebar-border transition-all"
+          class="hidden lg:flex items-center justify-center w-6 h-6 rounded-md text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover border border-transparent hover:border-sidebar-border/80 active:scale-95 transition-all"
           :class="{ 'rotate-180': sidebarCollapsed }"
           :title="$t('header.collapse')"
+          :aria-label="$t('header.collapse')"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5" />
           </svg>
         </button>
       </div>
 
-      <!-- Navigation -->
-      <nav class="flex-1 px-3 py-4 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        <div class="space-y-5">
+      <!-- Navigation links (Scrollable sans barre visible) -->
+      <nav ref="navRef" class="flex-1 px-2.5 py-2.5 overflow-y-auto overflow-x-hidden no-scrollbar">
+        <div class="space-y-3">
           <template v-for="item in navItems" :key="item.name || item.key">
-            <p v-if="item.divider" class="px-3 text-[10px] font-extrabold tracking-[0.16em] text-sidebar-text-secondary/80 uppercase transition-all" :class="sidebarCollapsed ? 'lg:text-center lg:px-0' : ''">
-              {{ sidebarCollapsed ? '· · ·' : (item.key ? $t(item.key) : item.label) }}
+            <p
+              v-if="item.divider"
+              class="px-2 pt-1 text-[9.5px] font-extrabold tracking-[0.14em] text-sidebar-text-secondary/60 uppercase transition-all select-none"
+              :class="sidebarCollapsed ? 'lg:text-center lg:px-0' : ''"
+            >
+              {{ sidebarCollapsed ? '·' : (item.key ? $t(item.key) : item.label) }}
             </p>
             <router-link
               v-else
               :to="item.to"
               @click="sidebarOpen = false"
-              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-100"
+              ref="linkRefs"
+              class="sidebar-link"
               :class="[
-                isActive(item.to)
-                  ? 'bg-gradient-to-r from-emerald-500/12 to-teal-500/[0.06] text-sidebar-text-active shadow-[inset_0_0_0_1px_rgb(16_185_129/0.18)]'
-                  : 'text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover',
+                isActive(item.to) ? 'sidebar-link--active' : '',
                 sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''
               ]"
               @mouseenter="showTooltip($event, item)"
               @mouseleave="hideTooltip"
             >
-              <span v-if="isActive(item.to)" class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-to-b from-emerald-400 to-teal-600" />
-              <span
-                class="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-transform duration-100 group-active:scale-95"
-                :class="isActive(item.to)
-                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25'
-                  : 'bg-sidebar-surface-hover/60 text-sidebar-text-secondary group-hover:text-sidebar-text group-hover:bg-sidebar-surface-hover border border-sidebar-border/60'"
-              >
-                <component :is="item.icon" class="w-[18px] h-[18px]" />
+              <span class="sidebar-icon-box">
+                <component :is="item.icon" class="w-4 h-4" />
               </span>
-              <span class="truncate transition-opacity duration-100 overflow-hidden" :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'flex-1 opacity-100'">{{ item.key ? $t(item.key) : item.label }}</span>
-              <span v-if="item.badge" class="shrink-0 transition-all" :class="sidebarCollapsed ? 'lg:hidden' : ''">
-                <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 whitespace-nowrap">{{ item.badge }}</span>
+              <span
+                class="truncate transition-opacity duration-150 overflow-hidden text-[12.5px]"
+                :class="sidebarCollapsed ? 'lg:w-0 lg:opacity-0' : 'flex-1 opacity-100'"
+              >
+                {{ item.key ? $t(item.key) : item.label }}
+              </span>
+              <span
+                v-if="item.badge"
+                class="shrink-0 transition-all"
+                :class="sidebarCollapsed ? 'lg:hidden' : ''"
+              >
+                <span class="px-1.5 py-0.5 text-[9px] font-black rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap shadow-2xs">
+                  {{ item.badge }}
+                </span>
               </span>
             </router-link>
           </template>
         </div>
       </nav>
 
-      <!-- Bottom -->
-      <div class="p-3 border-t border-sidebar-border bg-sidebar-surface/60">
-        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-surface-hover/50 border border-sidebar-border/70" :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''">
-          <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shrink-0 shadow-md shadow-emerald-500/20">{{ userInitial }}</span>
+      <!-- Bottom Profile -->
+      <div class="p-2.5 border-t border-sidebar-border/80 bg-sidebar-surface/70">
+        <div
+          class="flex items-center gap-2 p-1.5 rounded-lg bg-sidebar-surface-hover/60 border border-sidebar-border/70 transition-all"
+          :class="sidebarCollapsed ? 'lg:justify-center lg:p-1' : ''"
+        >
+          <span class="flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-[11px] font-black shrink-0 shadow-sm shadow-emerald-500/20">
+            {{ userInitial }}
+          </span>
           <div class="min-w-0 flex-1 leading-tight" :class="sidebarCollapsed ? 'lg:hidden' : ''">
-            <p class="text-[13px] font-bold text-sidebar-text truncate">{{ userName || 'Utilisateur' }}</p>
-            <p v-if="roleLabel" class="text-[10px] font-extrabold text-emerald-600 truncate tracking-wide uppercase">{{ roleLabel }}</p>
-            <p class="text-[11px] text-sidebar-text-secondary truncate">{{ companyName }}</p>
+            <p class="text-[11.5px] font-bold text-sidebar-text truncate">{{ userName || 'Utilisateur' }}</p>
+            <p v-if="roleLabel" class="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 truncate tracking-wider uppercase">{{ roleLabel }}</p>
           </div>
         </div>
-        <button
-          @click="logout"
-          class="mt-1.5 flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-sidebar-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-          :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
-          @mouseenter="showTooltip($event, { label: $t('common.logout') })"
-          @mouseleave="hideTooltip"
-        >
-          <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-          </svg>
-          <span class="truncate transition-all" :class="sidebarCollapsed ? 'lg:hidden' : ''">{{ $t('common.logout') }}</span>
-        </button>
       </div>
     </aside>
 
@@ -124,7 +129,7 @@
     </Teleport>
 
     <!-- Main area -->
-    <div class="relative z-10 flex flex-col flex-1 min-w-0 min-h-screen transition-[margin] duration-100 ease-out" :class="sidebarCollapsed ? 'lg:ml-[84px]' : 'lg:ml-[272px]'">
+    <div class="relative z-10 flex flex-col flex-1 min-w-0 min-h-screen transition-[margin] duration-200 ease-out" :class="sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]'">
       <!-- Top navbar -->
       <header class="sticky top-0 z-30 border-b border-border bg-surface/75 backdrop-blur-xl">
         <div class="flex items-center gap-2.5 h-[68px] px-4 lg:px-8 max-w-[1440px] mx-auto w-full">
@@ -133,11 +138,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
-
-        <div class="hidden md:flex items-center gap-2 min-w-0">
-          <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{{ companyName || 'Mon entreprise' }}</span>
-          <span v-if="companyPlan" class="hidden xl:inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-[11px] font-extrabold text-violet-600 whitespace-nowrap">{{ companyPlan.name }}</span>
-        </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           <!-- Quick Create Action -->
@@ -196,25 +196,58 @@
             </div>
           </div>
 
-          <!-- Global search -->
-          <button
-            @click="searchOpen = true"
-            class="hidden sm:flex items-center gap-2.5 pl-3.5 pr-2 py-2.5 w-52 xl:w-64 rounded-2xl border border-border bg-surface-secondary/70 text-sm text-text-tertiary hover:border-emerald-400/50 hover:bg-surface transition-all shadow-sm group"
+          <!-- Global search (repliable) -->
+          <div
+            class="relative h-10 flex items-center transition-all duration-300 ease-out"
+            :class="searchOpen ? 'w-52 xl:w-64' : 'w-10'"
+            v-click-outside="() => { if (!searchJustOpened) searchOpen = false }"
           >
-            <svg class="w-4 h-4 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-            <span class="flex-1 text-left truncate font-medium">{{ $t('header.search_placeholder') }}</span>
-            <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary">⌘K</kbd>
-          </button>
-          <button
-            @click="searchOpen = true"
-            class="flex sm:hidden items-center justify-center w-10 h-10 shrink-0 text-text-secondary rounded-xl border border-border bg-surface shadow-sm"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-          </button>
+            <div
+              v-if="searchOpen"
+              class="absolute inset-0 flex items-center pl-2.5 pr-2 rounded-2xl border border-emerald-400/50 bg-surface-secondary/70 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all duration-300 ease-out shadow-sm"
+            >
+              <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <input
+                ref="searchInput"
+                v-model="searchQuery"
+                type="text"
+                :placeholder="$t('header.search_placeholder')"
+                class="flex-1 min-w-0 py-2 text-sm font-semibold bg-transparent border-0 outline-none text-text-primary placeholder:text-text-tertiary placeholder:font-normal"
+              />
+              <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary">ESC</kbd>
+            </div>
+
+            <button
+              v-if="!searchOpen"
+              @click="openSearch"
+              :aria-label="$t('header.search_placeholder')"
+              class="absolute inset-0 flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface-secondary/70 text-text-tertiary hover:border-emerald-400/50 hover:text-emerald-600 transition-all duration-300 ease-out shadow-sm"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </button>
+
+            <div v-if="searchOpen" class="absolute top-full right-0 mt-2 w-72 sm:w-80 z-50">
+              <div class="rounded-2xl border border-border/70 bg-surface shadow-xl shadow-neutral-950/10 overflow-hidden">
+                <div v-if="searchQuery.trim().length >= 2" class="max-h-72 overflow-y-auto p-1.5">
+                  <div v-if="searchResults.length" class="space-y-0.5">
+                    <div v-for="r in searchResults" :key="r.url" @click="navigateToSearch(r)" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 hover:bg-emerald-500/[0.06]">
+                      <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0"><component :is="r.icon" class="w-4 h-4" /></span>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-extrabold text-text-primary truncate">{{ r.title }}</p>
+                        <p class="text-xs font-medium text-text-tertiary truncate">{{ r.subtitle }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="py-6 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.no_results_for', { q: searchQuery }) }}</div>
+                </div>
+                <div v-else class="py-8 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.search_hint') }}</div>
+              </div>
+            </div>
+          </div>
 
           <LanguageSwitcher />
           <ThemeToggle />
@@ -257,7 +290,7 @@
 
       <!-- Trial banner -->
       <div v-if="trialDaysLeft !== null" class="px-4 lg:px-8 pt-4 max-w-[1440px] mx-auto w-full">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 py-3 rounded-3xl border shadow-sm"
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 py-3 rounded-[1.25rem] border shadow-sm"
           :class="trialDaysLeft <= 3 ? 'bg-amber-500/[0.08] border-amber-500/25' : 'bg-emerald-500/[0.07] border-emerald-500/20'">
           <span class="flex items-center justify-center w-9 h-9 rounded-2xl shrink-0"
             :class="trialDaysLeft <= 3 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25' : 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'">
@@ -283,49 +316,6 @@
       </div>
     </div>
 
-    <!-- Search modal -->
-    <Teleport to="body">
-      <div v-if="searchOpen" class="fixed inset-0 z-[200] flex items-start justify-center px-3 sm:px-4 pt-[10vh] sm:pt-[15vh]" @click.self="searchOpen = false">
-        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm modal-fade-enter-active" />
-        <div class="relative w-full max-w-xl bg-surface border border-border/70 rounded-3xl shadow-modal overflow-hidden modal-pop-enter-active">
-            <div class="flex items-center gap-3 px-4 sm:px-5 border-b border-border/70">
-              <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <input
-                ref="searchInput"
-                v-model="searchQuery"
-                type="text"
-                :placeholder="$t('header.search_placeholder')"
-                class="flex-1 py-4 text-sm font-semibold bg-transparent border-0 outline-none text-text-primary placeholder:text-text-tertiary placeholder:font-normal"
-              />
-              <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-[10px] font-extrabold text-text-tertiary bg-surface-tertiary border border-border rounded-lg">ESC</kbd>
-            </div>
-            <div class="p-2 max-h-[60dvh] sm:max-h-80 overflow-y-auto">
-              <p v-if="searchQuery.length < 2" class="py-8 text-center text-sm text-text-tertiary">
-                {{ $t('header.search_hint') }}
-              </p>
-              <div v-else-if="searchResults.length === 0" class="py-8 text-center text-sm text-text-tertiary">
-                {{ $t('header.no_results_for', { q: searchQuery }) }}
-              </div>
-              <div v-else class="space-y-1">
-                <div v-for="r in searchResults" :key="r.url" @click="navigateToSearch(r)" class="group flex items-center gap-3 px-3 py-2.5 rounded-2xl cursor-pointer transition-all duration-150 hover:bg-emerald-500/[0.06] hover:translate-x-0.5">
-                  <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 shrink-0 transition-transform duration-300 group-hover:scale-110">
-                    <component :is="r.icon" class="w-4 h-4" />
-                  </span>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-sm font-extrabold text-text-primary truncate">{{ r.title }}</p>
-                    <p class="text-xs font-medium text-text-tertiary truncate">{{ r.subtitle }}</p>
-                  </div>
-                  <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -351,6 +341,8 @@ const route = useRoute()
 const { t } = useI18n()
 
 const sidebarOpen = ref(false)
+const navRef = ref(null)
+const linkRefs = ref([])
 const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') !== 'false')
 const dropdownOpen = ref(false)
 const quickCreateOpen = ref(false)
@@ -358,6 +350,7 @@ const tooltip = ref({ text: '', x: 0, y: 0 })
 const searchOpen = ref(false)
 const searchQuery = ref('')
 const searchInput = ref(null)
+const searchJustOpened = ref(false)
 const searchResults = ref([])
 const userName = ref('')
 const userEmail = ref('')
@@ -401,6 +394,14 @@ watch(() => route.fullPath, () => {
   dropdownOpen.value = false
   quickCreateOpen.value = false
   searchOpen.value = false
+  // Scroll active nav item into view
+  nextTick(() => {
+    if (!navRef.value) return
+    const active = navRef.value.querySelector('.sidebar-link--active, [aria-current="page"]')
+    if (active) {
+      active.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  })
 })
 watch([sidebarOpen, searchOpen], ([menuOpen, searching]) => {
   document.body.style.overflow = menuOpen || searching ? 'hidden' : ''
@@ -548,13 +549,19 @@ const searchPages = computed(() => [
 watch(searchQuery, async (q) => {
   if (q.length < 2) { searchResults.value = []; return }
   const ql = q.toLowerCase()
-  searchResults.value = searchPages.filter(p =>
+  const pages = Array.isArray(searchPages.value) ? searchPages.value : []
+  searchResults.value = pages.filter(p =>
     (!p.superAdminOnly || isSuperAdmin.value) &&
     (!p.permission || can(p.permission)) &&
     (p.title.toLowerCase().includes(ql) || p.subtitle.toLowerCase().includes(ql))
   )
 })
 
+function openSearch() {
+  searchOpen.value = true
+  searchJustOpened.value = true
+  setTimeout(() => { searchJustOpened.value = false }, 50)
+}
 function navigateToSearch(r) {
   searchOpen.value = false
   searchQuery.value = ''
@@ -570,6 +577,13 @@ const vClickOutside = {
 }
 
 onMounted(async () => {
+  nextTick(() => {
+    if (!navRef.value) return
+    const active = navRef.value.querySelector('.sidebar-link--active, [aria-current="page"]')
+    if (active) {
+      active.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+    }
+  })
   try {
     const u = JSON.parse(localStorage.getItem('user') || '{}')
     if (u.name) userName.value = u.name

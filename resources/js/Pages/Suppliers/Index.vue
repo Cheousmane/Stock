@@ -1,32 +1,32 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader eyebrow="Achats" :title="$t('page.suppliers.title')" :subtitle="meta ? $t('page.suppliers.title') + ' · ' + meta.total : undefined">
+      <BasePageHeader eyebrow="Achats" :title="$t('page.suppliers.title')" :subtitle="meta ? $t('page.suppliers.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.excel') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.csv') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton v-if="canCreate" variant="primary" size="sm" :to="{ name: 'SupplierCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.suppliers.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.suppliers.new') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <BaseInput v-model="search" :placeholder="$t('page.suppliers.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
+      <div class="pro-filterbar">
+        <BaseInput v-model="search" :placeholder="$t('page.suppliers.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: '10 / page' },
           { value: 25, label: '25 / page' },
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ selectedIds.length }} {{ $t('common.selected') }}</span>
         <BaseButton v-if="canDelete" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -38,7 +38,7 @@
       <template v-else-if="suppliers.length === 0">
         <BaseEmptyState :title="$t('page.suppliers.title')" :description="hasActiveFilters ? $t('common.no_results') : $t('page.suppliers.empty')">
           <BaseButton v-if="!hasActiveFilters && canCreate" variant="primary" size="sm" :to="{ name: 'SupplierCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.suppliers.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.suppliers.new') }}
           </BaseButton>
           <button v-else-if="hasActiveFilters" @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -60,6 +60,9 @@
           @sort="toggleSort"
           clickable
           @row-click="viewSupplier"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-code="{ row }">
             <span class="text-sm text-text-secondary font-mono">{{ row.code || '—' }}</span>
@@ -156,7 +159,7 @@ import {
 
 const { t: $t } = useI18n();
 const router = useRouter();
-const showToast = inject('showToast', (msg) => alert(msg));
+const showToast = inject('showToast');
 
 function formatXOF(amount) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount || 0);
@@ -290,10 +293,10 @@ async function executeDelete() {
 }
 
 async function bulkDelete() {
-  if (!window.confirm(`Delete ${selectedIds.value.length} suppliers?`)) return;
+  if (!window.confirm($t('page.suppliers.bulk_delete_confirm', { n: selectedIds.value.length }))) return;
   try {
     await axios.post('/suppliers/bulk-delete', { ids: selectedIds.value });
-    showToast('Suppliers deleted successfully', 'success');
+    showToast($t('common.bulk_delete_success'), 'success');
     selectedIds.value = [];
     fetchSuppliers(meta.value?.current_page || 1);
   } catch (err) {

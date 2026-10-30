@@ -9,14 +9,14 @@
         </div>
       </div>
 
-      <div class="p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+      <div class="p-3 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
         <label class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-surface-secondary/70 border border-border/60 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition">
           <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
           <input v-model="filters.search" placeholder="Nom, email ou entreprise…" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary outline-none" @input="debouncedSearch" />
         </label>
       </div>
 
-      <div class="rounded-3xl bg-surface border border-border/70 shadow-sm overflow-hidden">
+      <div class="rounded-[1.25rem] bg-surface border border-border/70 shadow-sm overflow-hidden">
         <div v-if="loading" class="p-6 space-y-3">
           <div v-for="i in 6" :key="i" class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-2xl bg-surface-tertiary animate-pulse shrink-0" />

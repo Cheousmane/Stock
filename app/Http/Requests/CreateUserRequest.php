@@ -14,6 +14,16 @@ class CreateUserRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'email' => 'email',
+            'password' => 'mot de passe',
+            'role' => 'rôle',
+        ];
+    }
+
     public function rules(): array
     {
         return [

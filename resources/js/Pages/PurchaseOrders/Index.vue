@@ -4,18 +4,18 @@
       <BasePageHeader eyebrow="Achats" :title="$t('page.purchase_orders.title')" :subtitle="meta ? $t('page.purchase_orders.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <ArrowDownTrayIcon class="w-4 h-4" />Excel
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <ArrowDownTrayIcon class="w-4 h-4" />CSV
           </BaseButton>
           <BaseButton v-if="canCreate" variant="primary" size="sm" :to="{ name: 'PurchaseOrderCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.purchase_orders.new') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.purchase_orders.new') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.purchase_orders.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: '10 / page' },
@@ -23,10 +23,10 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.purchase_orders.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="canDelete" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -38,7 +38,7 @@
       <template v-else-if="purchaseOrders.length === 0">
         <BaseEmptyState :title="$t('page.purchase_orders.no_purchase_orders')" :description="search ? $t('page.purchase_orders.no_results') : $t('page.purchase_orders.empty')">
           <BaseButton v-if="!search && canCreate" variant="primary" size="sm" :to="{ name: 'PurchaseOrderCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.purchase_orders.create_first') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.purchase_orders.create_first') }}
           </BaseButton>
           <button v-else @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -56,6 +56,9 @@
           :sort-by="sortBy"
           :sort-order="sortOrder"
           @sort="toggleSort"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-number="{ row }">
             <p class="text-sm font-medium text-text-primary">{{ row.number }}</p>
@@ -75,7 +78,7 @@
             </div>
           </template>
           <template #cell-status="{ row }">
-            <BaseBadge :variant="row.status === 'draft' ? 'default' : row.status === 'validated' ? 'info' : row.status === 'received' ? 'success' : 'error'">{{ statusLabel(row.status) }}</BaseBadge>
+            <BaseBadge :variant="row.status === 'draft' ? 'default' : row.status === 'validated' ? 'info' : row.status === 'received' ? 'success' : 'danger'">{{ statusLabel(row.status) }}</BaseBadge>
           </template>
           <template #actions="{ row }">
             <BaseDropdown align="right">
@@ -135,26 +138,15 @@
           <span class="text-text-tertiary">{{ $t('page.purchase_orders.due') }}</span>
           <span class="text-amber-600 dark:text-amber-400">{{ formatXOF(paymentTarget ? balanceDue(paymentTarget) : 0) }}</span>
         </div>
-        <div class="space-y-1.5">
-          <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_amount') }}</label>
-          <input v-model.number="paymentForm.amount_xof" type="number" min="1" :max="paymentTarget ? balanceDue(paymentTarget) : undefined"
-            class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-        </div>
+        <BaseInput v-model.number="paymentForm.amount_xof" type="number" min="1" :max="paymentTarget ? balanceDue(paymentTarget) : undefined"
+          :label="$t('page.purchase_orders.payment_amount')" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_method') }}</label>
-            <select v-model="paymentForm.method"
-              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-              <option value="cash">{{ $t('payment.cash') }}</option>
-              <option value="bank">{{ $t('payment.bank') }}</option>
-              <option value="mobile_money">{{ $t('payment.mobile_money') }}</option>
-            </select>
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.purchase_orders.payment_date') }}</label>
-            <input v-model="paymentForm.payment_date" type="date"
-              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-          </div>
+          <BaseSelect v-model="paymentForm.method" :label="$t('page.purchase_orders.payment_method')" :options="[
+            { value: 'cash', label: $t('payment.cash') },
+            { value: 'bank', label: $t('payment.bank') },
+            { value: 'mobile_money', label: $t('payment.mobile_money') },
+          ]" />
+          <BaseInput v-model="paymentForm.payment_date" type="date" :label="$t('page.purchase_orders.payment_date')" />
         </div>
       </div>
       <template #footer>

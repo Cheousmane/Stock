@@ -26,6 +26,19 @@ class ProductRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'sku' => 'SKU',
+            'price_xof' => 'prix de vente',
+            'purchase_price_xof' => 'prix d\'achat',
+            'category_id' => 'catégorie',
+            'quantity' => 'quantité',
+            'min_stock' => 'stock minimum',
+        ];
+    }
+
     public function rules(): array
     {
         $isPatch = $this->isMethod('patch');

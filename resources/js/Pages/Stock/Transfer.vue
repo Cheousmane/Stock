@@ -4,7 +4,7 @@
       <BasePageHeader :title="$t('page.transfer.title')" subtitle="">
         <template #actions>
           <BaseButton variant="ghost" size="sm" :to="{ name: 'Stock' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
+            <ArrowLeftIcon class="w-4 h-4" />{{ $t('common.cancel') }}
           </BaseButton>
         </template>
       </BasePageHeader>
@@ -28,11 +28,7 @@
               :options="products.map(p => ({ value: p.id, label: `${p.name} (${p.sku})` }))"
               :placeholder="$t('common.select')" :error="errors.product_id || ''" />
             <BaseInput v-model.number="form.quantity" type="number" :label="$t('common.quantity')" required min="1" :error="errors.quantity || ''" />
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('page.transfer.reason') }}</label>
-              <textarea v-model="form.reason" rows="3" :placeholder="$t('page.transfer.reason_placeholder')"
-                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-            </div>
+            <BaseTextarea v-model="form.reason" :label="$t('page.transfer.reason')" :placeholder="$t('page.transfer.reason_placeholder')" :rows="3" />
             <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
           </div>
         </BaseCard>
@@ -57,6 +53,7 @@ import BaseCard from '../../Components/ui/BaseCard.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();

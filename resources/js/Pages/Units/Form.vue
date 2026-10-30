@@ -1,28 +1,24 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.units.edit') : $t('page.units.create')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Units' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="md" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.units.edit') : $t('page.units.create') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="space-y-4">
-            <BaseInput v-model="form.name" :label="$t('form.name')" required :placeholder="$t('page.units.name_placeholder')" :error="errors.name?.[0] || ''" />
-            <BaseInput v-model="form.code" :label="$t('form.code')" required :placeholder="$t('page.units.code_placeholder')" :error="errors.code?.[0] || ''" />
+            <BaseInput v-model="form.name" :label="$t('form.name')" required :error="errors.name?.[0] || ''" />
+            <BaseInput v-model="form.symbol" :label="$t('form.symbol')" required :error="errors.symbol?.[0] || ''" />
+            <BaseInput v-model.number="form.conversion_factor" type="number" :label="$t('form.conversion_factor')" min="0" step="0.0001" :error="errors.conversion_factor?.[0] || ''" />
           </div>
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Units' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -35,17 +31,23 @@ import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
-import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const route = useRoute();
 const router = useRouter();
 const { t: $t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
-const form = reactive({ name: '', code: '' });
+const form = reactive({ name: '', symbol: '', conversion_factor: 1 });
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Units' });
+}
 
 onMounted(async () => {
   if (!isEdit.value) return;
@@ -53,7 +55,8 @@ onMounted(async () => {
     const { data } = await axios.get(`/units/${route.params.id}`);
     const item = data.data ?? data;
     form.name = item.name ?? '';
-    form.code = item.code ?? '';
+    form.symbol = item.symbol ?? '';
+    form.conversion_factor = item.conversion_factor ?? 1;
   } catch {
     showToast($t('page.units.load_error'), 'error');
     router.push({ name: 'Units' });
@@ -84,3 +87,4 @@ async function submit() {
   }
 }
 </script>
+

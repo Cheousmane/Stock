@@ -13,6 +13,16 @@ class WarehouseRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'code' => 'code',
+            'address' => 'adresse',
+            'city' => 'ville',
+        ];
+    }
+
     public function rules(): array
     {
         return [

@@ -1,51 +1,50 @@
 <template>
   <AdminLayout>
-    <div class="max-w-4xl mx-auto space-y-6">
-      <BasePageHeader :title="$t('page.quotes.new')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Quotes' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="full" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ $t('page.quotes.new') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <BaseSelect v-model="form.customer_id" :label="$t('page.quotes.customer')" required
+            <BaseSelect v-model="form.customer_id" :label="$t('page.quotes.customer')" required class="sm:col-span-2"
               :options="customers.map(c => ({ value: c.id, label: c.name }))"
               :placeholder="$t('form.select_customer')" :error="errors.customer_id?.[0] || ''" />
-            <div></div>
             <BaseInput v-model="form.issue_date" type="date" :label="$t('quote.issue_date')" required :error="errors.issue_date?.[0] || ''" />
             <BaseInput v-model="form.expiration_date" type="date" :label="$t('quote.expiration_date')" required :error="errors.expiration_date?.[0] || ''" />
           </div>
         </BaseCard>
 
         <BaseCard>
-          <div class="space-y-2">
-            <div v-for="(line, index) in form.items" :key="index" class="flex flex-wrap gap-2 items-start">
-              <select v-model="line.product_id" @change="selectProduct(index)"
-                class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
-                <option value="">{{ $t('form.select') }}</option>
-                <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
-                <option value="other">{{ $t('common.other') }}</option>
-              </select>
-              <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
-                class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-else v-model="line.description" :placeholder="$t('form.description')"
-                class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
-                class="w-20 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
-                class="w-28 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-              <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
-              <div class="flex items-center gap-1 py-1">
-                <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
-                  <PlusIcon class="w-4 h-4" />
-                </button>
-                <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
-                  <XMarkIcon class="w-4 h-4" />
-                </button>
+          <div class="space-y-3">
+            <div class="pro-line-head">
+              <span>{{ $t('page.stock.product') }}</span>
+              <span>{{ $t('form.description') }}</span>
+              <span class="text-right">{{ $t('form.quantity') }}</span>
+              <span class="text-right">{{ $t('form.unit_price') }}</span>
+              <span class="text-right">{{ $t('invoice.total') }}</span>
+              <span />
+            </div>
+            <div v-for="(line, index) in form.items" :key="index" class="p-3 rounded-2xl bg-surface-secondary/40 border border-border/60">
+              <div class="pro-line-grid">
+                <select v-model="line.product_id" @change="selectProduct(index)" :aria-label="$t('page.stock.product')" class="pro-form-control font-semibold">
+                  <option value="">{{ $t('form.select') }}</option>
+                  <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  <option value="other">{{ $t('common.other') }}</option>
+                </select>
+                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')" :aria-label="$t('form.name')" class="pro-form-control" />
+                <input v-else v-model="line.description" :placeholder="$t('form.description')" :aria-label="$t('form.description')" class="pro-form-control" />
+                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')" :aria-label="$t('form.quantity')" class="pro-form-control text-right font-mono font-semibold" />
+                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')" :aria-label="$t('form.unit_price')" class="pro-form-control text-right font-mono font-semibold" />
+                <span class="px-1 text-sm font-mono font-black text-text-primary text-left md:text-right tabular-nums">{{ formatXOF(line.total) }}</span>
+                <div class="flex items-center gap-1 md:justify-end">
+                  <button type="button" @click="addLine" class="pro-icon-btn" :title="$t('common.add_line')">
+                    <PlusIcon class="w-4 h-4" />
+                  </button>
+                  <button type="button" @click="removeLine(index)" class="pro-icon-btn hover:!text-red-600 hover:!bg-red-500/10" :title="$t('common.remove_line')">
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -77,11 +76,11 @@
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Quotes' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('page.quotes.create') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -93,19 +92,26 @@ import axios from 'axios';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
 import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 
 const router = useRouter();
 const submitting = ref(false);
 const customers = ref([]);
 const products = ref([]);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Quotes' });
+}
 
 const form = reactive({
   customer_id: '', issue_date: new Date().toISOString().slice(0, 10), expiration_date: '',
@@ -204,3 +210,6 @@ async function submit() {
   }
 }
 </script>
+
+
+

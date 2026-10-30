@@ -16,6 +16,15 @@ class SupplierRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nom',
+            'email' => 'email',
+            'phone' => 'téléphone',
+        ];
+    }
+
     public function rules(): array
     {
         $routeParam = $this->route('supplier');

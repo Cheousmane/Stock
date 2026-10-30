@@ -17,6 +17,19 @@ class CreditNoteRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'invoice_id' => 'facture',
+            'date' => 'date',
+            'reason' => 'motif',
+            'items' => 'lignes',
+            'items.*.product_id' => 'produit',
+            'items.*.quantity' => 'quantité',
+            'items.*.unit_price' => 'prix unitaire',
+        ];
+    }
+
     public function rules(): array
     {
         $routeParam = $this->route('credit_note');

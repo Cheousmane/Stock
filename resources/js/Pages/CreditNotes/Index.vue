@@ -4,18 +4,18 @@
       <BasePageHeader eyebrow="Ventes" :title="$t('page.credit_notes.title')" :subtitle="meta ? $t('page.credit_notes.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="primary" size="sm" :to="{ name: 'CreditNoteCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('common.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('common.create') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <ArrowDownTrayIcon class="w-4 h-4" />Excel
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <ArrowDownTrayIcon class="w-4 h-4" />CSV
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.credit_notes.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: '10 / page' },
@@ -23,10 +23,10 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.credit_notes.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="canDelete" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -36,8 +36,8 @@
         <BaseSkeleton :count="6" />
       </template>
       <template v-else-if="creditNotes.length === 0">
-        <BaseEmptyState :title="$t('page.credit_notes.no_credit_notes')" :description="search ? $t('page.credit_notes.no_results') : $t('page.credit_notes.empty')">
-          <button @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
+        <BaseEmptyState :title="$t('page.credit_notes.no_credit_notes')" :description="hasActiveFilters ? $t('page.credit_notes.no_results') : $t('page.credit_notes.empty')">
+          <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
       </template>
       <template v-else>
@@ -54,6 +54,9 @@
           :sort-by="sortBy"
           :sort-order="sortOrder"
           @sort="toggleSort"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-number="{ row }">
             <router-link :to="{ name: 'CreditNoteShow', params: { id: row.id } }" class="text-sm font-medium text-text-primary hover:text-primary-600 transition-colors">{{ row.number }}</router-link>

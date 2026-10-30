@@ -1,15 +1,10 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.products.edit') : $t('page.products.create')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Products' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="full" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.products.edit') : $t('page.products.create') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="space-y-4">
             <BaseInput v-model="form.name" :label="$t('form.name')" required :error="errors.name?.[0] || ''" :list="nameSuggestions" />
@@ -23,16 +18,10 @@
               </div>
               <BaseButton variant="secondary" size="md" @click="form.barcode = generateBarcode()" class="mb-0.5">{{ $t('common.generate') }}</BaseButton>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BaseSelect v-model="form.category_id" :label="$t('form.category')"
-                :options="[{ value: '', label: $t('form.select_category') }, ...categories.map(c => ({ value: c.id, label: c.name }))]"
-                :error="errors.category_id?.[0] || ''" />
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.description') }}</label>
-              <textarea v-model="form.description" rows="3"
-                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-            </div>
+            <BaseSelect v-model="form.category_id" :label="$t('form.category')"
+              :options="[{ value: '', label: $t('form.select_category') }, ...categories.map(c => ({ value: c.id, label: c.name }))]"
+              :error="errors.category_id?.[0] || ''" />
+            <BaseTextarea v-model="form.description" :label="$t('form.description')" :rows="3" />
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model.number="form.price_xof" type="number" :label="$t('form.sale_price_xof')" required min="0" step="1" :error="errors.price_xof?.[0] || errors.price?.[0] || ''" />
               <BaseInput v-model.number="form.purchase_price_xof" type="number" :label="$t('form.purchase_price_xof')" min="0" step="1" :error="errors.purchase_price_xof?.[0] || ''" />
@@ -42,11 +31,10 @@
               <BaseInput v-model.number="form.min_stock" type="number" :label="$t('form.min_stock')" min="0" step="1" />
             </div>
             <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.product_image') }}</label>
-              <input type="file" @change="onFileChange" accept="image/jpeg,image/png,image/jpg,image/gif"
-                class="block w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-surface-tertiary file:text-text-primary hover:file:bg-surface-secondary" />
-              <img v-if="previewUrl" :src="previewUrl" class="mt-2 w-32 h-32 object-cover rounded-lg border border-border" />
-              <p v-if="errors.image?.[0]" class="text-xs text-red-500">{{ errors.image[0] }}</p>
+              <label class="pro-form-label">{{ $t('form.product_image') }}</label>
+              <input type="file" @change="onFileChange" accept="image/jpeg,image/png,image/jpg,image/gif" class="pro-form-file" />
+              <img v-if="previewUrl" :src="previewUrl" alt="" class="mt-2 w-28 h-28 object-cover rounded-xl border border-border/70" />
+              <p v-if="errors.image?.[0]" class="text-xs font-medium text-red-500">{{ errors.image[0] }}</p>
             </div>
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.is_active" type="checkbox" class="rounded border-border text-primary-600 focus:ring-primary-500/30" />
@@ -56,11 +44,11 @@
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Products' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -72,9 +60,11 @@ import { useI18n } from 'vue-i18n';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 import { useSuggestions } from '../../composables/useSuggestions';
 
@@ -86,10 +76,16 @@ const {
 const { t: $t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const showToast = inject('showToast');
+const showToast = inject('showToast', (msg, type) => console.log('[toast]', type, msg));
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Products' });
+}
 const selectedFile = ref(null);
 const previewUrl = ref(null);
 const categories = ref([]);
@@ -228,3 +224,5 @@ function buildFormData(data) {
   return fd;
 }
 </script>
+
+

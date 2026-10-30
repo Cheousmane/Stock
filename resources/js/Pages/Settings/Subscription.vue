@@ -4,7 +4,7 @@
       <BasePageHeader eyebrow="Facturation" :title="$t('subscription.title')" :subtitle="$t('settings.manage_subscription')">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchData()" :title="$t('common.refresh')">
-            <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
+            <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
           <BaseButton variant="secondary" size="sm" :to="{ name: 'Settings' }">
             <ArrowLeftIcon class="w-4 h-4" /> {{ $t('common.back') }}
@@ -19,7 +19,7 @@
       <template v-else-if="error">
         <BaseEmptyState :title="$t('common.error')" :description="error">
           <BaseButton variant="primary" size="sm" @click="fetchData()">
-            <span class="text-white"><ArrowPathIcon class="w-4 h-4" /></span>{{ $t('common.retry') }}
+            <ArrowPathIcon class="w-4 h-4" />{{ $t('common.retry') }}
           </BaseButton>
         </BaseEmptyState>
       </template>
@@ -30,8 +30,8 @@
           <div class="space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-4 p-4 bg-surface-tertiary rounded-xl">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                  <CheckCircleIcon class="w-6 h-6 text-emerald-600" />
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <CheckCircleIcon class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
                   <h3 class="font-semibold text-text-primary">{{ currentSubscription.plan_name || $t('subscription.active_badge') }}</h3>
@@ -39,32 +39,32 @@
                 </div>
               </div>
               <div class="flex items-center gap-3">
-                <span v-if="currentSubscription.trial_ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300">
+                <BaseBadge v-if="currentSubscription.trial_ends_at" variant="warning">
                   {{ $t('subscription.trial_until', { date: formatDate(currentSubscription.trial_ends_at) }) }}
-                </span>
-                <span v-else-if="currentSubscription.ends_at" class="px-2.5 py-1 text-xs font-medium rounded-full border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/15 dark:text-rose-300">
+                </BaseBadge>
+                <BaseBadge v-else-if="currentSubscription.ends_at" variant="danger">
                   {{ $t('subscription.ends_on', { date: formatDate(currentSubscription.ends_at) }) }}
-                </span>
+                </BaseBadge>
                 <BaseBadge variant="success">{{ $t('subscription.active_badge') }}</BaseBadge>
               </div>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div class="p-3 bg-surface-tertiary rounded-lg">
-                <p class="text-text-tertiary">{{ $t('subscription.cycle') }}</p>
-                <p class="font-medium text-text-primary">{{ currentSubscription.billing_cycle || $t('subscription.cycle_monthly') }}</p>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.cycle') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.billing_cycle || $t('subscription.cycle_monthly') }}</p>
               </div>
-              <div class="p-3 bg-surface-tertiary rounded-lg">
-                <p class="text-text-tertiary">{{ $t('subscription.next_billing') }}</p>
-                <p class="font-medium text-text-primary">{{ currentSubscription.next_billing_date ? formatDate(currentSubscription.next_billing_date) : '—' }}</p>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.next_billing') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.next_billing_date ? formatDate(currentSubscription.next_billing_date) : '—' }}</p>
               </div>
-              <div class="p-3 bg-surface-tertiary rounded-lg">
-                <p class="text-text-tertiary">{{ $t('subscription.payment_method') }}</p>
-                <p class="font-medium text-text-primary">{{ currentSubscription.payment_method_brand ? currentSubscription.payment_method_brand.toUpperCase() + ' •••• ' + currentSubscription.payment_method_last4 : '—' }}</p>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.payment_method') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.payment_method_brand ? currentSubscription.payment_method_brand.toUpperCase() + ' •••• ' + currentSubscription.payment_method_last4 : '—' }}</p>
               </div>
-              <div class="p-3 bg-surface-tertiary rounded-lg">
-                <p class="text-text-tertiary">ID Stripe</p>
-                <p class="font-medium text-text-primary font-mono text-xs">{{ currentSubscription.stripe_id || '—' }}</p>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">ID Stripe</p>
+                <p class="mt-0.5 font-bold text-text-primary font-mono text-xs">{{ currentSubscription.stripe_id || '—' }}</p>
               </div>
             </div>
 
@@ -124,32 +124,32 @@
             <div
               v-for="plan in plans"
               :key="plan.id"
-              class="relative p-4 rounded-xl border-2 transition-all duration-200"
+              class="relative p-5 rounded-2xl border-2 transition-all duration-200"
               :class="[
-                isCurrentPlan(plan) ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 ring-2 ring-emerald-500/20' : 'border-border bg-surface hover:border-emerald-200 dark:hover:border-emerald-800'
+                isCurrentPlan(plan) ? 'border-emerald-500 bg-emerald-500/[0.06] ring-4 ring-emerald-500/10' : 'border-border/70 bg-surface hover:border-emerald-400/50'
               ]"
             >
-              <div v-if="isCurrentPlan(plan)" class="absolute -top-3 -right-3 px-2 py-0.5 text-xs font-semibold bg-emerald-500 text-white rounded-full">
+              <BaseBadge v-if="isCurrentPlan(plan)" variant="success" class="absolute -top-3 right-4 shadow-sm">
                 {{ $t('subscription.current') }}
-              </div>
-              <div v-else-if="plan.slug === 'free' && !currentSubscription" class="absolute -top-3 -right-3 px-2 py-0.5 text-xs font-semibold bg-gray-500 text-white rounded-full">
+              </BaseBadge>
+              <BaseBadge v-else-if="plan.slug === 'free' && !currentSubscription" variant="default" class="absolute -top-3 right-4 shadow-sm">
                 {{ $t('subscription.free_badge') }}
-              </div>
-              <div v-else-if="isUpgrade(plan)" class="absolute -top-3 -right-3 px-2 py-0.5 text-xs font-semibold bg-emerald-500 text-white rounded-full">
+              </BaseBadge>
+              <BaseBadge v-else-if="isUpgrade(plan)" variant="success" class="absolute -top-3 right-4 shadow-sm">
                 Upgrade
-              </div>
-              <div v-else-if="isDowngrade(plan)" class="absolute -top-3 -right-3 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full">
+              </BaseBadge>
+              <BaseBadge v-else-if="isDowngrade(plan)" variant="warning" class="absolute -top-3 right-4 shadow-sm">
                 Downgrade
+              </BaseBadge>
+
+              <div class="text-center mb-5">
+                <h3 class="text-base font-extrabold text-text-primary">{{ plan.name }}</h3>
+                <p class="text-xs font-medium text-text-tertiary mt-1 min-h-8">{{ plan.description }}</p>
               </div>
 
-              <div class="text-center mb-4">
-                <h3 class="font-semibold text-text-primary">{{ plan.name }}</h3>
-                <p class="text-sm text-text-tertiary mt-1">{{ plan.description }}</p>
-              </div>
-
-              <div class="text-center mb-4">
-                <span class="text-3xl font-bold text-text-primary">{{ plan.price_xof === 0 ? $t('subscription.free_badge') : formatPrice(plan.price_xof, plan.currency) }}</span>
-                <span v-if="plan.price_xof > 0" class="text-sm text-text-tertiary">{{ $t('subscription.per_month_short') }}</span>
+              <div class="text-center mb-5">
+                <span class="text-3xl font-black text-text-primary tabular-nums">{{ plan.price_xof === 0 ? $t('subscription.free_badge') : formatPrice(plan.price_xof, plan.currency) }}</span>
+                <span v-if="plan.price_xof > 0" class="text-xs font-medium text-text-tertiary">{{ $t('subscription.per_month_short') }}</span>
               </div>
 
               <ul class="space-y-2 mb-6 min-h-[120px]">

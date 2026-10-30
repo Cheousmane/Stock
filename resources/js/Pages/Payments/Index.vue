@@ -4,10 +4,10 @@
       <BasePageHeader eyebrow="Finance" :title="$t('page.payments.title')" :subtitle="meta ? $t('page.payments.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <ArrowDownTrayIcon class="w-4 h-4" />Excel
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <ArrowDownTrayIcon class="w-4 h-4" />CSV
           </BaseButton>
         </template>
       </BasePageHeader>
@@ -32,7 +32,7 @@
         </form>
       </BaseCard>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.payments.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: '10 / page' },
@@ -40,10 +40,10 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.payments.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="can('delete_payment')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -69,6 +69,9 @@
           :sort-by="sortBy"
           :sort-order="sortOrder"
           @sort="toggleSort"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-invoice_number="{ row }">
             <p class="text-sm font-medium text-text-primary">{{ row.invoice?.number || '—' }}</p>

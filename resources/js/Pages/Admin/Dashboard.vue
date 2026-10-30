@@ -2,7 +2,7 @@
   <SuperAdminLayout>
     <div class="space-y-6 pb-10">
       <!-- Hero header -->
-      <div class="relative overflow-hidden rounded-3xl border border-emerald-500/15 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-600/20">
+      <div class="relative overflow-hidden rounded-[1.25rem] border border-emerald-500/15 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-600/20">
         <div class="pointer-events-none absolute inset-0" aria-hidden="true">
           <div class="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-white/15 blur-3xl" />
           <div class="absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-teal-950/25 blur-3xl" />
@@ -47,7 +47,7 @@
 
       <!-- KPI cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
-        <div v-if="loading" v-for="i in 6" :key="'sk-'+i" class="p-5 rounded-3xl bg-surface border border-border shadow-sm">
+        <div v-if="loading" v-for="i in 6" :key="'sk-'+i" class="p-5 rounded-[1.25rem] bg-surface border border-border shadow-sm">
           <div class="h-11 w-11 rounded-2xl bg-surface-tertiary animate-pulse" />
           <div class="mt-4 h-7 w-2/3 rounded-lg bg-surface-tertiary animate-pulse" />
           <div class="mt-2 h-4 w-1/2 rounded bg-surface-tertiary animate-pulse" />
@@ -56,7 +56,7 @@
           v-else
           v-for="card in statCards"
           :key="card.label"
-          class="group relative overflow-hidden p-5 rounded-3xl bg-surface border border-border/70 shadow-[0_1px_3px_rgb(0_0_0/0.05)] hover:shadow-[0_16px_40px_-16px_rgb(16_185_129/0.35)] hover:-translate-y-1 hover:border-emerald-400/40 active:scale-[0.99] transition-all duration-300"
+          class="group relative overflow-hidden p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-[0_1px_3px_rgb(0_0_0/0.05)] hover:shadow-[0_16px_40px_-16px_rgb(16_185_129/0.35)] hover:-translate-y-1 hover:border-emerald-400/40 active:scale-[0.99] transition-all duration-300"
         >
           <div class="absolute -right-8 -top-8 w-28 h-28 rounded-full blur-3xl transition-transform duration-500 group-hover:scale-150" :class="card.glow" />
           <div class="relative flex items-start justify-between gap-3">
@@ -81,7 +81,7 @@
       <div v-if="alerts.length > 0" class="grid gap-3">
         <div
           v-for="(alert, i) in alerts" :key="i"
-          class="group flex items-center gap-4 p-4 rounded-3xl border shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.995] transition-all"
+          class="group flex items-center gap-4 p-4 rounded-[1.25rem] border shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.995] transition-all"
           :class="alertTone(alert.severity).card"
         >
           <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" :class="alertTone(alert.severity).icon">
@@ -102,7 +102,7 @@
 
       <!-- Plans + sans plan -->
       <div class="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        <section class="xl:col-span-3 p-6 rounded-3xl bg-surface border border-border/70 shadow-sm">
+        <section class="xl:col-span-3 p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
           <div class="flex items-center justify-between gap-3 mb-1">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Distribution des plans</h3>
@@ -148,7 +148,7 @@
           </div>
         </section>
 
-        <section class="xl:col-span-2 p-6 rounded-3xl bg-surface border border-border/70 shadow-sm flex flex-col min-h-[320px]">
+        <section class="xl:col-span-2 p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm flex flex-col min-h-[320px]">
           <div class="flex items-center justify-between gap-3 mb-1">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Entreprises sans plan</h3>
@@ -159,7 +159,7 @@
             </span>
           </div>
           <div v-if="companiesWithoutPlanList.length === 0" class="flex-1 flex flex-col items-center justify-center text-center py-10">
-            <span class="w-14 h-14 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
+            <span class="w-14 h-14 rounded-[1.25rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
               <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </span>
             <p class="text-sm font-extrabold text-text-primary">Tout est en règle</p>
@@ -185,7 +185,7 @@
 
       <!-- Charts -->
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <section class="p-6 rounded-3xl bg-surface border border-border/70 shadow-sm">
+        <section class="p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
           <div class="flex items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Nouvelles entreprises · 30 jours</h3>
@@ -203,7 +203,7 @@
             </div>
           </div>
         </section>
-        <section class="p-6 rounded-3xl bg-surface border border-border/70 shadow-sm">
+        <section class="p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
           <div class="flex items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Connexions · 14 jours</h3>
@@ -226,7 +226,7 @@
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <!-- Recent logins -->
-        <section class="p-6 rounded-3xl bg-surface border border-border/70 shadow-sm flex flex-col">
+        <section class="p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm flex flex-col">
           <div class="flex items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Connexions récentes</h3>
@@ -255,7 +255,7 @@
         </section>
 
         <!-- Recent companies -->
-        <section class="p-6 rounded-3xl bg-surface border border-border/70 shadow-sm flex flex-col">
+        <section class="p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm flex flex-col">
           <div class="flex items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="text-base font-extrabold text-text-primary tracking-tight">Dernières inscriptions</h3>
@@ -283,7 +283,7 @@
       </div>
 
       <!-- Top companies -->
-      <section class="p-6 rounded-3xl bg-surface border border-border/70 shadow-sm">
+      <section class="p-6 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div>
             <h3 class="text-base font-extrabold text-text-primary tracking-tight">Top entreprises · volume facturé (30 jours)</h3>

@@ -4,21 +4,21 @@
       <BasePageHeader eyebrow="Catalogue" :title="$t('page.products.title')" :subtitle="meta ? $t('page.products.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchProducts(meta?.current_page)" title="Rafraîchir">
-            <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
+            <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>Excel
+            <ArrowDownTrayIcon class="w-4 h-4" />Excel
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>CSV
+            <ArrowDownTrayIcon class="w-4 h-4" />CSV
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'ProductCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.products.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.products.create') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-3xl bg-surface border border-border/70 shadow-sm">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.products.search_placeholder')" clearable size="sm" class="flex-1 sm:max-w-xs" />
         <BaseSelect v-model="categoryFilter" :options="[
           { value: '', label: $t('page.products.all_categories') },
@@ -35,10 +35,10 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.products.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="can('delete_product')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -50,7 +50,7 @@
       <template v-else-if="products.length === 0">
         <BaseEmptyState :title="$t('page.products.no_products')" :description="search || categoryFilter || statusFilter ? $t('page.products.no_results') : $t('page.products.empty')">
           <BaseButton v-if="!search && !categoryFilter && !statusFilter" variant="primary" size="sm" :to="{ name: 'ProductCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.products.create_first') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.products.create_first') }}
           </BaseButton>
           <button v-else @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -65,6 +65,9 @@
           clickable
           @sort="toggleSort"
           @row-click="viewProduct"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-name="{ row }">
             <div class="flex items-center gap-3">

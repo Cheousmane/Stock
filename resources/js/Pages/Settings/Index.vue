@@ -4,7 +4,7 @@
       <BasePageHeader eyebrow="Système" title="Paramètres" subtitle="Configuration de l'entreprise, rôles et préférences">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchData()" title="Rafraîchir">
-            <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
+            <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
         </template>
       </BasePageHeader>
@@ -18,14 +18,13 @@
         <BaseCard title="Entreprise" padding="lg">
           <form @submit.prevent="submit" class="space-y-4">
             <div>
-              <label class="block text-xs font-medium text-text-secondary tracking-wide mb-1">Logo</label>
+              <label class="pro-form-label">Logo</label>
               <div class="flex items-center gap-4">
-                <div v-if="logoPreview || logoUrl" class="flex-shrink-0 w-16 h-16 rounded-lg border border-border overflow-hidden bg-surface-tertiary flex items-center justify-center">
-                  <img :src="logoPreview || logoUrl" class="w-full h-full object-contain" />
+                <div v-if="logoPreview || logoUrl" class="flex-shrink-0 w-16 h-16 rounded-xl border border-border/70 overflow-hidden bg-surface-tertiary flex items-center justify-center">
+                  <img :src="logoPreview || logoUrl" alt="Logo" class="w-full h-full object-contain" />
                 </div>
-                <div class="flex-1">
-                  <input ref="logoInput" type="file" accept="image/*" @change="onLogoChange"
-                    class="block w-full text-sm text-text-tertiary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-500/15 dark:file:text-emerald-300 dark:hover:file:bg-emerald-500/25" />
+                <div class="flex-1 min-w-0">
+                  <input ref="logoInput" type="file" accept="image/*" @change="onLogoChange" class="pro-form-file" />
                   <div class="flex gap-2 mt-2">
                     <BaseButton v-if="selectedLogo" variant="primary" size="xs" type="button" @click="uploadLogo" :loading="uploadingLogo">
                       {{ uploadingLogo ? 'Upload...' : 'Uploader le logo' }}
@@ -46,11 +45,7 @@
 
             <BaseInput v-model="form.phone" type="tel" :label="$t('settings.phone')" />
 
-            <div>
-              <label class="block text-xs font-medium text-text-secondary tracking-wide mb-1">{{ $t('settings.address') }}</label>
-              <textarea v-model="form.address" rows="2"
-                class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"></textarea>
-            </div>
+            <BaseTextarea v-model="form.address" :label="$t('settings.address')" :rows="2" />
 
             <BaseSelect v-model="form.industry" :label="$t('auth.industry')" :options="[
               { value: '', label: $t('settings.not_defined') },
@@ -92,17 +87,17 @@
                 { value: 'en', label: 'English' },
               ]" />
               <div>
-                <label class="block text-xs font-medium text-text-secondary tracking-wide mb-1">{{ $t('settings.accent_color') }}</label>
+                <label class="pro-form-label">{{ $t('settings.accent_color') }}</label>
                 <div class="flex items-center gap-2">
                   <input v-model="form.brand_color" type="color"
-                    class="w-10 h-9 rounded-lg border border-border bg-surface cursor-pointer" />
+                    class="w-11 h-10 shrink-0 rounded-xl border border-border/80 bg-surface p-1 cursor-pointer" />
                   <input v-model="form.brand_color" type="text" maxlength="7" placeholder="#2563eb"
-                    class="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-surface focus:ring-emerald-500 focus:border-emerald-500 text-text-primary" />
+                    class="pro-form-control" />
                 </div>
               </div>
             </div>
             <div class="pt-3 border-t border-border">
-              <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">{{ $t('settings.legal_ids') }}</div>
+              <div class="pro-section-title mb-2">{{ $t('settings.legal_ids') }}</div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <BaseInput v-model="form.legal_rc" label="RC (Registre de commerce)" />
                 <BaseInput v-model="form.legal_ifu" label="IFU / NIF" />
@@ -110,7 +105,7 @@
               </div>
             </div>
             <div class="pt-3 border-t border-border">
-              <div class="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">{{ $t('settings.bank_details') }}</div>
+              <div class="pro-section-title mb-2">{{ $t('settings.bank_details') }}</div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <BaseInput v-model="form.bank_name" :label="$t('payment.bank')" :placeholder="$t('settings.ph_bank')" />
                 <BaseInput v-model="form.bank_account" :label="$t('settings.bank_account')" :placeholder="$t('settings.ph_account')" />
@@ -212,6 +207,7 @@ import BaseBadge from '../../Components/ui/BaseBadge.vue';
 import BaseSkeleton from '../../Components/ui/BaseSkeleton.vue';
 import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowPathIcon, CreditCardIcon, CheckCircleIcon, CheckIcon } from '@heroicons/vue/24/outline';
 import { formatPrice as formatPlanPrice, industryOptions } from '../../utils/format';
 

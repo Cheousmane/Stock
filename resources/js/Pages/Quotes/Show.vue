@@ -10,91 +10,102 @@
         <BasePageHeader :title="$t('page.quotes.title_show', { number: quote.number })" :subtitle="$t('page.quotes.detail')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" @click="downloadPdf">
-              <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.download_pdf') }}
+              <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.download_pdf') }}
             </BaseButton>
-            <button v-if="quote.status !== 'converted' && can('convert_quote')" @click="convertToInvoice" :disabled="converting"
-              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50">
-              <span class="text-white"><DocumentTextIcon class="w-4 h-4" /></span>{{ converting ? $t('page.quotes.converting') : $t('page.quotes.convert_to_invoice') }}
-            </button>
+            <BaseButton v-if="quote.status !== 'converted' && can('convert_quote')" size="sm" :loading="converting" @click="convertToInvoice">
+              <DocumentTextIcon class="w-4 h-4" />{{ converting ? $t('page.quotes.converting') : $t('page.quotes.convert_to_invoice') }}
+            </BaseButton>
             <BaseButton variant="secondary" size="sm" :loading="sendingEmail" @click="sendEmail">
-              <span class="text-current"><EnvelopeIcon class="w-4 h-4" /></span>{{ sendingEmail ? $t('common.sending') : $t('common.send_email') }}
+              <EnvelopeIcon class="w-4 h-4" />{{ sendingEmail ? $t('common.sending') : $t('common.send_email') }}
             </BaseButton>
             <BaseButton v-if="quote.status === 'draft' && can('update_quote')" size="sm" @click="updateStatus('sent')">
-              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.mark_sent') }}
+              <CheckIcon class="w-4 h-4" />{{ $t('page.quotes.mark_sent') }}
             </BaseButton>
-            <button v-if="(quote.status === 'sent' || quote.status === 'accepted') && can('validate_quote')" @click="updateStatus('accepted')"
-              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700">
-              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.quotes.accept') }}
-            </button>
-            <button v-if="(quote.status === 'draft' || quote.status === 'sent') && can('update_quote')" @click="updateStatus('rejected')"
-              class="inline-flex items-center justify-center gap-2 font-medium rounded-lg px-2.5 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700">
-              <span class="text-white"><XCircleIcon class="w-4 h-4" /></span>{{ $t('page.quotes.reject') }}
-            </button>
+            <BaseButton v-if="(quote.status === 'sent' || quote.status === 'accepted') && can('validate_quote')" variant="primary" size="sm" @click="updateStatus('accepted')">
+              <CheckIcon class="w-4 h-4" />{{ $t('page.quotes.accept') }}
+            </BaseButton>
+            <BaseButton v-if="(quote.status === 'draft' || quote.status === 'sent') && can('update_quote')" variant="danger" size="sm" @click="updateStatus('rejected')">
+              <XCircleIcon class="w-4 h-4" />{{ $t('page.quotes.reject') }}
+            </BaseButton>
             <BaseButton v-if="quote.status !== 'converted' && can('delete_quote')" variant="danger-ghost" size="sm" @click="deleteQuote">
-              <span class="text-current"><TrashIcon class="w-4 h-4" /></span>{{ $t('common.delete') }}
+              <TrashIcon class="w-4 h-4" />{{ $t('common.delete') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Quotes' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
+              <ArrowLeftIcon class="w-4 h-4" />{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
 
-        <div class="bg-surface border border-border rounded-xl p-4 sm:p-8">
-          <div class="flex flex-wrap gap-4 justify-between pb-6 sm:pb-8 mb-6 sm:mb-8 border-b border-border">
+        <div class="pro-card p-6 sm:p-8 space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-border/80">
             <div>
-              <h2 class="text-xl font-bold text-text-primary">{{ quote.number }}</h2>
-              <p class="mt-1 text-sm text-text-tertiary">{{ $t('common.date') }} : {{ quote.issue_date }}</p>
-              <p class="text-sm text-text-tertiary">{{ $t('page.quotes.expires') }} : {{ quote.expiration_date }}</p>
+              <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-black tracking-tight text-text-primary">{{ quote.number }}</h2>
+                <span :class="['inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full border shadow-2xs', statusClass(quote.status)]">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="statusDotClass(quote.status)"></span>
+                  {{ statusLabel(quote.status) }}
+                </span>
+              </div>
+              <div class="flex flex-wrap items-center gap-4 mt-2 text-xs font-semibold text-text-tertiary">
+                <span>{{ $t('common.date') }} : <strong class="text-text-primary font-bold">{{ quote.issue_date }}</strong></span>
+                <span>•</span>
+                <span>{{ $t('page.quotes.expires') }} : <strong class="text-text-primary font-bold">{{ quote.expiration_date }}</strong></span>
+              </div>
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-2xl bg-surface-secondary/50 border border-border/60">
             <div>
-              <span :class="['px-3 py-1 text-sm font-medium rounded-full', statusClass(quote.status)]">{{ statusLabel(quote.status) }}</span>
+              <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('page.quotes.customer') }}</p>
+              <p class="mt-1.5 text-base font-black text-text-primary">{{ quote.customer?.name }}</p>
+              <p v-if="quote.customer?.email" class="text-xs font-medium text-text-tertiary mt-0.5">{{ quote.customer.email }}</p>
+            </div>
+            <div class="flex flex-col md:items-end justify-center">
+              <p class="text-[11px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('common.total') }}</p>
+              <p class="text-3xl font-black font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">{{ formatXOF(quote.total_xof) }}</p>
             </div>
           </div>
 
-          <div class="mb-8">
-            <h3 class="text-sm font-medium text-text-tertiary">{{ $t('page.quotes.customer') }}</h3>
-            <p class="mt-1 font-medium text-text-primary">{{ quote.customer?.name }}</p>
-            <p v-if="quote.customer?.email" class="text-sm text-text-tertiary">{{ quote.customer.email }}</p>
+          <div class="pro-table-wrap">
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[540px]">
+                <thead>
+                  <tr class="pro-table-head">
+                    <th class="px-5 py-3 text-left">{{ $t('common.description') }}</th>
+                    <th class="px-5 py-3 text-right">{{ $t('invoice.qty') }}</th>
+                    <th class="px-5 py-3 text-right">{{ $t('invoice.unit_price') }}</th>
+                    <th class="px-5 py-3 text-right">{{ $t('common.total') }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border/60">
+                  <tr v-for="item in quote.items" :key="item.id" class="hover:bg-emerald-500/[0.03] transition-colors">
+                    <td class="px-5 py-3.5 text-sm font-semibold text-text-primary">{{ item.description || item.product?.name }}</td>
+                    <td class="px-5 py-3.5 text-sm font-semibold text-right text-text-secondary tabular-nums">{{ item.quantity }}</td>
+                    <td class="px-5 py-3.5 text-sm font-semibold text-right text-text-secondary tabular-nums">{{ formatXOF(item.unit_price_xof) }}</td>
+                    <td class="px-5 py-3.5 text-sm font-black text-right text-text-primary tabular-nums">{{ formatXOF(item.total_xof) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="overflow-x-auto">
-          <table class="w-full min-w-[520px] mb-8">
-            <thead>
-              <tr class="border-b border-border">
-                <th class="pb-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('common.description') }}</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('invoice.qty') }}</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('invoice.unit_price') }}</th>
-                <th class="pb-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('common.total') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in quote.items" :key="item.id" class="border-b border-border">
-                <td class="py-3 text-sm text-text-primary">{{ item.description || item.product?.name }}</td>
-                <td class="py-3 text-sm text-right text-text-secondary">{{ item.quantity }}</td>
-                <td class="py-3 text-sm text-right text-text-secondary">{{ formatXOF(item.unit_price_xof) }}</td>
-                <td class="py-3 text-sm text-right font-medium text-text-primary">{{ formatXOF(item.total_xof) }}</td>
-              </tr>
-            </tbody>
-          </table>
-          </div>
-
-          <div class="flex justify-end">
-            <div class="w-full max-w-xs space-y-2 sm:w-64">
-              <div class="flex justify-between text-sm">
-                <span class="text-text-tertiary">Sous-total</span>
-                <span class="text-text-primary">{{ formatXOF(quote.subtotal_xof) }}</span>
+          <div class="flex justify-end pt-2">
+            <div class="w-full max-w-xs space-y-2.5 sm:w-72 p-5 rounded-2xl bg-surface-secondary/40 border border-border/70">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-text-tertiary">{{ $t('common.subtotal') }}</span>
+                <span class="font-mono text-text-primary tabular-nums">{{ formatXOF(quote.subtotal_xof) }}</span>
               </div>
-              <div v-if="quote.tax_xof" class="flex justify-between text-sm">
-                <span class="text-text-tertiary">Taxe</span>
-                <span class="text-text-primary">{{ formatXOF(quote.tax_xof) }}</span>
+              <div v-if="quote.tax_xof" class="flex justify-between text-xs font-semibold">
+                <span class="text-text-tertiary">{{ $t('common.tax') }}</span>
+                <span class="font-mono text-text-primary tabular-nums">{{ formatXOF(quote.tax_xof) }}</span>
               </div>
-              <div v-if="quote.discount_xof" class="flex justify-between text-sm">
-                <span class="text-text-tertiary">Remise</span>
-                <span class="text-text-primary">{{ formatXOF(quote.discount_xof) }}</span>
+              <div v-if="quote.discount_xof" class="flex justify-between text-xs font-semibold">
+                <span class="text-text-tertiary">{{ $t('common.discount') }}</span>
+                <span class="font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">-{{ formatXOF(quote.discount_xof) }}</span>
               </div>
-              <div class="flex justify-between text-base font-bold border-t border-border pt-2">
-                <span class="text-text-primary">Total</span>
-                <span class="text-text-primary">{{ formatXOF(quote.total_xof) }}</span>
+              <div class="flex justify-between text-base font-black border-t border-border/80 pt-3">
+                <span class="text-text-primary">{{ $t('common.total') }}</span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">{{ formatXOF(quote.total_xof) }}</span>
               </div>
             </div>
           </div>
@@ -129,15 +140,16 @@ const sendingEmail = ref(false);
 const converting = ref(false);
 
 const statusMap = {
-  draft: { class: 'bg-surface-tertiary text-text-secondary', label: t('status.draft') },
-  sent: { class: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', label: t('status.sent') },
-  accepted: { class: 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300', label: t('status.accepted') },
-  rejected: { class: 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300', label: t('status.rejected') },
-  converted: { class: 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300', label: t('status.converted') },
+  draft: { class: 'bg-surface-tertiary text-text-secondary border-border', dot: 'bg-text-tertiary', label: 'status.draft' },
+  sent: { class: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', dot: 'bg-blue-500', label: 'status.sent' },
+  accepted: { class: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500', label: 'status.accepted' },
+  rejected: { class: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20', dot: 'bg-red-500', label: 'status.rejected' },
+  converted: { class: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20', dot: 'bg-purple-500', label: 'status.converted' },
 };
 
-function statusClass(s) { return statusMap[s]?.class || 'bg-surface-tertiary text-text-secondary'; }
-function statusLabel(s) { return statusMap[s]?.label || s; }
+function statusClass(s) { return statusMap[s]?.class || 'bg-surface-tertiary text-text-secondary border-border'; }
+function statusDotClass(s) { return statusMap[s]?.dot || 'bg-text-tertiary'; }
+function statusLabel(s) { return statusMap[s]?.label ? t(statusMap[s].label) : s; }
 
 function formatXOF(amount) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount || 0);

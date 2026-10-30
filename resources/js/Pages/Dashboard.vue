@@ -1,22 +1,20 @@
 <template>
   <AdminLayout>
     <template #header>
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <p class="pro-eyebrow">{{ $t('page.dashboard.title') }}</p>
-          <h1 class="pro-title">{{ $t('page.dashboard.subtitle') }}</h1>
-        </div>
-        <button @click="fetchStats" :disabled="loading" class="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] disabled:opacity-60 transition-all">
-          <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-          {{ $t('dashboard.refresh') }}
-        </button>
-      </div>
+      <BasePageHeader :title="$t('page.dashboard.title')" :subtitle="$t('page.dashboard.subtitle')">
+        <template #actions>
+          <BaseButton variant="secondary" size="sm" :loading="loading" @click="fetchStats()">
+            <ArrowPathIcon v-if="!loading" class="w-4 h-4" />
+            {{ $t('dashboard.refresh') }}
+          </BaseButton>
+        </template>
+      </BasePageHeader>
     </template>
 
     <!-- Loading skeleton -->
-    <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <div v-for="i in 8" :key="i" class="pro-card p-5">
-        <div class="h-11 w-11 rounded-2xl pro-skeleton" />
+    <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div v-for="i in 4" :key="i" class="pro-card p-5">
+        <div class="h-10 w-10 rounded-2xl pro-skeleton" />
         <div class="mt-4 h-7 w-2/3 pro-skeleton" />
         <div class="mt-2 h-4 w-1/2 pro-skeleton" />
       </div>
@@ -25,13 +23,13 @@
     <!-- Error state -->
     <div v-else-if="error" class="flex flex-col items-center justify-center py-20">
       <div class="w-14 h-14 mb-4 rounded-2xl bg-surface-tertiary flex items-center justify-center">
-        <span class="text-red-500"><ExclamationTriangleIcon class="w-7 h-7" /></span>
+        <ExclamationTriangleIcon class="w-7 h-7 text-red-500" />
       </div>
-      <p class="text-text-secondary mb-4">{{ error }}</p>
-      <button @click="fetchStats" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg hover:from-emerald-600 hover:to-emerald-700 shadow-sm">
-        <span class="text-white"><ArrowPathIcon class="w-4 h-4" /></span>
+      <p class="text-sm font-semibold text-text-secondary mb-4">{{ error }}</p>
+      <BaseButton variant="primary" size="sm" @click="fetchStats()">
+        <ArrowPathIcon class="w-4 h-4" />
         {{ $t('dashboard.retry') }}
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Dashboard content -->
@@ -59,82 +57,97 @@
           </router-link>
           <router-link
             to="/products/create"
-            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-blue-500/40 hover:bg-blue-500/5 text-text-primary transition-all shadow-xs shrink-0"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-text-primary transition-all shadow-xs shrink-0"
           >
-            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <CubeIcon class="w-3.5 h-3.5" />
             </span>
             <span>{{ $t('page.dashboard.shortcut_product') }}</span>
           </router-link>
           <router-link
             to="/customers/create"
-            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-purple-500/40 hover:bg-purple-500/5 text-text-primary transition-all shadow-xs shrink-0"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-text-primary transition-all shadow-xs shrink-0"
           >
-            <span class="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <UsersIcon class="w-3.5 h-3.5" />
             </span>
             <span>{{ $t('page.dashboard.shortcut_customer') }}</span>
           </router-link>
           <router-link
             to="/stock"
-            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-amber-500/40 hover:bg-amber-500/5 text-text-primary transition-all shadow-xs shrink-0"
+            class="group inline-flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface border border-border/80 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-text-primary transition-all shadow-xs shrink-0"
           >
-            <span class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <ArchiveBoxIcon class="w-3.5 h-3.5" />
             </span>
             <span>{{ $t('page.dashboard.shortcut_stock') }}</span>
           </router-link>
         </div>
 
-        <!-- KPI Bento Cards -->
-        <TransitionGroup name="stagger" tag="div" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" appear>
-          <div v-for="(kpi, index) in kpiCards" :key="kpi.label" :style="{ '--i': index }"
-            :class="[kpi.to ? 'cursor-pointer' : '']" @click="kpi.to && router.push(kpi.to)">
-            <div class="group relative overflow-hidden pro-card pro-card--hover card-sweep p-5">
-              <div class="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 translate-x-1/2 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-150"
-                :style="{ background: `radial-gradient(circle, ${kpi.glow}, transparent 70%)` }" />
-              <div class="relative flex items-start justify-between">
-                <div class="space-y-1.5">
-                  <p class="text-[11px] font-extrabold text-text-tertiary uppercase tracking-[0.12em]">{{ kpi.label }}</p>
-                  <p class="text-[26px] font-black font-mono text-text-primary tracking-tight tabular-nums leading-none">{{ kpi.display }}</p>
-                  <div v-if="kpi.trend !== null" class="flex items-center gap-1 pt-0.5">
-                    <span :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'">
-                      <ArrowTrendingUpIcon v-if="kpi.trend >= 0" class="w-3.5 h-3.5" />
-                      <ArrowTrendingDownIcon v-else class="w-3.5 h-3.5" />
-                    </span>
-                    <span :class="kpi.trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'" class="text-xs font-semibold tabular-nums">
-                      {{ kpi.trend >= 0 ? '+' : '' }}{{ kpi.trend }}%
-                    </span>
+        <!-- KPI Bento Cards (4 cartes maîtresses avec bascule optionnelle) -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="pro-section-title">{{ $t('page.dashboard.title') }}</h2>
+            <button
+              @click="showAllKpis = !showAllKpis"
+              class="inline-flex items-center gap-1.5 text-xs font-bold text-text-secondary hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              <span>{{ showAllKpis ? $t('page.dashboard.simplified_view') : $t('page.dashboard.more_indicators', { count: kpiCards.length - 4 }) }}</span>
+              <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="{ 'rotate-180': showAllKpis }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
+
+          <TransitionGroup name="stagger" tag="div" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" appear>
+            <div v-for="(kpi, index) in visibleKpis" :key="kpi.label" :style="{ '--i': index }"
+              :class="[kpi.to ? 'cursor-pointer' : '']" @click="kpi.to && router.push(kpi.to)">
+              <div class="group relative overflow-hidden pro-card pro-card--hover card-sweep p-5">
+                <div class="absolute top-0 right-0 w-28 h-28 -translate-y-1/2 translate-x-1/2 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-150"
+                  :style="{ background: `radial-gradient(circle, ${kpi.glow}, transparent 70%)` }" />
+                <div class="relative flex items-start justify-between">
+                  <div class="space-y-1.5">
+                    <p class="text-[11px] font-extrabold text-text-tertiary uppercase tracking-[0.12em]">{{ kpi.label }}</p>
+                    <p class="text-[24px] font-black font-mono text-text-primary tracking-tight tabular-nums leading-none">{{ kpi.display }}</p>
+                    <div v-if="kpi.trend !== null" class="flex items-center gap-1 pt-0.5">
+                      <span :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'">
+                        <ArrowTrendingUpIcon v-if="kpi.trend >= 0" class="w-3.5 h-3.5" />
+                        <ArrowTrendingDownIcon v-else class="w-3.5 h-3.5" />
+                      </span>
+                      <span :class="kpi.trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'" class="text-xs font-semibold tabular-nums">
+                        {{ kpi.trend >= 0 ? '+' : '' }}{{ kpi.trend }}%
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div class="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm" :class="kpi.iconBg">
-                  <span :class="kpi.iconColor"><component :is="kpi.icon" class="w-5 h-5" /></span>
+                  <div class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm" :class="kpi.iconBg">
+                    <span :class="kpi.iconColor"><component :is="kpi.icon" class="w-5 h-5" /></span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </TransitionGroup>
+          </TransitionGroup>
+        </div>
 
         <!-- Charts row -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div class="lg:col-span-2 pro-card pro-card--hover card-sweep p-5 sm:p-6">
+          <div class="lg:col-span-2 pro-card p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.revenue_chart_title') }}</h3>
-                <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.revenue_chart_subtitle') }}</p>
+                <h3 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('page.dashboard.revenue_chart_title') }}</h3>
+                <p class="text-xs font-medium text-text-tertiary mt-0.5">{{ $t('page.dashboard.revenue_chart_subtitle') }}</p>
               </div>
-              <div class="flex items-center gap-1.5 text-xs text-text-tertiary">
+              <div class="flex items-center gap-1.5 text-xs font-medium text-text-tertiary">
                 <span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />
                 {{ $t('page.dashboard.revenue_legend') }}
               </div>
             </div>
             <RevenueChart :data="revenueByMonth" />
           </div>
-          <div class="pro-card pro-card--hover card-sweep p-5 sm:p-6">
+          <div class="pro-card p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('page.dashboard.top_products_title') }}</h3>
-                <p class="text-xs text-text-tertiary mt-0.5">{{ $t('page.dashboard.top_products_subtitle') }}</p>
+                <p class="text-xs font-medium text-text-tertiary mt-0.5">{{ $t('page.dashboard.top_products_subtitle') }}</p>
               </div>
             </div>
             <TopProductsChart :data="topProducts" />
@@ -144,20 +157,20 @@
         <!-- Bottom row -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <!-- Recent invoices -->
-          <div class="lg:col-span-2 rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
+          <div class="lg:col-span-2 pro-card p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.recent_invoices_title') }}</h3>
-              <router-link to="/invoices" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center gap-1">
+              <h3 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('page.dashboard.recent_invoices_title') }}</h3>
+              <router-link to="/invoices" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">
                 <span>{{ $t('page.dashboard.view_all') }}</span>
-                <span>→</span>
+                <ArrowRightIcon class="w-3.5 h-3.5" />
               </router-link>
             </div>
             <div v-if="recentInvoices.length" class="divide-y divide-border/60">
               <div v-for="inv in recentInvoices" :key="inv.id"
-                class="group flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-surface-secondary transition-all duration-150 cursor-pointer"
+                class="group flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-surface-secondary transition-colors duration-150 cursor-pointer"
                 @click="router.push(`/invoices/${inv.id}`)">
-                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-surface-tertiary shrink-0 transition-transform duration-200 group-hover:scale-105 border border-border/40">
-                  <span class="text-text-secondary"><DocumentTextIcon class="w-4 h-4" /></span>
+                <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-surface-tertiary shrink-0 transition-transform duration-200 group-hover:scale-105 border border-border/40">
+                  <DocumentTextIcon class="w-4 h-4 text-text-secondary" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold font-mono text-text-primary truncate">{{ inv.number }}</p>
@@ -179,42 +192,30 @@
           <!-- Right widgets -->
           <div class="space-y-4">
             <!-- Low stock alert -->
-            <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
+            <div class="pro-card p-5">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
                   <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shadow-amber-500/20">
-                    <span class="text-white"><ExclamationTriangleIcon class="w-5 h-5" /></span>
+                    <ExclamationTriangleIcon class="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.low_stock_title') }}</p>
-                    <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.low_stock_subtitle') }}</p>
+                    <p class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('page.dashboard.low_stock_title') }}</p>
+                    <p class="text-xs font-medium text-text-tertiary">{{ $t('page.dashboard.low_stock_subtitle') }}</p>
                   </div>
                 </div>
-                <span v-if="lowStockCount > 0" class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/20 rounded-full animate-pulse">
-                  Alerte
-                </span>
+                <BaseBadge v-if="lowStockCount > 0" variant="warning" size="xs" dot pulse>
+                  {{ $t('status.low_stock') }}
+                </BaseBadge>
               </div>
               <div class="flex items-baseline justify-between mt-2">
                 <p class="text-3xl font-bold font-mono text-text-primary tabular-nums">{{ lowStockCount }}</p>
-                <router-link to="/stock" class="text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors">
+                <router-link to="/stock" class="text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors">
                   {{ $t('page.dashboard.check_stock') }}
                 </router-link>
               </div>
             </div>
 
-            <!-- Capital summary -->
-            <div class="rounded-xl bg-surface border border-border p-5 card-hover card-sweep">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm shadow-emerald-500/20">
-                  <span class="text-white"><CurrencyDollarIcon class="w-5 h-5" /></span>
-                </div>
-                <div>
-                  <p class="text-sm font-semibold text-text-primary">{{ $t('page.dashboard.capital_title') }}</p>
-                  <p class="text-xs text-text-tertiary">{{ $t('page.dashboard.capital_subtitle') }}</p>
-                </div>
-              </div>
-              <p class="text-2xl font-bold font-mono text-text-primary tabular-nums">{{ formatXOF(capital) }}</p>
-            </div>
+
           </div>
         </div>
       </div>
@@ -231,10 +232,13 @@ import AdminLayout from '../Components/AdminLayout.vue';
 import RevenueChart from '../Components/RevenueChart.vue';
 import TopProductsChart from '../Components/TopProductsChart.vue';
 import BaseBadge from '../Components/ui/BaseBadge.vue';
+import BaseButton from '../Components/ui/BaseButton.vue';
+import BasePageHeader from '../Components/ui/BasePageHeader.vue';
 import {
   DocumentTextIcon, CurrencyDollarIcon, BanknotesIcon, CreditCardIcon,
   ArrowPathIcon, ExclamationTriangleIcon, CubeIcon, UsersIcon,
   ArrowTrendingUpIcon, ArrowTrendingDownIcon, PlusIcon, ShoppingCartIcon, ArchiveBoxIcon,
+  ArrowRightIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -246,7 +250,8 @@ const revenueByMonth = ref([]);
 const topProducts = ref([]);
 const recentInvoices = ref([]);
 const lowStockCount = ref(0);
-const capital = ref(0);
+
+const showAllKpis = ref(false);
 
 const dashboardData = ref({
   total_revenue_xof: 0, outstanding: 0, recent_payments: 0,
@@ -309,6 +314,10 @@ const kpiCards = computed(() => [
   },
 ].map(k => ({ ...k, trend: k.trend ?? null })));
 
+const visibleKpis = computed(() => {
+  return showAllKpis.value ? kpiCards.value : kpiCards.value.slice(0, 4);
+});
+
 function statusVariant(status) {
   const map = { paid: 'success', sent: 'info', overdue: 'danger', draft: 'default', cancelled: 'warning' };
   return map[status] || 'default';
@@ -323,7 +332,7 @@ async function fetchStats(silent = false) {
     topProducts.value = data.top_products ?? [];
     recentInvoices.value = data.recent_invoices ?? [];
     lowStockCount.value = data.low_stock_products ?? 0;
-    capital.value = data.capital ?? 0;
+
   } catch (err) {
     if (!silent) error.value = t('dashboard.error');
   } finally {

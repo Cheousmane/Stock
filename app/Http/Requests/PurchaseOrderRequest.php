@@ -16,6 +16,20 @@ class PurchaseOrderRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'supplier_id' => 'fournisseur',
+            'warehouse_id' => 'entrepôt',
+            'issue_date' => 'date d\'émission',
+            'expected_delivery_date' => 'date de livraison prévue',
+            'items' => 'lignes',
+            'items.*.product_id' => 'produit',
+            'items.*.quantity' => 'quantité',
+            'items.*.unit_price_xof' => 'prix unitaire',
+        ];
+    }
+
     public function rules(): array
     {
         $routeParam = $this->route('purchase_order');

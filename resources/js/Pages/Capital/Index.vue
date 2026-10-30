@@ -4,73 +4,69 @@
       <BasePageHeader eyebrow="Finance" :title="$t('capital.title')" />
 
       <div v-if="loading" class="space-y-4">
-        <div v-for="n in 4" :key="n" class="h-24 bg-surface-secondary rounded-xl shimmer"></div>
+        <div v-for="n in 4" :key="n" class="h-24 pro-card shimmer"></div>
       </div>
 
-      <div v-else-if="error" class="p-10 text-center bg-surface border border-border rounded-xl shadow-card">
-        <div class="w-14 h-14 mx-auto mb-4 bg-danger-100 rounded-full flex items-center justify-center">
-          <span class="text-danger-500"><ExclamationTriangleIcon class="w-7 h-7" /></span>
-        </div>
-        <p class="text-text-secondary">{{ error }}</p>
-        <BaseButton variant="primary" size="sm" :to="{ name: 'Dashboard' }" class="mt-4">
+      <BaseEmptyState v-else-if="error" :title="error" :description="$t('capital.load_error')">
+        <BaseButton variant="primary" size="sm" :to="{ name: 'Dashboard' }" class="mt-2">
           {{ $t('common.back_to_dashboard') }}
         </BaseButton>
-      </div>
+      </BaseEmptyState>
 
       <template v-else-if="data">
-        <BaseCard class="bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/25">
-          <p class="text-sm font-medium text-green-700 dark:text-green-300">{{ $t('capital.calculated_label') }}</p>
-          <p class="mt-1 text-4xl font-black text-green-700 dark:text-green-300">{{ formatXOF(data.calculated) }}</p>
-          <p v-if="data.is_manual" class="mt-1 text-xs text-green-500 dark:text-green-400">
+        <BaseCard class="!border-emerald-500/20 !bg-emerald-500/[0.06]">
+          <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">{{ $t('capital.calculated_label') }}</p>
+          <p class="mt-1 text-4xl font-black text-emerald-700 dark:text-emerald-300 tabular-nums">{{ formatXOF(data.calculated) }}</p>
+          <p v-if="data.is_manual" class="mt-1.5 text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80">
             {{ $t('capital.last_updated') }}: {{ formatDate(data.capital_updated_at) }}
           </p>
         </BaseCard>
 
         <BaseCard :title="$t('capital.breakdown')">
           <div class="space-y-4">
-            <div class="flex items-center justify-between p-4 bg-surface-secondary rounded-lg">
+            <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-surface-secondary/60 rounded-xl border border-border/60">
               <div>
-                <p class="text-sm font-medium text-text-primary">{{ $t('capital.initial_capital') }}</p>
-                <p class="text-xs text-text-tertiary">{{ $t('capital.initial_capital_desc') }}</p>
+                <p class="text-sm font-bold text-text-primary">{{ $t('capital.initial_capital') }}</p>
+                <p class="text-xs font-medium text-text-tertiary">{{ $t('capital.initial_capital_desc') }}</p>
               </div>
               <div class="flex items-center gap-2">
                 <input v-model.number="form.initial_capital" type="number" min="0" step="1"
-                  class="w-36 px-3 py-2 text-right font-semibold text-text-primary border border-border rounded-lg focus:ring-primary-500 focus:border-primary-500 bg-surface"
+                  class="pro-form-control !w-36 text-right font-mono"
                   @input="hasChanges = true" />
                 <button @click="resetCapital" :disabled="!data.is_manual"
-                  class="p-2 text-text-tertiary hover:text-text-primary disabled:opacity-30"
+                  class="pro-icon-btn disabled:opacity-30 disabled:pointer-events-none"
                   :title="$t('common.cancel')">
-                  <span class="text-current"><XMarkIcon class="w-4 h-4" /></span>
+                  <XMarkIcon class="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg dark:bg-blue-500/10">
+            <div class="flex items-center justify-between gap-3 p-4 bg-blue-500/[0.07] rounded-xl border border-blue-500/15">
               <div>
-                <p class="text-sm font-medium text-blue-700 dark:text-blue-300">{{ $t('capital.revenue') }}</p>
-                <p class="text-xs text-blue-400 dark:text-blue-400">{{ $t('capital.revenue_desc') }}</p>
+                <p class="text-sm font-bold text-blue-700 dark:text-blue-300">{{ $t('capital.revenue') }}</p>
+                <p class="text-xs font-medium text-blue-500/80 dark:text-blue-400/80">{{ $t('capital.revenue_desc') }}</p>
               </div>
-              <p class="text-lg font-bold text-blue-700 dark:text-blue-300">+ {{ formatXOF(data.revenue) }}</p>
+              <p class="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums">+ {{ formatXOF(data.revenue) }}</p>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-rose-50 rounded-lg dark:bg-rose-500/10">
+            <div class="flex items-center justify-between gap-3 p-4 bg-rose-500/[0.07] rounded-xl border border-rose-500/15">
               <div>
-                <p class="text-sm font-medium text-rose-700 dark:text-rose-300">{{ $t('capital.outflows') }}</p>
-                <p class="text-xs text-rose-400 dark:text-rose-400">{{ $t('capital.outflows_desc') }}</p>
+                <p class="text-sm font-bold text-rose-700 dark:text-rose-300">{{ $t('capital.outflows') }}</p>
+                <p class="text-xs font-medium text-rose-500/80 dark:text-rose-400/80">{{ $t('capital.outflows_desc') }}</p>
               </div>
-              <p class="text-lg font-bold text-rose-700 dark:text-rose-300">- {{ formatXOF(data.outflows) }}</p>
+              <p class="text-lg font-bold text-rose-700 dark:text-rose-300 tabular-nums">- {{ formatXOF(data.outflows) }}</p>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-green-50 border border-green-100 rounded-lg dark:bg-green-500/10 dark:border-green-500/25">
-              <p class="text-sm font-bold text-green-700 dark:text-green-300">{{ $t('capital.calculated') }}</p>
-              <p class="text-xl font-black text-green-700 dark:text-green-300">{{ formatXOF(data.calculated) }}</p>
+            <div class="flex items-center justify-between gap-3 p-4 bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl">
+              <p class="text-sm font-extrabold text-emerald-700 dark:text-emerald-300">{{ $t('capital.calculated') }}</p>
+              <p class="text-xl font-black text-emerald-700 dark:text-emerald-300 tabular-nums">{{ formatXOF(data.calculated) }}</p>
             </div>
           </div>
         </BaseCard>
 
         <div class="flex justify-end gap-3">
           <BaseButton v-if="hasChanges" variant="primary" @click="saveCapital" :disabled="saving">
-            <span class="text-white"><ArrowPathIcon class="w-4 h-4" /></span>{{ saving ? $t('common.saving') : $t('common.save') }}
+            <ArrowPathIcon class="w-4 h-4" />{{ saving ? $t('common.saving') : $t('common.save') }}
           </BaseButton>
         </div>
       </template>
@@ -86,7 +82,8 @@ import AdminLayout from '../../Components/AdminLayout.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
-import { XMarkIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
+import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue';
+import { XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 
 const { t: $t } = useI18n();
 const showToast = inject('showToast');

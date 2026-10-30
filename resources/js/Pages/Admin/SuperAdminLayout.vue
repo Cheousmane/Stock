@@ -61,7 +61,7 @@
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <nav ref="navRef" class="flex-1 px-3 py-4 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div v-for="section in navSections" :key="section.title">
           <p
             class="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-sidebar-text-secondary/80 transition-all"
@@ -160,12 +160,54 @@
           <h1 class="sm:hidden text-base font-extrabold text-text-primary truncate">{{ currentPage }}</h1>
 
           <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
-            <!-- Search -->
-            <button @click="focusSearch" class="hidden md:flex items-center gap-2.5 pl-3.5 pr-2 py-2 w-64 rounded-xl border border-border bg-surface-secondary/70 text-sm text-text-tertiary hover:border-emerald-400/50 hover:bg-surface transition-all shadow-sm group">
-              <svg class="w-4 h-4 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-              <span class="flex-1 text-left truncate">{{ $t('admin.search') }}</span>
-              <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary">⌘K</kbd>
-            </button>
+            <!-- Search (repliable) -->
+            <div
+              ref="searchRef"
+              class="relative h-10 flex items-center transition-all duration-300 ease-out"
+              :class="searchOpen ? 'w-64 sm:w-80' : 'w-10'"
+            >
+              <div
+                v-if="searchOpen"
+                class="absolute inset-0 flex items-center pl-2.5 pr-2 rounded-xl border border-emerald-400/50 bg-surface-secondary/70 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all duration-300 ease-out shadow-sm"
+              >
+                <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                <input
+                  ref="searchInput"
+                  v-model="searchQuery"
+                  type="text"
+                  :placeholder="$t('admin.search')"
+                  class="flex-1 min-w-0 py-2 text-sm font-semibold bg-transparent border-0 outline-none text-text-primary placeholder:text-text-tertiary placeholder:font-normal"
+                />
+                <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface border border-border text-[10px] font-bold text-text-tertiary">ESC</kbd>
+              </div>
+
+              <button
+                v-if="!searchOpen"
+                @click="openSearch"
+                :aria-label="$t('admin.search')"
+                class="absolute inset-0 flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface-secondary/70 text-text-tertiary hover:border-emerald-400/50 hover:text-emerald-600 transition-all duration-300 ease-out shadow-sm"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              </button>
+
+              <div v-if="searchOpen" class="absolute top-full left-0 right-0 mt-2 z-50">
+                <div class="rounded-2xl border border-border/70 bg-surface shadow-xl shadow-neutral-950/10 overflow-hidden">
+                  <div v-if="searchQuery.trim().length >= 2" class="max-h-72 overflow-y-auto p-1.5">
+                    <div v-if="searchResults.length" class="space-y-0.5">
+                      <div v-for="r in searchResults" :key="r.to" @click="navigateToSearch(r)" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 hover:bg-emerald-500/[0.06]">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0"><component :is="r.icon" class="w-4 h-4" /></span>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-extrabold text-text-primary truncate">{{ r.label }}</p>
+                          <p class="text-xs font-medium text-text-tertiary truncate">{{ r.section }}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else class="py-6 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.no_results_for', { q: searchQuery }) }}</div>
+                  </div>
+                  <div v-else class="py-8 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.search_hint') }}</div>
+                </div>
+              </div>
+            </div>
 
             <span class="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />               {{ $t('admin.live') }}
@@ -256,6 +298,12 @@ const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(localStorage.getItem('superAdminSidebarCollapsed') === 'true')
 const menuOpen = ref(false)
 const menuRef = ref(null)
+const navRef = ref(null)
+const searchOpen = ref(false)
+const searchQuery = ref('')
+const searchInput = ref(null)
+const searchRef = ref(null)
+const searchJustOpened = ref(false)
 const time = ref('')
 const today = ref(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
 
@@ -263,10 +311,44 @@ watch(sidebarCollapsed, (v) => localStorage.setItem('superAdminSidebarCollapsed'
 watch(() => route.fullPath, () => {
   sidebarOpen.value = false
   menuOpen.value = false
+  searchOpen.value = false
+  searchQuery.value = ''
+  nextTick(() => {
+    if (!navRef.value) return
+    const active = navRef.value.querySelector('[aria-current="page"]')
+    if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  })
 })
 watch(sidebarOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
 })
+watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
+
+const searchSections = [
+  { label: t('admin.dashboard'), to: '/admin/dashboard', icon: HomeIcon, section: t('admin.section_pilotage') },
+  { label: t('admin.companies'), to: '/admin/companies', icon: BuildingOfficeIcon, section: t('admin.section_pilotage') },
+  { label: t('admin.users'), to: '/admin/users', icon: UsersIcon, section: t('admin.section_pilotage') },
+  { label: t('admin.logins'), to: '/admin/login-logs', icon: ClockIcon, section: t('admin.section_securite') },
+  { label: t('admin.activity'), to: '/admin/activity-logs', icon: ShieldExclamationIcon, section: t('admin.section_securite') },
+]
+
+const searchResults = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q.length < 2) return []
+  if (!Array.isArray(searchSections)) return []
+  return searchSections.filter(r => (r.label + ' ' + r.section).toLowerCase().includes(q))
+})
+
+function openSearch() {
+  searchOpen.value = true
+  searchJustOpened.value = true
+  setTimeout(() => { searchJustOpened.value = false }, 50)
+}
+function navigateToSearch(r) {
+  searchOpen.value = false
+  searchQuery.value = ''
+  router.push(r.to)
+}
 
 const navSections = computed(() => [
   {
@@ -310,9 +392,6 @@ function isActive(to) {
   return route.path === to || route.path.startsWith(to + '/')
 }
 
-function focusSearch() {
-  router.push('/admin/companies')
-}
 
 function tick() {
   time.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -320,11 +399,12 @@ function tick() {
 
 function onClickOutside(e) {
   if (menuRef.value && !menuRef.value.contains(e.target)) menuOpen.value = false
+  if (searchRef.value && !searchRef.value.contains(e.target) && !searchJustOpened.value) searchOpen.value = false
 }
 
 function onKey(e) {
-  if (e.key === 'Escape') { menuOpen.value = false; sidebarOpen.value = false }
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); focusSearch() }
+  if (e.key === 'Escape') { menuOpen.value = false; sidebarOpen.value = false; searchOpen.value = false; searchQuery.value = '' }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchOpen.value = true }
 }
 
 async function logout() {
@@ -337,6 +417,11 @@ async function logout() {
 
 let timer = null
 onMounted(() => {
+  nextTick(() => {
+    if (!navRef.value) return
+    const active = navRef.value.querySelector('[aria-current="page"]')
+    if (active) active.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+  })
   tick()
   timer = setInterval(tick, 30000)
   document.addEventListener('click', onClickOutside)

@@ -13,6 +13,17 @@ class EventRequest extends FormRequest
         return true;
     }
 
+    public function attributes(): array
+    {
+        return [
+            'title' => 'titre',
+            'type' => 'type',
+            'start_date' => 'date de début',
+            'end_date' => 'date de fin',
+            'description' => 'description',
+        ];
+    }
+
     public function rules(): array
     {
         return [

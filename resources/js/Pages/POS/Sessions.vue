@@ -4,12 +4,12 @@
       <BasePageHeader eyebrow="Ventes" :title="$t('page.pos_sessions.title')" :subtitle="meta ? $t('page.pos_sessions.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="ghost" size="sm" @click="fetchSessions(meta?.current_page)" title="Rafraîchir">
-            <span class="text-current"><ArrowPathIcon class="w-4 h-4" /></span>
+            <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.pos_sessions.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="statusFilter" :options="[
           { value: '', label: $t('page.pos_sessions.all_statuses') },
@@ -22,7 +22,7 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
       <template v-if="loading">

@@ -102,11 +102,13 @@ onMounted(() => {
   document.addEventListener('click', handleClick)
   document.addEventListener('keydown', handleKey)
   window.addEventListener('resize', handleScroll)
+  window.addEventListener('scroll', handleScroll, true)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClick)
   document.removeEventListener('keydown', handleKey)
   window.removeEventListener('resize', handleScroll)
+  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>
 

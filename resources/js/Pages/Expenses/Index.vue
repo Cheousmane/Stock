@@ -4,18 +4,18 @@
       <BasePageHeader eyebrow="Finance" :title="$t('page.expenses.title')" :subtitle="meta ? $t('page.expenses.total_count', { count: meta.total }) : undefined">
         <template #actions>
           <BaseButton variant="secondary" size="sm" @click="exportExcel">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_excel') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_excel') }}
           </BaseButton>
           <BaseButton variant="secondary" size="sm" @click="exportCsv">
-            <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.export_csv') }}
+            <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.export_csv') }}
           </BaseButton>
           <BaseButton variant="primary" size="sm" :to="{ name: 'ExpenseCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.expenses.create') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.expenses.create') }}
           </BaseButton>
         </template>
       </BasePageHeader>
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.expenses.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="category" :options="categoryOptions" size="sm" class="w-52" />
         <BaseSelect v-model="perPage" :options="[
@@ -24,10 +24,10 @@
           { value: 50, label: '50 / page' },
           { value: 100, label: '100 / page' },
         ]" size="sm" class="w-28" />
-        <button v-if="hasActiveFilters" @click="resetFilters" class="text-sm text-text-tertiary hover:text-text-secondary self-center">{{ $t('common.clear_filters') }}</button>
+        <button v-if="hasActiveFilters" @click="resetFilters" class="pro-filter-clear">{{ $t('common.clear_filters') }}</button>
       </div>
 
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 px-4 py-2 bg-surface-secondary rounded-lg">
+      <div v-if="selectedIds.length > 0" class="pro-bulkbar">
         <span class="text-sm font-medium text-text-primary">{{ $t('page.expenses.n_selected', { n: selectedIds.length }) }}</span>
         <BaseButton v-if="can('view_expenses')" variant="danger-ghost" size="xs" @click="bulkDelete">{{ $t('common.bulk_delete') }}</BaseButton>
         <BaseButton variant="ghost" size="xs" @click="selectedIds = []">{{ $t('common.deselect') }}</BaseButton>
@@ -39,7 +39,7 @@
       <template v-else-if="expenses.length === 0">
         <BaseEmptyState :title="$t('page.expenses.no_expenses')" :description="search ? $t('page.expenses.no_results') : $t('page.expenses.empty')">
           <BaseButton v-if="!search" variant="primary" size="sm" :to="{ name: 'ExpenseCreate' }">
-            <span class="text-white"><PlusIcon class="w-4 h-4" /></span>{{ $t('page.expenses.create_first') }}
+            <PlusIcon class="w-4 h-4" />{{ $t('page.expenses.create_first') }}
           </BaseButton>
           <button v-else @click="resetFilters" class="text-sm text-primary-600">{{ $t('common.clear_filters') }}</button>
         </BaseEmptyState>
@@ -56,6 +56,9 @@
           :sort-by="sortBy"
           :sort-order="sortOrder"
           @sort="toggleSort"
+          selectable
+          :selected-ids="selectedIds"
+          @update:selected-ids="selectedIds = $event"
         >
           <template #cell-description="{ row }">
             <template v-if="row.category === 'supplier_payment'">
@@ -66,7 +69,7 @@
                   :to="{ name: 'PurchaseOrderEdit', params: { id: row.metadata.purchase_order_id } }"
                   class="inline-flex items-center gap-1 text-xs text-primary-600 hover:underline"
                 >
-                  <span class="text-current"><DocumentTextIcon class="w-3 h-3" /></span>{{ row.metadata.purchase_order_number }}
+                  <DocumentTextIcon class="w-3 h-3" />{{ row.metadata.purchase_order_number }}
                 </router-link>
                 <span v-if="row.metadata?.payment_method" class="text-xs text-text-tertiary">· {{ row.metadata.payment_method }}</span>
               </div>

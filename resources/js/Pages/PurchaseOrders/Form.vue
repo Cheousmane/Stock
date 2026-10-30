@@ -1,15 +1,10 @@
 <template>
   <AdminLayout>
-    <div class="max-w-4xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.purchase_orders.edit_order') : $t('page.purchase_orders.new_order')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'PurchaseOrders' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="full" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.purchase_orders.edit_order') : $t('page.purchase_orders.new_order') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <BaseSelect v-model="form.supplier_id" :label="$t('page.purchase_orders.supplier')" required
@@ -24,36 +19,41 @@
         </BaseCard>
 
         <BaseCard>
-          <div class="space-y-2">
-            <div v-for="(line, index) in form.items" :key="index">
-              <div class="flex flex-wrap gap-2 items-start">
-                <select v-model="line.product_id" @change="selectProduct(index)"
-                  class="w-40 bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20">
+          <div class="space-y-3">
+            <div class="pro-line-head">
+              <span>{{ $t('page.stock.product') }}</span>
+              <span>{{ $t('form.description') }}</span>
+              <span class="text-right">{{ $t('form.quantity') }}</span>
+              <span class="text-right">{{ $t('form.unit_price') }}</span>
+              <span class="text-right">{{ $t('invoice.total') }}</span>
+              <span />
+            </div>
+            <div v-for="(line, index) in form.items" :key="index" class="p-3 rounded-2xl bg-surface-secondary/40 border border-border/60">
+              <div class="pro-line-grid">
+                <select v-model="line.product_id" @change="selectProduct(index)" :aria-label="$t('page.stock.product')" class="pro-form-control font-semibold">
                   <option value="">{{ $t('form.select') }}</option>
                   <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
                   <option value="other">{{ $t('common.other') }}</option>
                 </select>
-                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')"
-                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-                <input v-else v-model="line.description" type="text" :placeholder="$t('form.item_description')"
-                  class="flex-1 min-w-[100px] bg-surface border border-border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')"
-                  class="w-20 bg-surface border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-2"
-                  :class="errors[`items.${index}.quantity`] ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-primary-500/20'" />
-                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')"
-                  class="w-28 bg-surface border rounded-lg px-2.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-2"
-                  :class="errors[`items.${index}.unit_price_xof`] ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-primary-500 focus:ring-primary-500/20'" />
-                <span class="py-2 text-sm text-text-secondary w-28 text-right">{{ formatXOF(line.total) }}</span>
-                <div class="flex items-center gap-1 py-1">
-                  <button type="button" @click="addLine" class="p-1.5 text-text-tertiary hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors" :title="$t('common.add_line')">
+                <input v-if="line.product_id === 'other'" v-model="line.custom_name" type="text" :placeholder="$t('form.name')" :aria-label="$t('form.name')" class="pro-form-control" />
+                <input v-else v-model="line.description" type="text" :placeholder="$t('form.item_description')" :aria-label="$t('form.item_description')" class="pro-form-control" />
+                <input v-model.number="line.quantity" type="number" min="1" @input="calcLine(index)" :placeholder="$t('form.quantity')" :aria-label="$t('form.quantity')"
+                  class="pro-form-control text-right font-mono font-semibold"
+                  :class="errors[`items.${index}.quantity`] ? '!border-red-500 focus:!ring-red-500/15' : ''" />
+                <input v-model.number="line.unit_price" type="number" min="0" step="1" @input="calcLine(index)" :placeholder="$t('form.unit_price')" :aria-label="$t('form.unit_price')"
+                  class="pro-form-control text-right font-mono font-semibold"
+                  :class="errors[`items.${index}.unit_price_xof`] ? '!border-red-500 focus:!ring-red-500/15' : ''" />
+                <span class="px-1 text-sm font-mono font-black text-text-primary text-left md:text-right tabular-nums">{{ formatXOF(line.total) }}</span>
+                <div class="flex items-center gap-1 md:justify-end">
+                  <button type="button" @click="addLine" class="pro-icon-btn" :title="$t('common.add_line')">
                     <PlusIcon class="w-4 h-4" />
                   </button>
-                  <button type="button" @click="removeLine(index)" class="p-1.5 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" :title="$t('common.remove_line')">
+                  <button type="button" @click="removeLine(index)" class="pro-icon-btn hover:!text-red-600 hover:!bg-red-500/10" :title="$t('common.remove_line')">
                     <XMarkIcon class="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <p v-if="errors[`items.${index}.quantity`]" class="mt-1 text-xs font-medium text-red-500">
+              <p v-if="errors[`items.${index}.quantity`]" class="mt-2 text-xs font-medium text-red-500">
                 {{ errors[`items.${index}.quantity`][0] }}
               </p>
               <p v-if="errors[`items.${index}.unit_price_xof`]" class="mt-1 text-xs font-medium text-red-500">
@@ -92,19 +92,15 @@
         </BaseCard>
 
         <BaseCard>
-          <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.notes') }}</label>
-            <textarea v-model="form.notes" rows="3"
-              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
-          </div>
+          <BaseTextarea v-model="form.notes" :label="$t('form.notes')" :rows="3" />
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'PurchaseOrders' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ isEdit ? $t('common.save') : $t('page.purchase_orders.create_order') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -116,9 +112,11 @@ import axios from 'axios';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseSelect from '../../Components/ui/BaseSelect.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
@@ -129,6 +127,12 @@ const router = useRouter();
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'PurchaseOrders' });
+}
 
 const suppliers = ref([]);
 const products = ref([]);
@@ -281,3 +285,5 @@ async function submit() {
   }
 }
 </script>
+
+

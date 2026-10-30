@@ -3,7 +3,7 @@
     <div class="space-y-4">
       <BasePageHeader eyebrow="Système" :title="$t('page.activity_logs.title')" :subtitle="meta ? $t('page.activity_logs.total_count', { count: meta.total }) : undefined" />
 
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="pro-filterbar">
         <BaseInput v-model="search" :placeholder="$t('page.activity_logs.search_placeholder')" clearable size="sm" class="flex-1 max-w-xs" />
         <BaseSelect v-model="perPage" :options="[
           { value: 10, label: `10 ${$t('common.per_page')}` },
@@ -44,8 +44,8 @@
           </template>
           <template #cell-details="{ row }">
             <button v-if="hasDetails(row.properties)" @click="toggleDetails(row.id)"
-              class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-800 transition-colors">
-              <span class="text-current"><ChevronDownIcon v-if="expandedLogId === row.id" class="w-4 h-4" /><ChevronRightIcon v-else class="w-4 h-4" /></span>
+              class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 transition-colors">
+              <ChevronDownIcon v-if="expandedLogId === row.id" class="w-4 h-4" /><ChevronRightIcon v-else class="w-4 h-4" />
               {{ expandedLogId === row.id ? $t('common.hide') : $t('common.show') }}
             </button>
             <span v-else class="text-text-tertiary">—</span>

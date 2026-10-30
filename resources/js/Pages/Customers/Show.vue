@@ -11,10 +11,10 @@
         <BasePageHeader :title="customer.name" :subtitle="$t('page.customers.show')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'CustomerEdit', params: { id: customer.id } }">
-              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
+              <PencilIcon class="w-4 h-4" />{{ $t('common.edit') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'Customers' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
+              <ArrowLeftIcon class="w-4 h-4" />{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>

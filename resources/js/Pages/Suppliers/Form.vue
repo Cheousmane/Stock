@@ -1,15 +1,10 @@
 <template>
   <AdminLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <BasePageHeader :title="isEdit ? $t('page.suppliers.edit') : $t('page.suppliers.new')" subtitle="">
-        <template #actions>
-          <BaseButton variant="ghost" size="sm" :to="{ name: 'Suppliers' }">
-            <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.cancel') }}
-          </BaseButton>
-        </template>
-      </BasePageHeader>
-
-      <form @submit.prevent="submit" class="space-y-6">
+    <BaseModal :model-value="open" title="" size="lg" :loading="submitting" @update:model-value="onClose">
+      <template #header>
+        <h3 class="text-base font-extrabold tracking-tight text-text-primary">{{ isEdit ? $t('page.suppliers.edit') : $t('page.suppliers.new') }}</h3>
+      </template>
+      <form @submit.prevent="submit" class="space-y-5">
         <BaseCard>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <BaseInput v-model="form.name" :label="$t('form.company_name')" required :error="errors.name?.[0] || ''" :list="suggestions.name" />
@@ -21,10 +16,8 @@
             <BaseInput v-model="form.email" type="email" :label="$t('form.email')" :error="errors.email?.[0] || ''" :list="suggestions.email" />
             <BaseInput v-model="form.phone" type="tel" :label="$t('form.phone')" :error="errors.phone?.[0] || ''" :list="suggestions.phone" />
           </div>
-          <div class="mt-4 space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.address') }}</label>
-            <textarea v-model="form.address" rows="2"
-              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+          <div class="mt-4">
+            <BaseTextarea v-model="form.address" :label="$t('form.address')" :rows="2" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <BaseInput v-model="form.city" :label="$t('form.city')" :error="errors.city?.[0] || ''" />
@@ -32,10 +25,8 @@
             <BaseInput v-model="form.tax_number" :label="$t('page.suppliers.tax_number')" :error="errors.tax_number?.[0] || ''" />
             <BaseInput v-model="form.registration_number" :label="$t('page.suppliers.registration_number')" :error="errors.registration_number?.[0] || ''" />
           </div>
-          <div class="mt-4 space-y-1.5">
-            <label class="block text-xs font-medium text-text-secondary tracking-wide">{{ $t('form.notes') }}</label>
-            <textarea v-model="form.notes" rows="2"
-              class="block w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />
+          <div class="mt-4">
+            <BaseTextarea v-model="form.notes" :label="$t('form.notes')" :rows="2" />
           </div>
           <div class="mt-4">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -46,11 +37,11 @@
         </BaseCard>
 
         <div class="flex items-center justify-end gap-3">
-          <BaseButton variant="ghost" :to="{ name: 'Suppliers' }">{{ $t('common.cancel') }}</BaseButton>
+          <BaseButton variant="ghost" @click="onClose">{{ $t('common.cancel') }}</BaseButton>
           <BaseButton variant="primary" type="submit" :loading="submitting">{{ $t('common.save') }}</BaseButton>
         </div>
       </form>
-    </div>
+    </BaseModal>
   </AdminLayout>
 </template>
 
@@ -62,8 +53,10 @@ import axios from 'axios';
 import AdminLayout from '../../Components/AdminLayout.vue';
 import BaseButton from '../../Components/ui/BaseButton.vue';
 import BaseCard from '../../Components/ui/BaseCard.vue';
+import BaseModal from '../../Components/ui/BaseModal.vue';
 import BaseInput from '../../Components/ui/BaseInput.vue';
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
+import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 import { useSuggestions } from '../../composables/useSuggestions';
 
@@ -74,6 +67,12 @@ const showToast = inject('showToast', (msg) => alert(msg));
 const isEdit = computed(() => !!route.params.id);
 const submitting = ref(false);
 const errors = reactive({});
+const open = ref(true);
+
+function onClose() {
+  open.value = false;
+  router.push({ name: 'Suppliers' });
+}
 const $t = t;
 
 const {
@@ -149,3 +148,5 @@ async function submit() {
   }
 }
 </script>
+
+

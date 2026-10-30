@@ -11,29 +11,29 @@
         <BasePageHeader :title="$t('page.delivery_notes.title_show', { number: note.number })" :subtitle="$t('page.delivery_notes.detail')">
           <template #actions>
             <BaseButton variant="secondary" size="sm" @click="downloadPdf">
-              <span class="text-current"><ArrowDownTrayIcon class="w-4 h-4" /></span>{{ $t('common.download_pdf') }}
+              <ArrowDownTrayIcon class="w-4 h-4" />{{ $t('common.download_pdf') }}
             </BaseButton>
             <BaseButton variant="secondary" size="sm" :to="{ name: 'DeliveryNoteEdit', params: { id: note.id } }">
-              <span class="text-current"><PencilIcon class="w-4 h-4" /></span>{{ $t('common.edit') }}
+              <PencilIcon class="w-4 h-4" />{{ $t('common.edit') }}
             </BaseButton>
             <BaseButton v-if="note.status === 'pending'" size="sm" @click="markAs('shipped')">
-              <span class="text-white"><TruckIcon class="w-4 h-4" /></span>{{ $t('page.delivery_notes.mark_shipped') }}
+              <TruckIcon class="w-4 h-4" />{{ $t('page.delivery_notes.mark_shipped') }}
             </BaseButton>
             <BaseButton v-if="note.status === 'shipped'" size="sm" @click="markAs('delivered')">
-              <span class="text-white"><CheckIcon class="w-4 h-4" /></span>{{ $t('page.delivery_notes.mark_delivered') }}
+              <CheckIcon class="w-4 h-4" />{{ $t('page.delivery_notes.mark_delivered') }}
             </BaseButton>
             <BaseButton v-if="note.status === 'delivered'" size="sm" variant="danger" @click="markAs('returned')">
-              <span class="text-white"><ArrowUturnLeftIcon class="w-4 h-4" /></span>{{ $t('page.delivery_notes.mark_returned') }}
+              <ArrowUturnLeftIcon class="w-4 h-4" />{{ $t('page.delivery_notes.mark_returned') }}
             </BaseButton>
             <BaseBadge :variant="badgeVariant" size="md">{{ statusLabel }}</BaseBadge>
             <BaseButton variant="ghost" size="sm" :to="{ name: 'DeliveryNotes' }">
-              <span class="text-current"><ArrowLeftIcon class="w-4 h-4" /></span>{{ $t('common.back') }}
+              <ArrowLeftIcon class="w-4 h-4" />{{ $t('common.back') }}
             </BaseButton>
           </template>
         </BasePageHeader>
 
         <BaseCard :title="$t('page.delivery_notes.information')" padding="lg">
-          <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <span class="text-text-tertiary">{{ $t('page.delivery_notes.issue_date') }} :</span>
               <p class="font-medium text-text-primary">{{ formatDate(note.issue_date || note.date) }}</p>
@@ -58,27 +58,31 @@
 
         <BaseCard v-if="note.invoice" :title="$t('page.delivery_notes.linked_invoice_label')" padding="lg">
           <BaseButton variant="ghost" size="sm" :to="{ name: 'InvoiceShow', params: { id: note.invoice.id } }">
-            <span class="text-current"><DocumentTextIcon class="w-4 h-4" /></span>
+            <DocumentTextIcon class="w-4 h-4" />
             {{ note.invoice.number }} — {{ formatXOF(note.invoice.total_xof) }}
           </BaseButton>
         </BaseCard>
 
-        <BaseCard :title="$t('page.delivery_notes.items')" padding="lg">
-          <div v-if="!note.items || note.items.length === 0" class="text-sm text-text-tertiary">{{ $t('page.delivery_notes.no_items') }}</div>
-          <table v-else class="min-w-full divide-y divide-border">
-            <thead class="bg-surface-secondary">
-              <tr>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-text-tertiary uppercase">{{ $t('page.delivery_notes.description_col') }}</th>
-                <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-text-tertiary uppercase">{{ $t('page.delivery_notes.quantity') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border">
-              <tr v-for="item in note.items" :key="item.id" class="hover:bg-surface-secondary">
-                <td class="px-4 py-3 text-sm text-text-primary">{{ item.description || item.product?.name }}</td>
-                <td class="px-4 py-3 text-sm text-right">{{ item.quantity }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <BaseCard :title="$t('page.delivery_notes.items')" padding="none">
+          <div v-if="!note.items || note.items.length === 0" class="p-6 text-sm text-text-tertiary">{{ $t('page.delivery_notes.no_items') }}</div>
+          <div v-else class="pro-table-wrap !border-0 !rounded-none">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="pro-table-head">
+                    <th class="px-5 py-3 text-left">{{ $t('page.delivery_notes.description_col') }}</th>
+                    <th class="px-5 py-3 text-right">{{ $t('page.delivery_notes.quantity') }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border/60">
+                  <tr v-for="item in note.items" :key="item.id" class="hover:bg-emerald-500/[0.03] transition-colors">
+                    <td class="px-5 py-3.5 text-sm font-semibold text-text-primary">{{ item.description || item.product?.name }}</td>
+                    <td class="px-5 py-3.5 text-sm font-semibold text-right text-text-secondary tabular-nums">{{ item.quantity }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </BaseCard>
 
         <BaseCard v-if="note.signature" :title="$t('page.delivery_notes.signature')" padding="lg">
