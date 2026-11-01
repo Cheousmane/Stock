@@ -461,7 +461,7 @@ const allNavItems = [
   { divider: true, key: 'nav.finance', label: 'Finance' },
   { label: 'Paiements', to: '/payments', icon: CreditCardIcon, key: 'nav.payments', permission: 'view_payment' },
   { label: 'Dépenses', to: '/expenses', icon: BanknotesIcon, key: 'nav.expenses', permission: 'view_expenses' },
-  { label: 'Comptabilité', to: '/payroll', icon: BanknotesIcon, key: 'nav.payroll', permission: 'view_payroll' },
+  { label: 'Comptabilité', to: '/payroll', icon: BanknotesIcon, key: 'nav.payroll', permission: 'view_expenses' },
   { label: 'Capital', to: '/capital', icon: CurrencyDollarIcon, key: 'nav.capital', permission: 'view_capital' },
   { divider: true, key: 'nav.management', label: 'Gestion' },
   { label: 'Stock', to: '/stock', icon: ArchiveBoxIcon, key: 'nav.stock', permission: 'view_stock' },
