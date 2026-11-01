@@ -30,9 +30,9 @@ describe('User model', function () {
         expect($user->company->id)->toBe($company->id);
     });
 
-    it('uses Billable trait', function () {
+    it('no longer uses the Billable trait (internal subscriptions only)', function () {
         $traits = class_uses(User::class);
-        expect(in_array(Billable::class, $traits))->toBeTrue();
+        expect(in_array(\Laravel\Cashier\Billable::class, $traits))->toBeFalse();
     });
 
     it('uses HasRoles trait', function () {

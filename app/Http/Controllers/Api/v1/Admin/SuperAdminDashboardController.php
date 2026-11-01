@@ -38,17 +38,23 @@ class SuperAdminDashboardController extends Controller
 
             $totalUsers = User::count();
 
-            // SaaS revenue: monthly recurring revenue from subscriptions (plans), not tenant sales.
+            // SaaS revenue: abonnements internes actifs (gérés par le Super Admin).
             $subscriptionRevenueQuery = function () {
-                return DB::table('companies')
-                    ->join('plans', 'plans.id', '=', 'companies.plan_id')
+                return DB::table('subscriptions')
+                    ->join('plans', 'plans.id', '=', 'subscriptions.plan_id')
                     ->where('plans.price_xof', '>', 0)
-                    ->whereIn('companies.status', ['active', 'trial']);
+                    ->where('subscriptions.status', 'active')
+                    ->where(function ($query) {
+                        $query->whereNull('subscriptions.ends_at')
+                            ->orWhere('subscriptions.ends_at', '>', now());
+                    });
             };
 
             $subscriptionRevenue = (int) $subscriptionRevenueQuery()->sum('plans.price_xof');
 
-            $payingCompanies = $subscriptionRevenueQuery()->count();
+            $payingCompanies = (int) $subscriptionRevenueQuery()
+                ->distinct()
+                ->count('subscriptions.company_id');
 
             $totalInvoices = DB::table('invoices')
                 ->whereNull('deleted_at')

@@ -6,11 +6,29 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Company
+ */
 class AdminCompanyResource extends JsonResource
 {
     public function toArray($request): array
     {
         $metadata = $this->metadata ?? [];
+
+        $subscription = $this->subscription ?? null;
+        if ($subscription === null && $this->relationLoaded('activeSubscription') && $this->activeSubscription) {
+            $active = $this->activeSubscription;
+            $subscription = [
+                'id' => $active->id,
+                'status' => $active->status,
+                'plan_id' => $active->plan_id,
+                'plan_name' => $active->plan?->name,
+                'starts_at' => $active->starts_at,
+                'ends_at' => $active->ends_at,
+                'notes' => $active->notes,
+                'created_at' => $active->created_at,
+            ];
+        }
 
         return [
             'id' => $this->id,
@@ -29,11 +47,17 @@ class AdminCompanyResource extends JsonResource
                 'name' => $this->owner->name,
                 'email' => $this->owner->email,
             ] : null,
+            'trial_started_at' => $this->trial_started_at,
             'trial_ends_at' => $this->trial_ends_at,
+            'trial_active' => $this->hasActiveTrial(),
             'suspended_at' => $this->suspended_at,
             'currency_code' => $this->currency_code,
             'plan' => new PlanResource($this->whenLoaded('plan')),
-            'subscription' => $this->subscription ?? null,
+            'subscription' => $subscription,
+            'quota_snapshot' => $this->quota_snapshot ?? null,
+            'over_quota' => $this->quota_snapshot['over_quota'] ?? false,
+            'frozen_total' => $this->quota_snapshot['frozen_total'] ?? null,
+            'frozen_records' => $this->frozen_records ?? null,
             'users' => UserResource::collection($this->whenLoaded('users')),
             'users_count' => $this->whenCounted('users'),
             'invoices_count' => $this->whenCounted('invoices'),

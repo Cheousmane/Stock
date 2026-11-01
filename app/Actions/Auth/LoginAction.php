@@ -55,6 +55,12 @@ class LoginAction
             ]);
         }
 
+        if ($user->frozen_at !== null) {
+            throw ValidationException::withMessages([
+                'email' => ['Votre compte utilisateur est gelé suite au dépassement des quotas. Contactez votre administrateur.'],
+            ]);
+        }
+
         if ($user->email_verified_at === null) {
             throw ValidationException::withMessages([
                 'email_verification' => ['Votre adresse e-mail n\'a pas été vérifiée. Un code de confirmation vous a été envoyé.'],

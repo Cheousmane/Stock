@@ -21,24 +21,13 @@
 
         <!-- Steps progress -->
         <div class="left-steps">
-          <div class="left-step" :class="{ active: currentStep >= 1, done: currentStep > 1 }">
+          <div class="left-step active">
             <div class="ls-num">
-              <svg v-if="currentStep > 1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-              <span v-else>1</span>
+              <span>1</span>
             </div>
             <div class="ls-text">
               <p class="ls-title">Votre compte</p>
               <p class="ls-sub">Nom, email, mot de passe</p>
-            </div>
-          </div>
-          <div class="ls-connector" :class="{ done: currentStep > 1 }"></div>
-          <div class="left-step" :class="{ active: currentStep >= 2 }">
-            <div class="ls-num">
-              <span>2</span>
-            </div>
-            <div class="ls-text">
-              <p class="ls-title">Votre plan</p>
-              <p class="ls-sub">Choisissez votre abonnement</p>
             </div>
           </div>
         </div>
@@ -69,29 +58,9 @@
 
       <!-- Form card -->
       <div class="auth-card">
-        <!-- Step indicator (mobile) -->
-        <div class="mobile-steps">
-          <div class="ms-step" :class="{ active: currentStep >= 1, done: currentStep > 1 }">
-            <div class="ms-dot">
-              <svg v-if="currentStep > 1" viewBox="0 0 12 12" fill="currentColor"><path d="M10.293 2.293a1 1 0 011.414 1.414l-6 6a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L5 7.586l5.293-5.293z"/></svg>
-              <span v-else>1</span>
-            </div>
-            <span class="ms-label">Compte</span>
-          </div>
-          <div class="ms-bar" :class="{ done: currentStep > 1 }"></div>
-          <div class="ms-step" :class="{ active: currentStep >= 2 }">
-            <div class="ms-dot"><span>2</span></div>
-            <span class="ms-label">Plan</span>
-          </div>
-        </div>
-
         <div class="auth-card-header">
-          <h1 class="auth-card-title">
-            {{ currentStep === 1 ? 'Créer votre compte' : 'Choisissez votre plan' }}
-          </h1>
-          <p class="auth-card-sub">
-            {{ currentStep === 1 ? 'Quelques infos pour commencer' : 'Essai gratuit 14 jours, sans carte bancaire' }}
-          </p>
+          <h1 class="auth-card-title">Créer votre compte</h1>
+          <p class="auth-card-sub">Quelques infos pour commencer — 14 jours d'essai gratuit</p>
         </div>
 
         <!-- Error alert -->
@@ -103,9 +72,7 @@
         </transition>
 
         <form @submit.prevent="register">
-          <!-- ── STEP 1: Account info ── -->
-          <transition name="step-slide" mode="out-in">
-            <div v-if="currentStep === 1" key="step1" class="auth-form">
+          <div class="auth-form">
               <template v-if="googleConfigured && !googleIdToken">
                 <GoogleSignInButton @credential="onGoogleCredential" @error="onGoogleError" />
                 <div class="auth-divider"><span>ou</span></div>
@@ -213,66 +180,17 @@
                 <p v-if="form.password_confirmation && form.password !== form.password_confirmation" class="field-error-msg">Les mots de passe ne correspondent pas</p>
               </div>
 
-              <button type="button" :disabled="!canGoNext" @click="currentStep = 2" class="auth-submit-btn">
-                <span class="btn-inner">
-                  Continuer
+              <button type="submit" :disabled="loading || !canGoNext" class="auth-submit-btn">
+                <span v-if="loading" class="btn-loader">
+                  <svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" opacity="0.3"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15" stroke-linecap="round"/></svg>
+                  Création...
+                </span>
+                <span v-else class="btn-inner">
+                  Démarrer mon essai gratuit
                   <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
                 </span>
               </button>
-            </div>
-
-            <!-- ── STEP 2: Plan selection ── -->
-            <div v-else key="step2" class="auth-form">
-              <div v-if="plans.length > 0" class="plans-grid">
-                <div
-                  v-for="plan in plans" :key="plan.id"
-                  class="plan-card"
-                  :class="{ 'plan-selected': selectedPlanId === plan.id }"
-                  @click="selectedPlanId = plan.id"
-                >
-                  <div class="plan-check" :class="{ active: selectedPlanId === plan.id }">
-                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                  </div>
-                  <div class="plan-badge" v-if="plan.slug === 'free'">Gratuit</div>
-                  <div class="plan-badge plan-badge-pro" v-else-if="plan.is_popular">Populaire ✦</div>
-                  <h4 class="plan-name">{{ plan.name }}</h4>
-                  <div class="plan-price">
-                    <span class="plan-amount">{{ plan.price_xof === 0 ? 'Gratuit' : formatPrice(plan.price_xof, plan.currency) }}</span>
-                    <span class="plan-period" v-if="plan.price_xof > 0">/mois</span>
-                  </div>
-                  <p class="plan-desc">{{ plan.description }}</p>
-                  <ul class="plan-feats">
-                    <li v-for="f in plan.features" :key="f">
-                      <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 01.208 1.04l-5 7.5a.75.75 0 01-1.154.114l-3-3a.75.75 0 011.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 011.04-.207z" clip-rule="evenodd"/></svg>
-                      {{ f }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div v-else class="plans-loading">
-                <div class="plans-spinner"></div>
-                <p>Chargement des plans...</p>
-              </div>
-
-              <div class="step2-actions">
-                <button type="button" @click="currentStep = 1" class="btn-back">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/></svg>
-                  Retour
-                </button>
-                <button type="submit" :disabled="loading" class="auth-submit-btn flex-1">
-                  <span v-if="loading" class="btn-loader">
-                    <svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" opacity="0.3"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15" stroke-linecap="round"/></svg>
-                    Création...
-                  </span>
-                  <span v-else class="btn-inner">
-                    Créer mon compte
-                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
-                  </span>
-                </button>
-              </div>
-            </div>
-          </transition>
+          </div>
         </form>
 
         <p class="auth-switch-text">
@@ -298,7 +216,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { switchLocale } from '../../i18n';
-import { formatPrice, industryOptions } from '../../utils/format';
+import { industryOptions } from '../../utils/format';
 import { isGoogleConfigured } from '../../utils/google';
 import AppLogo from '../../Components/AppLogo.vue';
 import GoogleSignInButton from '../../Components/GoogleSignInButton.vue';
@@ -314,8 +232,6 @@ const showPwd = ref(false);
 const showConfirm = ref(false);
 const focused = ref('');
 const currentStep = ref(1);
-const plans = ref([]);
-const selectedPlanId = ref(null);
 // Google OAuth state: id_token vérifié côté backend, pas de mot de passe.
 const googleConfigured = isGoogleConfigured();
 const googleIdToken = ref('');
@@ -391,12 +307,6 @@ async function onGoogleCredential(idToken) {
 }
 
 onMounted(async () => {
-  try {
-    const { data } = await axios.get('/subscriptions/plans');
-    plans.value = Array.isArray(data) ? data : (data.data || []);
-    const freePlan = plans.value.find(p => p.slug === 'free');
-    if (freePlan) selectedPlanId.value = freePlan.id;
-  } catch {}
   // Retour depuis Login avec un compte Google nouveau : reprise du flux.
   const pending = sessionStorage.getItem('google_id_token');
   if (pending) {
@@ -421,7 +331,6 @@ async function register() {
         company_slug: form.company_slug,
         industry: form.industry || undefined,
         size: form.size || undefined,
-        plan_id: selectedPlanId.value,
       };
       const { data } = await axios.post('/auth/google', payload);
       localStorage.setItem('token', data.access_token);
@@ -430,7 +339,7 @@ async function register() {
       router.push({ name: 'Dashboard' });
       return;
     }
-    const payload = { ...form, plan_id: selectedPlanId.value };
+    const payload = { ...form };
     const { data } = await axios.post('/auth/register', payload);
     localStorage.setItem('user', JSON.stringify(data.user));
     if (data.user?.locale) switchLocale(data.user.locale);
@@ -567,32 +476,47 @@ async function register() {
 .pwd-lvl-3-txt { color: #3b82f6; }
 .pwd-lvl-4-txt { color: #10b981; }
 
-/* Plans */
-.plans-grid { display: flex; flex-direction: column; gap: 12px; }
-.plan-card {
-  padding: 18px 20px; border-radius: 16px; border: 1.5px solid #e5e7eb;
-  cursor: pointer; position: relative; overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
-  background: #f9fafb;
+/* Trial summary */
+.trial-card {
+  position: relative; padding: 26px 22px 20px; border-radius: 18px;
+  border: 1.5px solid rgba(16,185,129,0.35);
+  background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 65%);
+  text-align: center;
 }
-.plan-card:hover { border-color: #10b981; background: #fff; }
-.plan-card.plan-selected { border-color: #10b981; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
-.plan-check { position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; color: transparent; transition: all 0.2s; }
-.plan-check svg { width: 12px; height: 12px; }
-.plan-check.active { background: #10b981; border-color: #10b981; color: white; }
-.plan-badge { position: absolute; top: -1px; left: 16px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 0 0 8px 8px; background: #6b7280; color: white; }
-.plan-badge-pro { background: linear-gradient(135deg, #10b981, #059669); }
-.plan-name { font-size: 15px; font-weight: 700; color: #0f0f0f; margin-bottom: 4px; padding-top: 8px; }
-.plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
-.plan-amount { font-size: 22px; font-weight: 900; color: #0f0f0f; letter-spacing: -0.03em; }
-.plan-period { font-size: 12px; color: #9ca3af; }
-.plan-desc { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
-.plan-feats { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.plan-feats li { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: #374151; }
-.plan-feats svg { width: 14px; height: 14px; color: #10b981; flex-shrink: 0; margin-top: 1px; }
+.trial-badge {
+  position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+  padding: 4px 12px; border-radius: 0 0 9px 9px;
+  background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+  white-space: nowrap;
+}
+.trial-icon {
+  width: 52px; height: 52px; margin: 8px auto 12px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border: 1px solid rgba(16,185,129,0.25);
+  color: #059669; box-shadow: 0 8px 20px rgba(16,185,129,0.12);
+}
+.trial-icon svg { width: 26px; height: 26px; }
+.trial-title { font-size: 17px; font-weight: 800; color: #0f0f0f; letter-spacing: -0.02em; margin-bottom: 6px; }
+.trial-desc { font-size: 12.5px; color: #6b7280; line-height: 1.6; margin-bottom: 16px; }
+.trial-feats { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.trial-feats li { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: #374151; line-height: 1.45; }
+.trial-feats svg { width: 15px; height: 15px; color: #10b981; flex-shrink: 0; margin-top: 1px; }
 
-.plans-loading { text-align: center; padding: 32px 0; color: #9ca3af; font-size: 14px; }
-.plans-spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #10b981; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+.trial-recap {
+  margin-top: 14px; border: 1px solid #e5e7eb; border-radius: 14px;
+  background: #f9fafb; overflow: hidden;
+}
+.trial-recap-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 14px; font-size: 12.5px;
+}
+.trial-recap-row + .trial-recap-row { border-top: 1px solid #eceef1; }
+.trial-recap-row span { color: #9ca3af; font-weight: 500; flex-shrink: 0; }
+.trial-recap-row strong { color: #0f0f0f; font-weight: 700; text-align: right; }
+
+.trial-note { margin-top: 12px; font-size: 11.5px; color: #9ca3af; line-height: 1.5; text-align: center; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .step2-actions { display: flex; gap: 10px; align-items: center; }
@@ -640,7 +564,9 @@ margin-top: 24px; }
   .auth-form { gap: 16px; }
   .field-row { grid-template-columns: 1fr; }
   .field-input { font-size: 16px; }
-  .plan-card { padding: 16px; }
+  .trial-card { padding: 24px 18px 18px; }
+  .trial-recap-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .trial-recap-row strong { text-align: left; }
   .step2-actions { flex-direction: column-reverse; align-items: stretch; }
   .btn-back { justify-content: center; }
   .auth-footer {

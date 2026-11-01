@@ -31,7 +31,7 @@
             </BaseInput>
 
             <BaseSelect v-model="form.role" :label="$t('page.users.role')" :error="errors.role?.[0] || ''"
-              :options="roles.map(r => ({ value: r.name, label: r.name }))" :placeholder="$t('common.select_role')" />
+              :options="roles.map(r => ({ value: r.name, label: $t(roleLabel(r.name)) }))" :placeholder="$t('common.select_role')" />
 
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.is_active" type="checkbox" class="rounded border-border text-primary-600 focus:ring-primary-500/30" />
@@ -72,6 +72,18 @@ const errors = reactive({});
 const showPassword = ref(false);
 const showConfirm = ref(false);
 const roles = ref([]);
+
+function roleLabel(role) {
+  const labels = {
+    admin: 'roles.admin',
+    manager: 'roles.manager',
+    accountant: 'roles.accountant',
+    warehouse_manager: 'roles.warehouse_manager',
+    sales: 'roles.sales',
+    employee: 'roles.employee',
+  }
+  return labels[role] || role
+}
 const form = reactive({
   name: '', email: '', password: '', password_confirmation: '', role: '', is_active: true,
 });
@@ -93,8 +105,8 @@ onMounted(async () => {
     const item = data.data ?? data;
     form.name = item.name ?? '';
     form.email = item.email ?? '';
-    form.role = item.roles?.[0]?.name ?? '';
-    form.is_active = item.is_active === true;
+    form.role = item.roles?.[0] ?? '';
+    form.is_active = item.is_active !== false;
   } catch {
     showToast($t('page.users.load_error'), 'error');
     router.push({ name: 'Users' });

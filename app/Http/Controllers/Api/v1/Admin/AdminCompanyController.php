@@ -13,6 +13,9 @@ use App\Models\Invoice;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Scopes\FrozenScope;
+use App\Services\QuotaService;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +29,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminCompanyController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+        private readonly QuotaService $quotas,
+    ) {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $sortable = ['name', 'slug', 'email', 'status', 'size', 'plan_id', 'created_at', 'id'];
@@ -36,7 +45,7 @@ class AdminCompanyController extends Controller
             $sort = 'created_at';
         }
 
-        $companies = Company::with(['plan'])
+        $companies = Company::with(['plan', 'activeSubscription.plan'])
             ->withCount(['users'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -68,8 +77,22 @@ class AdminCompanyController extends Controller
 
     public function show(Company $company): JsonResponse
     {
-        $company->load(['plan', 'users']);
+        $company = $this->subscriptions->ensureCompanyIsUpToDate($company);
+        $company->load(['plan', 'users', 'activeSubscription.plan']);
         $company->loadCount(['users', 'invoices', 'customers', 'products']);
+
+        $snapshot = $this->quotas->snapshot($company);
+
+        // Le panneau Super Admin doit voir toutes les données, y compris gelées.
+        $company->users_count = $snapshot['resources'][0]['used'] ?? $company->users_count;
+        foreach ($snapshot['resources'] as $resource) {
+            if ($resource['resource'] === 'products') {
+                $company->products_count = $resource['used'];
+            }
+            if ($resource['resource'] === 'invoices') {
+                $company->invoices_count = $resource['used'];
+            }
+        }
 
         $lastLogin = $company->users()
             ->whereNotNull('last_login_at')
@@ -78,13 +101,15 @@ class AdminCompanyController extends Controller
         $company->last_login = $lastLogin;
         $company->owner = $company->users->sortBy('id')->first();
 
-        $invoicedVolume30d = (int) Invoice::where('company_id', $company->id)
+        $invoicedVolume30d = (int) Invoice::withoutGlobalScope(FrozenScope::class)
+            ->where('company_id', $company->id)
             ->whereNull('deleted_at')
             ->where('status', '!=', InvoiceStatus::Cancelled->value)
             ->where('created_at', '>=', now()->subDays(30))
             ->sum('total_xof');
 
-        $invoicesCount30d = (int) Invoice::where('company_id', $company->id)
+        $invoicesCount30d = (int) Invoice::withoutGlobalScope(FrozenScope::class)
+            ->where('company_id', $company->id)
             ->whereNull('deleted_at')
             ->where('status', '!=', InvoiceStatus::Cancelled->value)
             ->where('created_at', '>=', now()->subDays(30))
@@ -93,20 +118,19 @@ class AdminCompanyController extends Controller
         $company->invoiced_volume_30d = $invoicedVolume30d;
         $company->invoices_count_30d = $invoicesCount30d;
 
-        $subscription = Subscription::where('company_id', $company->id)
-            ->whereIn('stripe_status', ['active', 'trialing', 'past_due', 'canceled'])
-            ->latest()
-            ->first();
-
+        $subscription = $this->subscriptions->currentSubscription($company);
         $company->subscription = $subscription ? [
             'id' => $subscription->id,
-            'stripe_status' => $subscription->stripe_status,
+            'status' => $subscription->status,
             'plan_name' => $subscription->plan?->name,
             'plan_id' => $subscription->plan_id,
-            'trial_ends_at' => $subscription->trial_ends_at,
+            'starts_at' => $subscription->starts_at,
             'ends_at' => $subscription->ends_at,
+            'notes' => $subscription->notes,
             'created_at' => $subscription->created_at,
         ] : null;
+        $company->quota_snapshot = $snapshot;
+        $company->frozen_records = $this->quotas->frozenRecords($company);
 
         $timeline = Activity::with('causer')
             ->where('company_id', $company->id)
@@ -141,9 +165,13 @@ class AdminCompanyController extends Controller
             'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'address' => ['sometimes', 'nullable', 'string'],
             'plan_id' => ['sometimes', 'nullable', 'exists:plans,id'],
+            'trial_started_at' => ['sometimes', 'nullable', 'date'],
             'trial_ends_at' => ['sometimes', 'nullable', 'date'],
             'suspended_until' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        $newPlanId = $validated['plan_id'] ?? null;
+        unset($validated['plan_id']);
 
         if (isset($validated['status'])) {
             $validated['suspended_at'] = $validated['status'] === 'suspended' ? now() : null;
@@ -170,15 +198,21 @@ class AdminCompanyController extends Controller
 
         $company->update($validated);
 
-        return response()->json(new AdminCompanyResource($company->fresh('plan')), Response::HTTP_OK);
+        if ($newPlanId !== null && (int) $newPlanId !== (int) $company->plan_id) {
+            $this->subscriptions->assignPlan(
+                $company->fresh(),
+                Plan::findOrFail($newPlanId),
+                null,
+                $request->user(),
+            );
+        }
+
+        return response()->json(new AdminCompanyResource($company->fresh(['plan', 'activeSubscription.plan'])), Response::HTTP_OK);
     }
 
-    public function suspend(Company $company): JsonResponse
+    public function suspend(Request $request, Company $company): JsonResponse
     {
-        $company->update([
-            'status' => 'suspended',
-            'suspended_at' => now(),
-        ]);
+        $this->subscriptions->suspend($company, $request->user());
 
         return response()->json([
             'message' => 'Entreprise suspendue.',
@@ -186,23 +220,17 @@ class AdminCompanyController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function activate(Company $company): JsonResponse
+    public function activate(Request $request, Company $company): JsonResponse
     {
-        // Activation manuelle = décision explicite : on solde l'essai
-        // et on retire toute réactivation/suspension programmée.
-        $metadata = $company->metadata ?? [];
-        unset($metadata['suspended_until']);
+        $this->subscriptions->reactivate($company, $request->user());
 
-        $company->forceFill([
-            'status' => 'active',
-            'suspended_at' => null,
-            'trial_ends_at' => null,
-            'metadata' => $metadata,
-        ])->save();
+        $metadata = $company->fresh()->metadata ?? [];
+        unset($metadata['suspended_until']);
+        $company->forceFill(['metadata' => $metadata])->save();
 
         return response()->json([
             'message' => 'Entreprise activée.',
-            'company' => new AdminCompanyResource($company->fresh()),
+            'company' => new AdminCompanyResource($company->fresh(['plan', 'activeSubscription.plan'])),
         ], Response::HTTP_OK);
     }
 
@@ -222,9 +250,9 @@ class AdminCompanyController extends Controller
         $companyName = $company->name;
         $stats = [
             'users' => $company->users()->count(),
-            'invoices' => $company->invoices()->count(),
+            'invoices' => $company->invoices()->withoutGlobalScope(FrozenScope::class)->count(),
             'customers' => $company->customers()->count(),
-            'products' => $company->products()->count(),
+            'products' => $company->products()->withoutGlobalScope(FrozenScope::class)->count(),
         ];
 
         // Fichiers à purger (best effort, hors transaction).
@@ -233,7 +261,7 @@ class AdminCompanyController extends Controller
         if (is_string($logo) && $logo !== '') {
             $files[] = $logo;
         }
-        foreach ($company->products()->whereNotNull('image')->pluck('image') as $image) {
+        foreach ($company->products()->withoutGlobalScope(FrozenScope::class)->whereNotNull('image')->pluck('image') as $image) {
             if (is_string($image) && ! str_starts_with($image, 'http')) {
                 $files[] = $image;
             }
@@ -292,33 +320,23 @@ class AdminCompanyController extends Controller
     {
         $validated = $request->validate([
             'plan_id' => ['required', 'exists:plans,id'],
+            'ends_at' => ['nullable', 'date', 'after:now'],
+            'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $plan = Plan::findOrFail($validated['plan_id']);
-        $company->update(['plan_id' => $plan->id]);
-        $company->clearPlanCache();
 
-        $subscription = Subscription::where('company_id', $company->id)
-            ->whereIn('stripe_status', ['active', 'trialing', 'past_due'])
-            ->latest()
-            ->first();
-
-        if ($subscription) {
-            $subscription->update(['plan_id' => $plan->id]);
-        }
-
-        activity()
-            ->performedOn($company)
-            ->event('updated')
-            ->withProperties([
-                'attributes' => ['plan_id' => $plan->id],
-                'old' => ['plan_id' => $company->getOriginal('plan_id')],
-            ])
-            ->log('Plan changé vers '.$plan->name.' par superadmin');
+        $this->subscriptions->assignPlan(
+            $company,
+            $plan,
+            isset($validated['ends_at']) ? \Illuminate\Support\Carbon::parse($validated['ends_at']) : null,
+            $request->user(),
+            $validated['notes'] ?? null,
+        );
 
         return response()->json([
             'message' => 'Plan assigné avec succès.',
-            'company' => new AdminCompanyResource($company->fresh('plan')),
+            'company' => new AdminCompanyResource($company->fresh(['plan', 'activeSubscription.plan'])),
         ], Response::HTTP_OK);
     }
 
@@ -330,6 +348,9 @@ class AdminCompanyController extends Controller
             'suspended' => Company::where('status', 'suspended')->count(),
             'trial' => Company::where('status', 'trial')->count(),
             'disabled' => Company::where('status', 'disabled')->count(),
+            'free' => Company::whereHas('plan', fn ($q) => $q->where('slug', Plan::FREE_SLUG))->count(),
+            'paid' => Company::whereHas('plan', fn ($q) => $q->where('slug', '!=', Plan::FREE_SLUG))->count(),
+            'over_quota' => count($this->quotas->freeCompaniesOverQuota()),
             'by_size' => Company::whereNotNull('size')
                 ->selectRaw('size, COUNT(*) as count')
                 ->groupBy('size')
@@ -342,7 +363,7 @@ class AdminCompanyController extends Controller
                 ->pluck('count', 'industry'),
             'registrations_last_30_days' => Company::where('created_at', '>=', now()->subDays(30))->count(),
             'registrations_last_7_days' => Company::where('created_at', '>=', now()->subDays(7))->count(),
-            'plans' => Plan::orderBy('sort')->get(['id', 'name', 'slug', 'price_xof', 'is_active']),
+            'plans' => Plan::orderBy('sort')->get(['id', 'name', 'slug', 'price_xof', 'is_active', 'quotas', 'features']),
         ];
 
         return response()->json($stats, Response::HTTP_OK);
@@ -353,7 +374,7 @@ class AdminCompanyController extends Controller
      */
     public function export(Request $request)
     {
-        $companies = Company::with(['plan'])
+        $companies = Company::with(['plan', 'activeSubscription.plan'])
             ->withCount(['users'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {

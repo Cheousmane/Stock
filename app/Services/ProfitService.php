@@ -82,6 +82,7 @@ class ProfitService
 
         $query = InvoiceItem::where('invoice_items.company_id', $companyId)
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.frozen_at')
             ->whereIn('invoices.status', ['paid', 'sent']);
 
         if ($startDate) {
@@ -123,6 +124,7 @@ class ProfitService
 
         $results = InvoiceItem::where('invoice_items.company_id', $companyId)
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.frozen_at')
             ->whereIn('invoices.status', ['paid', 'sent'])
             ->whereNotNull('invoice_items.product_id')
             ->when($startDate, fn ($q) => $q->whereDate('invoices.issue_date', '>=', $startDate))
@@ -165,6 +167,7 @@ class ProfitService
 
         $results = InvoiceItem::where('invoice_items.company_id', $companyId)
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.frozen_at')
             ->whereIn('invoices.status', ['paid', 'sent'])
             ->when($startDate, fn ($q) => $q->whereDate('invoices.issue_date', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->whereDate('invoices.issue_date', '<=', $endDate))
@@ -206,6 +209,7 @@ class ProfitService
 
         $results = InvoiceItem::where('invoice_items.company_id', $companyId)
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.frozen_at')
             ->whereIn('invoices.status', ['paid', 'sent'])
             ->when($startDate, fn ($q) => $q->whereDate('invoices.issue_date', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->whereDate('invoices.issue_date', '<=', $endDate))

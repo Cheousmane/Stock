@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Services\SubscriptionService;
 use App\Support\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,11 +19,21 @@ class TenantMiddleware
         $user = $request->user();
 
         if ($user) {
-            if (!$user->is_active || ($user->company && $user->company->status === 'suspended')) {
-                abort(Response::HTTP_FORBIDDEN, 'Votre compte a été suspendu.');
+            if (!$user->is_active || $user->frozen_at !== null || ($user->company && $user->company->status === 'suspended')) {
+                abort(Response::HTTP_FORBIDDEN, $user->frozen_at !== null
+                    ? 'Votre compte utilisateur est gelé : les quotas de votre plan sont dépassés. Contactez votre administrateur.'
+                    : 'Votre compte a été suspendu.');
             }
 
             $company = $user->company;
+
+            // Application immédiate des fins d'essai/abonnement sans attendre
+            // le planificateur (qui reste la garantie de fond).
+            if ($company && ($company->status === 'trial' || ($company->status === 'active' && $company->plan_id !== null && $company->plan && ! $company->plan->isFree()))) {
+                $company = app(SubscriptionService::class)->ensureCompanyIsUpToDate($company);
+                $user->setRelation('company', $company);
+            }
+
             TenantContext::set($company);
             app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);
 

@@ -23,7 +23,7 @@ class AdminUserController extends Controller
         }
 
         $users = User::withoutGlobalScopes()
-            ->with('company:id,name,slug', 'roles')
+            ->with('company:id,name,slug,plan_id,status,trial_started_at,trial_ends_at', 'company.plan', 'roles')
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -35,6 +35,11 @@ class AdminUserController extends Controller
             })
             ->when($request->input('is_super_admin') !== null, function ($query) use ($request) {
                 $query->where('is_super_admin', filter_var($request->input('is_super_admin'), FILTER_VALIDATE_BOOLEAN));
+            })
+            ->when($request->input('frozen') !== null, function ($query) use ($request) {
+                filter_var($request->input('frozen'), FILTER_VALIDATE_BOOLEAN)
+                    ? $query->whereNotNull('frozen_at')
+                    : $query->whereNull('frozen_at');
             })
             ->orderBy($sort, $order)
             ->paginate(min($request->integer('per_page', 20), 100));
@@ -48,6 +53,8 @@ class AdminUserController extends Controller
                 'locale' => $user->locale,
                 'is_super_admin' => $user->is_super_admin,
                 'is_active' => $user->is_active,
+                'frozen_at' => $user->frozen_at?->toIso8601String(),
+                'is_frozen' => $user->frozen_at !== null,
                 'is_online' => $user->isOnline(),
                 'last_login_at' => $user->last_login_at?->toIso8601String(),
                 'last_seen_at' => $user->last_seen_at?->toIso8601String(),
@@ -56,6 +63,15 @@ class AdminUserController extends Controller
                     'id' => $user->company->id,
                     'name' => $user->company->name,
                     'slug' => $user->company->slug,
+                    'status' => $user->company->status,
+                    'trial_started_at' => $user->company->trial_started_at?->toIso8601String(),
+                    'trial_ends_at' => $user->company->trial_ends_at?->toIso8601String(),
+                    'plan' => $user->company->plan ? [
+                        'id' => $user->company->plan->id,
+                        'name' => $user->company->plan->name,
+                        'slug' => $user->company->plan->slug,
+                        'price_xof' => $user->company->plan->price_xof,
+                    ] : null,
                 ] : null,
                 'roles' => $user->roles->pluck('name'),
             ];

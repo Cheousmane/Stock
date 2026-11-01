@@ -63,6 +63,7 @@ class DashboardController extends Controller
             $aggregateQuery = DB::table('invoices')
                 ->where('company_id', $companyId)
                 ->whereNull('deleted_at')
+                ->whereNull('frozen_at')
                 ->select(DB::raw("
                     COUNT(*) as total_invoices,
                     SUM(CASE WHEN status IN ('sent', 'overdue', 'partial') THEN balance_due_xof ELSE 0 END) as outstanding,
@@ -73,7 +74,7 @@ class DashboardController extends Controller
             $thirtyDaysAgo = now()->subDays(30)->format('Y-m-d H:i:s');
             $countsQuery = DB::select("
                 SELECT
-                    (SELECT COUNT(*) FROM products WHERE company_id = ? AND deleted_at IS NULL) as total_products,
+                    (SELECT COUNT(*) FROM products WHERE company_id = ? AND deleted_at IS NULL AND frozen_at IS NULL) as total_products,
                     (SELECT COUNT(*) FROM customers WHERE company_id = ? AND deleted_at IS NULL) as total_customers,
                     (SELECT COUNT(*) FROM payments WHERE company_id = ? AND created_at >= ?) as recent_payments,
                     (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE company_id = ?) as total_expenses,
@@ -86,6 +87,7 @@ class DashboardController extends Controller
             $lowStockProducts = DB::table('products as p')
                 ->where('p.company_id', $companyId)
                 ->whereNull('p.deleted_at')
+                ->whereNull('p.frozen_at')
                 ->where('p.min_stock', '>', 0)
                 ->whereRaw('(SELECT COALESCE(SUM(ws.quantity), 0) FROM warehouse_stock ws WHERE ws.product_id = p.id) < p.min_stock')
                 ->count();
@@ -118,7 +120,7 @@ class DashboardController extends Controller
                     SELECT ii.product_id, ii.total_xof as total
                     FROM invoice_items ii
                     JOIN invoices i ON ii.invoice_id = i.id
-                    WHERE i.company_id = ? AND i.status = ? AND i.deleted_at IS NULL
+                    WHERE i.company_id = ? AND i.status = ? AND i.deleted_at IS NULL AND i.frozen_at IS NULL
                     UNION ALL
                     SELECT psi.product_id, psi.subtotal_xof as total
                     FROM pos_sale_items psi

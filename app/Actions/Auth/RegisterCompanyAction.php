@@ -7,8 +7,8 @@ namespace App\Actions\Auth;
 use App\DTOs\GoogleRegisterDTO;
 use App\DTOs\RegisterCompanyDTO;
 use App\Models\Company;
-use App\Models\Plan;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,23 +19,21 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RegisterCompanyAction
 {
+    public function __construct(private readonly SubscriptionService $subscriptions)
+    {
+    }
+
     public function execute(RegisterCompanyDTO $dto): array
     {
         return DB::transaction(function () use ($dto) {
-            $plan = $dto->planId
-                ? Plan::find($dto->planId)
-                : Plan::where('slug', 'free')->first();
-
-            // Toute inscription démarre en essai gratuit de 14 jours, accès complet.
-            // Le scheduler `companies:manage-statuses` suspend les essais expirés.
+            // Toute inscription démarre automatiquement sur le plan Free avec
+            // un essai complet de 14 jours. Aucun plan n'est choisi par le client.
             $company = Company::create([
                 'name' => $dto->companyName,
                 'slug' => $dto->companySlug,
                 'industry' => $dto->companyIndustry,
                 'size' => $dto->companySize,
-                'plan_id' => $plan?->id,
-                'status' => 'trial',
-                'trial_ends_at' => now()->addDays($plan?->trial_days > 0 ? $plan->trial_days : 14),
+                'status' => 'pending',
             ]);
 
             app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);
@@ -71,18 +69,12 @@ class RegisterCompanyAction
     public function executeWithGoogle(GoogleRegisterDTO $dto): array
     {
         return DB::transaction(function () use ($dto) {
-            $plan = $dto->planId
-                ? Plan::find($dto->planId)
-                : Plan::where('slug', 'free')->first();
-
             $company = Company::create([
                 'name' => $dto->companyName,
                 'slug' => $dto->companySlug,
                 'industry' => $dto->companyIndustry,
                 'size' => $dto->companySize,
-                'plan_id' => $plan?->id,
-                'status' => 'trial',
-                'trial_ends_at' => now()->addDays($plan?->trial_days > 0 ? $plan->trial_days : 14),
+                'status' => 'pending',
             ]);
 
             app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);

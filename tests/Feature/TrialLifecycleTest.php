@@ -8,20 +8,24 @@ use App\Actions\Auth\RegisterCompanyAction;
 use App\DTOs\RegisterCompanyDTO;
 use App\Models\Company;
 use App\Models\Plan;
+use App\Models\Product;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\QuotaService;
+use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpFoundation\Response;
 
 uses(RefreshDatabase::class);
 
-describe('Trial lifecycle (14-day trial, blocking, fallback)', function () {
+describe('Freemium trial lifecycle (auto free plan + 14-day trial)', function () {
 
-    function trialAuthUser(Company $company, array $userOverrides = []): string
+    function superAdminAuth(Company $company, array $userOverrides = []): string
     {
         $user = User::factory()->create(array_merge([
             'company_id' => $company->id,
             'email' => 'admin-' . $company->id . '@test.com',
+            'is_super_admin' => true,
         ], $userOverrides));
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -33,16 +37,38 @@ describe('Trial lifecycle (14-day trial, blocking, fallback)', function () {
         return $token;
     }
 
-    function makePlan(string $slug, array $quotas): Plan
+    function freePlan(int $maxProducts = 10): Plan
     {
         return Plan::factory()->create([
-            'slug' => $slug,
-            'quotas' => $quotas,
+            'slug' => 'free',
+            'price_xof' => 0,
+            'quotas' => [
+                'max_users' => 5,
+                'max_products' => $maxProducts,
+                'max_invoices' => 5,
+                'max_warehouses' => 1,
+            ],
         ]);
     }
 
-    it('puts a new registration on a 14-day trial with full access', function () {
-        $pro = makePlan('pro', ['max_products' => 100]);
+    function starterPlan(): Plan
+    {
+        return Plan::factory()->create([
+            'slug' => 'starter',
+            'price_xof' => 15000,
+            'quotas' => [
+                'max_users' => 10,
+                'max_products' => 100,
+                'max_invoices' => 50,
+                'max_warehouses' => 2,
+            ],
+        ]);
+    }
+
+    function registerNewTenant(): array
+    {
+        // Un plan Free doit exister en base (source de verite des quotas).
+        freePlan();
 
         $result = app(RegisterCompanyAction::class)->execute(new RegisterCompanyDTO(
             companyName: 'Trial Co',
@@ -50,26 +76,56 @@ describe('Trial lifecycle (14-day trial, blocking, fallback)', function () {
             userName: 'Owner',
             userEmail: 'owner@trial-co.com',
             userPassword: 'password123',
-            planId: $pro->id,
         ));
 
-        $company = $result['company']->fresh();
-        expect($company->status)->toBe('trial');
-        expect($company->plan_id)->toBe($pro->id);
-        expect($company->trial_ends_at)->not->toBeNull();
-        expect($company->trial_ends_at->isFuture())->toBeTrue();
-        expect($company->trial_ends_at->diffInDays(now(), true))->toBeGreaterThanOrEqual(13);
+        return [$result['company']->fresh(), $result['user']];
+    }
+
+    function authTenantUser(Company $company): string
+    {
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+            'email' => 'admin-' . $company->id . '@test.com',
+        ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        test()->withHeaders([
+            'X-Tenant-Slug' => $company->slug,
+            'Authorization' => 'Bearer ' . $token,
+        ]);
+
+        return $token;
+    }
+
+    it('assigns every new registration to a pending (unverified) account without starting the trial', function () {
+        [$company, $user] = registerNewTenant();
+
+        expect($company->status)->toBe('pending')
+            ->and($company->plan_id)->toBeNull()
+            ->and($company->trial_started_at)->toBeNull()
+            ->and($company->trial_ends_at)->toBeNull()
+            ->and($company->subscriptions()->count())->toBe(0)
+            ->and($user->fresh()->email_verified_at)->toBeNull()
+            ->and($user->fresh()->frozen_at)->toBeNull();
     });
 
-    it('lets a trial company create beyond plan quotas (full access)', function () {
-        $plan = makePlan('strict', ['max_products' => 0]);
-        $company = Company::factory()->create([
-            'slug' => 'trial-full',
-            'plan_id' => $plan->id,
-            'status' => 'trial',
-            'trial_ends_at' => now()->addDays(14),
+    it('gives full access during the trial even beyond the free quotas', function () {
+        [$company, $user] = registerNewTenant();
+
+        // Vérification de l'e-mail => activation du compte + démarrage de l'essai.
+        $user->forceFill(['email_verified_at' => now()])->save();
+        app(SubscriptionService::class)->startTrial($company);
+
+        $company = $company->fresh();
+        $user = $user->fresh();
+
+        Product::factory()->count(2)->create(['company_id' => $company->id]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        test()->withHeaders([
+            'X-Tenant-Slug' => $company->slug,
+            'Authorization' => 'Bearer ' . $token,
         ]);
-        trialAuthUser($company);
 
         $response = test()->postJson('/api/v1/products', [
             'name' => 'Trial Product',
@@ -78,174 +134,178 @@ describe('Trial lifecycle (14-day trial, blocking, fallback)', function () {
         ]);
 
         $response->assertStatus(Response::HTTP_CREATED);
+        expect(Product::where('company_id', $company->id)->count())->toBe(3);
     });
 
-    it('blocks creation with 402 when the trial expired without subscription', function () {
-        $plan = makePlan('strict2', ['max_products' => 100]);
+    it('expires the trial and freezes the excess data when the free quota is exceeded', function () {
+        $free = freePlan(1);
         $company = Company::factory()->create([
-            'slug' => 'trial-expired',
-            'plan_id' => $plan->id,
+            'slug' => 'trial-expired-co',
+            'plan_id' => $free->id,
             'status' => 'trial',
+            'trial_started_at' => now()->subDays(16),
             'trial_ends_at' => now()->subDay(),
         ]);
-        trialAuthUser($company);
+
+        Product::factory()->count(2)->create(['company_id' => $company->id]);
+
+        $token = authTenantUser($company);
+        test()->withHeaders([
+            'X-Tenant-Slug' => $company->slug,
+            'Authorization' => 'Bearer ' . $token,
+        ]);
+
+        $this->artisan('companies:manage-statuses')->assertSuccessful();
+
+        $fresh = $company->fresh();
+        expect($fresh->status)->toBe('active')
+            ->and($fresh->plan_id)->toBe($free->id)
+            ->and($fresh->trial_ends_at)->not->ToBeNull()
+            ->and($fresh->trial_ends_at->isPast())->toBeTrue();
 
         $response = test()->postJson('/api/v1/products', [
-            'name' => 'Blocked Product',
+            'name' => 'Should Be Blocked',
             'sku' => 'BLOCK-001',
             'price' => 1000,
         ]);
 
-        $response->assertStatus(Response::HTTP_PAYMENT_REQUIRED);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        expect(app(QuotaService::class)->frozenCount($company, 'products'))->toBe(1);
     });
 
-    it('suspends expired paid trials and frees expired free trials', function () {
-        $pro = makePlan('pro2', ['max_products' => 100]);
-        $free = makePlan('free', ['max_products' => 5]);
-
-        $paid = Company::factory()->create([
-            'slug' => 'paid-expired', 'plan_id' => $pro->id,
-            'status' => 'trial', 'trial_ends_at' => now()->subDay(),
-        ]);
-        $freemium = Company::factory()->create([
-            'slug' => 'free-expired', 'plan_id' => $free->id,
-            'status' => 'trial', 'trial_ends_at' => now()->subDay(),
-        ]);
-
-        $this->artisan('companies:manage-statuses')->assertSuccessful();
-
-        expect($paid->fresh()->status)->toBe('suspended');
-        expect($paid->fresh()->suspended_at)->not->toBeNull();
-        expect($freemium->fresh()->status)->toBe('active');
-        expect($freemium->fresh()->trial_ends_at)->toBeNull();
-    });
-
-    it('does not suspend an expired trial covered by a billing subscription', function () {
-        $pro = makePlan('pro3', ['max_products' => 100]);
+    it('unfreezes frozen data on upgrade and re-freezes on downgrade to free', function () {
+        $free = freePlan(1);
+        $starter = starterPlan();
         $company = Company::factory()->create([
-            'slug' => 'covered', 'plan_id' => $pro->id,
-            'status' => 'trial', 'trial_ends_at' => now()->subDay(),
+            'slug' => 'upgrade-co',
+            'plan_id' => $free->id,
+            'status' => 'active',
         ]);
-        Subscription::create([
+
+        // Free quota : 1 produit -> le second est gele.
+        Product::factory()->count(2)->create(['company_id' => $company->id]);
+        app(SubscriptionService::class)->syncFreezing($company);
+        expect(app(QuotaService::class)->frozenCount($company, 'products'))->toBe(1);
+
+        $adminCompany = Company::factory()->create(['slug' => 'admin-up-co']);
+        superAdminAuth($adminCompany);
+
+        // Upgrade : le gel est leve.
+        $assign = test()->postJson("/api/v1/admin/subscriptions/{$company->id}/assign", [
+            'plan_id' => $starter->id,
+        ]);
+        $assign->assertStatus(Response::HTTP_OK);
+        expect(app(QuotaService::class)->frozenCount($company, 'products'))->toBe(0);
+
+        // Downgrade vers le Free : les excements sont a nouveau gels.
+        $downgrade = test()->postJson("/api/v1/admin/subscriptions/{$company->id}/assign", [
+            'plan_id' => $free->id,
+        ]);
+        $downgrade->assertStatus(Response::HTTP_OK);
+
+        // Deux produits existent (quota Free de 1) : le second est gele a nouveau.
+        expect(app(QuotaService::class)->frozenCount($company, 'products'))->toBe(1);
+
+        // Le quota Free est a nouveau operationnel : la creation est bloquee.
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        app(QuotaService::class)->ensureCanCreate($company, 'products');
+    });
+
+    it('blocks a frozen user from using the tenant API', function () {
+        $company = Company::factory()->create(['slug' => 'frozen-user-co']);
+        $user = User::factory()->create([
             'company_id' => $company->id,
-            'plan_id' => $pro->id,
-            'type' => 'default',
-            'stripe_id' => 'sub_covered',
-            'stripe_status' => 'active',
-            'quantity' => 1,
+            'email' => 'frozen@frozen-user-co.com',
+            'frozen_at' => now(),
+        ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        test()->withHeaders([
+            'X-Tenant-Slug' => $company->slug,
+            'Authorization' => 'Bearer ' . $token,
         ]);
 
-        $this->artisan('companies:manage-statuses')->assertSuccessful();
-
-        $fresh = $company->fresh();
-        expect($fresh->status)->toBe('active');
-        expect($fresh->trial_ends_at)->toBeNull();
-    });
-
-    it('falls back to free plan when a canceled subscription grace period ends', function () {
-        $pro = makePlan('pro4', ['max_products' => 100]);
-        $free = makePlan('free2', []);
-        // Le scheduler cherche le slug 'free' : on l'aligne.
-        $free->update(['slug' => 'free']);
-        $company = Company::factory()->create([
-            'slug' => 'grace-ended', 'plan_id' => $pro->id, 'status' => 'active',
-        ]);
-        Subscription::create([
-            'company_id' => $company->id,
-            'plan_id' => $pro->id,
-            'type' => 'default',
-            'stripe_id' => 'sub_ended',
-            'stripe_status' => 'canceled',
-            'quantity' => 1,
-            'ends_at' => now()->subDay(),
-        ]);
-
-        $this->artisan('companies:manage-statuses')->assertSuccessful();
-
-        $fresh = $company->fresh();
-        expect($fresh->plan_id)->toBe($free->id);
-        expect($fresh->status)->toBe('active');
-    });
-
-    it('lets a super admin activate a company and settle trial state', function () {
-        $pro = makePlan('pro5', ['max_products' => 100]);
-        $adminCompany = Company::factory()->create(['slug' => 'admin-co']);
-        trialAuthUser($adminCompany, ['is_super_admin' => true]);
-
-        $target = Company::factory()->create([
-            'slug' => 'to-activate', 'plan_id' => $pro->id,
-            'status' => 'suspended', 'trial_ends_at' => now()->subDay(),
-            'metadata' => ['suspended_until' => now()->addDay()->toDateString()],
-        ]);
-
-        $response = test()->postJson("/api/v1/admin/companies/{$target->id}/activate");
-
-        $response->assertStatus(Response::HTTP_OK);
-        $fresh = $target->fresh();
-        expect($fresh->status)->toBe('active');
-        expect($fresh->suspended_at)->toBeNull();
-        expect($fresh->trial_ends_at)->toBeNull();
-        expect($fresh->metadata['suspended_until'] ?? null)->toBeNull();
-    });
-
-    it('lets a super admin permanently delete a company and its data', function () {
-        $adminCompany = Company::factory()->create(['slug' => 'admin-del']);
-        trialAuthUser($adminCompany, ['is_super_admin' => true]);
-
-        $target = Company::factory()->create(['slug' => 'doomed']);
-        $user = User::factory()->create(['company_id' => $target->id]);
-        $token = $user->createToken('t')->plainTextToken;
-        \App\Models\Product::factory()->create(['company_id' => $target->id]);
-        \App\Models\Customer::factory()->create(['company_id' => $target->id]);
-        $role = \Spatie\Permission\Models\Role::create([
-            'name' => 'tmp', 'guard_name' => 'web', 'company_id' => $target->id,
-        ]);
-
-        $response = test()->deleteJson("/api/v1/admin/companies/{$target->id}");
-
-        $response->assertStatus(Response::HTTP_OK);
-        expect(Company::find($target->id))->toBeNull();
-        expect(User::where('company_id', $target->id)->count())->toBe(0);
-        expect(\App\Models\Product::where('company_id', $target->id)->count())->toBe(0);
-        expect(\App\Models\Customer::where('company_id', $target->id)->count())->toBe(0);
-        expect(\Spatie\Permission\Models\Role::where('company_id', $target->id)->count())->toBe(0);
-        expect(\Laravel\Sanctum\PersonalAccessToken::where('tokenable_type', User::class)->where('tokenable_id', $user->id)->count())->toBe(0);
-    });
-
-    it('refuses deletion of its own company', function () {
-        $adminCompany = Company::factory()->create(['slug' => 'admin-own']);
-        trialAuthUser($adminCompany, ['is_super_admin' => true]);
-
-        $response = test()->deleteJson("/api/v1/admin/companies/{$adminCompany->id}");
-
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
-        expect(Company::find($adminCompany->id))->not->toBeNull();
-    });
-
-    it('forbids company deletion for non admins', function () {
-        $company = Company::factory()->create(['slug' => 'plain-co']);
-        trialAuthUser($company);
-        $target = Company::factory()->create(['slug' => 'victim']);
-
-        $response = test()->deleteJson("/api/v1/admin/companies/{$target->id}");
+        $response = test()->getJson('/api/v1/products');
 
         $response->assertStatus(Response::HTTP_FORBIDDEN);
-        expect(Company::find($target->id))->not->toBeNull();
+        expect($user->fresh()->frozen_at)->not->ToBeNull();
     });
 
-    it('lets super admins bypass quotas', function () {
-        $plan = makePlan('strict3', ['max_products' => 0]);
-        $company = Company::factory()->create([
-            'slug' => 'superadmin-co', 'plan_id' => $plan->id, 'status' => 'active',
-        ]);
-        trialAuthUser($company, ['is_super_admin' => true]);
+    it('manages trial periods and subscriptions from the super admin panel', function () {
+        $adminCompany = Company::factory()->create(['slug' => 'admin-sub-co']);
+        superAdminAuth($adminCompany);
 
-        $response = test()->postJson('/api/v1/products', [
-            'name' => 'Super Product',
-            'sku' => 'SUPER-001',
-            'price' => 1000,
+        $trialCompany = Company::factory()->create([
+            'slug' => 'trial-sub-co',
+            'plan_id' => freePlan()->id,
+            'status' => 'trial',
+            'trial_started_at' => now()->subDays(7),
+            'trial_ends_at' => now()->addDays(7),
         ]);
 
-        $response->assertStatus(Response::HTTP_CREATED);
+        // Prolongation d'essai
+        $extend = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/trial/extend", [
+            'days' => 30,
+        ]);
+        $extend->assertStatus(Response::HTTP_OK);
+
+        $trialFresh = $trialCompany->fresh();
+        expect($trialFresh->status)->toBe('trial')
+            ->and($trialFresh->trial_ends_at->diffInDays(now(), true))->toBeGreaterThan(30);
+
+        // Reinitialisation d'essai
+        $reset = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/trial/reset", [
+            'days' => 14,
+        ]);
+        $reset->assertStatus(Response::HTTP_OK);
+
+        $trialReset = $trialCompany->fresh();
+        expect($trialReset->status)->toBe('trial')
+            ->and($trialReset->trial_started_at)->not->ToBeNull()
+            ->and($trialReset->trial_ends_at->diffInDays(now(), true))->toBeGreaterThanOrEqual(13);
+
+        // Attribution d'un plan payant + renouvellement
+        $starter = starterPlan();
+        $assign = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/assign", [
+            'plan_id' => $starter->id,
+        ]);
+        $assign->assertStatus(Response::HTTP_OK);
+
+        $renew = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/renew", [
+            'months' => 6,
+        ]);
+        $renew->assertStatus(Response::HTTP_OK);
+
+        $subscription = Subscription::where('company_id', $trialCompany->id)->latest('id')->first();
+        expect($subscription)->not->ToBeNull()
+            ->and($subscription->status)->toBe(Subscription::STATUS_ACTIVE)
+            ->and($subscription->ends_at)->not->ToBeNull();
+
+        // Suspension / reactivation
+        $suspend = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/suspend", [
+            'notes' => 'Panne technique',
+        ]);
+        $suspend->assertStatus(Response::HTTP_OK);
+
+        $suspended = $trialCompany->fresh();
+        expect($suspended->status)->toBe('suspended')
+            ->and($suspended->suspended_at)->not->ToBeNull();
+
+        $reactivate = test()->postJson("/api/v1/admin/subscriptions/{$trialCompany->id}/reactivate");
+        $reactivate->assertStatus(Response::HTTP_OK);
+
+        $reactivated = $trialCompany->fresh();
+        expect($reactivated->status)->toBe('active')
+            ->and($reactivated->suspended_at)->toBeNull();
+
+        // Historique des actions super admin
+        $show = test()->getJson("/api/v1/admin/subscriptions/{$trialCompany->id}");
+        $show->assertStatus(Response::HTTP_OK);
+
+        $history = collect($show->json('data.history') ?? []);
+        expect($history->contains(fn ($entry) => $entry['event'] === 'subscription.assigned'))->toBeTrue()
+            ->and($history->contains(fn ($entry) => $entry['event'] === 'subscription.suspended'))->toBeTrue()
+            ->and($history->contains(fn ($entry) => $entry['event'] === 'subscription.reactivated'))->toBeTrue();
     });
 });

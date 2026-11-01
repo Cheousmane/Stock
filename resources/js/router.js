@@ -45,6 +45,7 @@ const routes = [
   { path: '/stock', name: 'Stock', component: () => import('./Pages/Stock/Index.vue'), meta: { requiresAuth: true, permission: 'view_stock', title: 'Stock' } },
   { path: '/stock/transfer', name: 'StockTransfer', component: () => import('./Pages/Stock/Transfer.vue'), meta: { requiresAuth: true, permission: 'transfer_stock', title: 'Transfert de stock' } },
   { path: '/expenses', name: 'Expenses', component: () => import('./Pages/Expenses/Index.vue'), meta: { requiresAuth: true, permission: 'view_expenses', title: 'Dépenses' } },
+  { path: '/payroll', name: 'Payroll', component: () => import('./Pages/Payroll/Index.vue'), meta: { requiresAuth: true, permission: 'view_expenses', title: 'Comptabilité' } },
   { path: '/capital', name: 'Capital', component: () => import('./Pages/Capital/Index.vue'), meta: { requiresAuth: true, permission: 'view_capital', title: 'Capital' } },
   { path: '/expenses/create', name: 'ExpenseCreate', component: () => import('./Pages/Expenses/Form.vue'), meta: { requiresAuth: true, permission: 'view_expenses', title: 'Nouvelle dépense' } },
   { path: '/expenses/:id/edit', name: 'ExpenseEdit', component: () => import('./Pages/Expenses/Form.vue'), meta: { requiresAuth: true, permission: 'update_expense', title: 'Modifier dépense' } },
@@ -80,6 +81,7 @@ const routes = [
   // Super Admin routes
   { path: '/admin/dashboard', name: 'AdminDashboard', component: () => import('@/Pages/Admin/Dashboard.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Tableau de bord' } },
   { path: '/admin/companies', name: 'AdminCompanies', component: () => import('@/Pages/Admin/Companies.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Entreprises' } },
+  { path: '/admin/subscriptions', name: 'AdminSubscriptions', component: () => import('@/Pages/Admin/Subscriptions.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Abonnements' } },
   { path: '/admin/login-logs', name: 'AdminLoginLogs', component: () => import('@/Pages/Admin/LoginLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Connexions' } },
   { path: '/admin/activity-logs', name: 'AdminActivityLogs', component: () => import('@/Pages/Admin/ActivityLogs.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Interférences' } },
   { path: '/admin/users', name: 'AdminUsers', component: () => import('@/Pages/Admin/Users.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true, title: 'Admin - Utilisateurs' } },

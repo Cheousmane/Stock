@@ -31,9 +31,12 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'locale' => $this->locale ?? 'fr',
+            'frozen_at' => $this->frozen_at?->toIso8601String(),
+            'is_frozen' => $this->frozen_at !== null,
             'roles' => $this->relationLoaded('roles') ? $this->roles->pluck('name') : [],
             'permissions' => $this->getAllPermissions()->pluck('name'),
             'is_super_admin' => $this->is_super_admin ?? false,
+            'is_active' => $this->is_active ?? true,
             'company' => $this->when($this->relationLoaded('company'), fn () => [
                 'uuid' => $this->company->uuid,
                 'name' => $this->company->name,

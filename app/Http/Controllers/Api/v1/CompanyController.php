@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Plan;
+use App\Models\Company;
 use App\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,27 +70,6 @@ class CompanyController extends Controller
         $company->update($data);
 
         return response()->json($company);
-    }
-
-    public function switchPlan(Request $request): JsonResponse
-    {
-        // Les plans payants passent par le tunnel de souscription (/subscriptions/*).
-        // Ici : retour volontaire vers l'offre gratuite uniquement.
-        $this->authorize('manage_settings');
-
-        $validated = $request->validate([
-            'plan_slug' => ['required', 'string', 'in:free'],
-        ]);
-
-        $plan = Plan::where('slug', $validated['plan_slug'])->firstOrFail();
-        $company = TenantContext::get();
-        $company->update(['plan_id' => $plan->id]);
-        $company->clearPlanCache();
-
-        return response()->json([
-            'message' => 'Plan switched to '.$plan->name,
-            'plan' => $plan,
-        ]);
     }
 
     public function uploadLogo(Request $request): JsonResponse

@@ -368,45 +368,76 @@
       <div class="pricing-bg-blob"></div>
       <div class="section-inner">
         <div class="section-label">Tarification simple</div>
-        <h2 class="section-title">Un seul plan, <em>tout inclus</em></h2>
-        <p class="section-sub">Pas de surprise, pas de frais cachés. Annulez à tout moment.</p>
+        <h2 class="section-title">Des plans pour <em>chaque étape</em></h2>
+        <p class="section-sub">Commencez gratuitement, évoluez quand vous voulez. 14 jours d'essai complet, sans carte bancaire.</p>
 
-        <div class="pricing-card-wrap">
-          <div class="pricing-card">
-            <div class="pricing-badge">Le plus populaire ✦</div>
+        <div class="pricing-toggle">
+          <button @click="billingCycle = 'monthly'" :class="{ active: billingCycle === 'monthly' }">Mensuel</button>
+          <button @click="billingCycle = 'annual'" :class="{ active: billingCycle === 'annual' }">Annuel <span class="save-badge">-2 mois</span></button>
+        </div>
+
+        <div class="pricing-grid">
+          <div
+            v-for="plan in displayPlans"
+            :key="plan.slug"
+            class="pricing-card"
+            :class="{ 'pricing-card--featured': plan.featured }"
+          >
+            <div v-if="plan.featured" class="pricing-badge">Le plus populaire ✦</div>
+            <div v-else class="pricing-badge pricing-badge--free">{{ plan.slug === 'free' ? 'Pour démarrer' : plan.name }}</div>
             <div class="pricing-header">
-              <h3 class="pricing-name">Plan Professionnel</h3>
+              <h3 class="pricing-name">{{ plan.name }}</h3>
               <div class="pricing-amount">
-                <span class="pricing-currency">FCFA</span>
-                <span class="pricing-price">15 000</span>
-                <span class="pricing-period">/ mois</span>
+                <span v-if="plan.price > 0" class="pricing-currency">FCFA</span>
+                <span class="pricing-price">{{ plan.priceLabel }}</span>
+                <span v-if="plan.price > 0" class="pricing-period">{{ plan.periodLabel }}</span>
               </div>
-              <p class="pricing-sub-desc">Par entreprise · Utilisateurs illimités</p>
+              <p class="pricing-sub-desc">{{ plan.desc }}</p>
             </div>
             <ul class="pricing-features">
-              <li v-for="f in pricingFeatures" :key="f">
+              <li v-for="f in plan.features" :key="f">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
                 {{ f }}
               </li>
+              <li class="pricing-quota">{{ plan.quotas }}</li>
             </ul>
-            <router-link to="/register" class="btn-primary btn-xl pricing-cta">
-              Démarrer l'essai gratuit — 14 jours
+            <router-link to="/register" class="btn-primary btn-xl pricing-cta" :class="{ 'pricing-cta--ghost': !plan.featured }">
+              {{ plan.price === 0 ? 'Créer un compte gratuit' : 'Démarrer l\'essai gratuit' }}
               <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
             </router-link>
-            <p class="pricing-note">Aucune carte bancaire requise</p>
+            <p class="pricing-note">{{ plan.price === 0 ? 'Gratuit à vie, sans engagement' : (billingCycle === 'annual' ? '12 mois pour le prix de 10 · aucune carte requise' : '14 jours offerts · aucune carte requise') }}</p>
           </div>
+        </div>
 
-          <div class="pricing-features-extra">
-            <div v-for="extra in pricingExtras" :key="extra.title" class="extra-item">
-              <div class="extra-icon-wrap" :class="extra.color">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" v-html="extra.icon"></svg>
-              </div>
-              <div>
-                <p class="extra-title">{{ extra.title }}</p>
-                <p class="extra-desc">{{ extra.desc }}</p>
+        <div class="pricing-extras">
+          <component
+            :is="extra.link ? 'a' : 'div'"
+            v-for="extra in pricingExtras"
+            :key="extra.title"
+            :href="extra.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="extra-item"
+            :class="{ 'extra-item--link': extra.link }"
+          >
+            <div class="extra-icon-wrap" :class="extra.color">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" v-html="extra.icon"></svg>
+            </div>
+            <div>
+              <p class="extra-title">{{ extra.title }}</p>
+              <p class="extra-desc">{{ extra.desc }}</p>
+              <div v-if="extra.links" class="extra-links">
+                <a
+                  v-for="l in extra.links"
+                  :key="l.label"
+                  :href="l.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="extra-link"
+                >{{ l.label }}</a>
               </div>
             </div>
-          </div>
+          </component>
         </div>
       </div>
     </section>
@@ -461,7 +492,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import AppLogo from '../Components/AppLogo.vue';
 import ThemeToggle from '../Components/ThemeToggle.vue';
 import { useTheme } from '../composables/useTheme';
@@ -541,18 +572,61 @@ const steps = [
 ];
 
 // ── Pricing ──
-const pricingFeatures = [
-  'Facturation & devis illimités',
-  'Gestion stock multi-entrepôts',
-  'Point de vente (POS)',
-  'CRM clients & fournisseurs',
-  'Tableau de bord analytique',
-  'Notes de crédit & bons de livraison',
-  'Multi-utilisateurs illimités',
-  'Export PDF & rapports',
-  'Support prioritaire',
+const pricingPlans = [
+  {
+    slug: 'free',
+    name: 'Free',
+    price: 0,
+    priceLabel: 'Gratuit',
+    desc: 'Pour les petites entreprises qui démarrent.',
+    features: ['Facturation de base', 'Gestion des produits', 'Gestion des clients'],
+    quotas: '5 utilisateurs · 10 produits · 5 factures · 1 entrepôt',
+    featured: false,
+  },
+  {
+    slug: 'starter',
+    name: 'Simple',
+    price: 15000,
+    priceLabel: '15 000',
+    desc: 'Pour les entreprises en croissance.',
+    features: ['Tout le plan Free', 'Jusqu\'à 10 utilisateurs', 'Transferts de stock', 'Bons de livraison', 'Devis'],
+    quotas: '10 utilisateurs · 100 produits · 50 factures · 2 entrepôts',
+    featured: true,
+  },
+  {
+    slug: 'pro',
+    name: 'Pro',
+    price: 35000,
+    priceLabel: '35 000',
+    desc: 'Pour les entreprises établies à fort volume.',
+    features: ['Tout le plan Simple', 'Jusqu\'à 20 utilisateurs', 'Produits illimités', 'Factures illimitées', 'Multi-entrepôts'],
+    quotas: '20 utilisateurs · produits et factures illimités · 5 entrepôts',
+    featured: false,
+  },
+  {
+    slug: 'enterprise',
+    name: 'Enterprise',
+    price: 100000,
+    priceLabel: '100 000',
+    desc: 'Pour les grandes organisations.',
+    features: ['Tout le plan Pro', 'Utilisateurs illimités', 'Produits et factures illimités', 'Entrepôts illimités', 'Support prioritaire'],
+    quotas: 'Utilisateurs, produits, factures et entrepôts illimités',
+    featured: false,
+  },
 ];
 
+const billingCycle = ref('monthly');
+const displayPlans = computed(() =>
+  pricingPlans.map((plan) => ({
+    ...plan,
+    priceLabel: plan.price === 0
+      ? plan.priceLabel
+      : (billingCycle.value === 'annual'
+        ? new Intl.NumberFormat('fr-FR').format(plan.price * 10).replace(/\s/g, ' ')
+        : plan.priceLabel),
+    periodLabel: plan.price === 0 ? '' : (billingCycle.value === 'annual' ? '/ an' : '/ mois'),
+  }))
+);
 const pricingExtras = [
   {
     title: 'Essai gratuit 14 jours',
@@ -562,8 +636,12 @@ const pricingExtras = [
   },
   {
     title: 'Support 7j/7',
-    desc: 'Assistance par chat et email, réponse sous 4h.',
+    desc: 'Assistance par chat WhatsApp ou par email — réponse sous 4h.',
     color: 'step-blue',
+    links: [
+      { label: 'Chat WhatsApp', href: 'https://wa.me/22394147375?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20concernant%20SIDIBE%20CORPORATE.' },
+      { label: 'Envoyer un email', href: 'mailto:supportsidibecorporate@gmail.com' },
+    ],
     icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>',
   },
   {
@@ -1100,45 +1178,78 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
   background: radial-gradient(circle, var(--primary-light), transparent 70%);
   pointer-events: none; z-index: 0;
 }
-.pricing-card-wrap {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+.pricing-toggle {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; position: relative; z-index: 1;
+}
+.pricing-toggle button {
+  padding: 10px 20px; border-radius: 99px; border: 1.5px solid var(--card-border);
+  background: var(--card-bg); color: var(--text2); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.pricing-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pricing-toggle .save-badge { font-size: 10px; font-weight: 800; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 99px; }
+.pricing-toggle button:not(.active) .save-badge { background: var(--primary-light); color: var(--primary); }
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: stretch;
   position: relative; z-index: 1;
 }
 .pricing-card {
-  background: var(--card-bg); border: 1.5px solid var(--primary);
-  border-radius: 24px; padding: 36px;
-  box-shadow: 0 0 0 4px var(--primary-light), var(--shadow-lg);
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 24px; padding: 30px 26px;
+  box-shadow: var(--shadow-md);
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.pricing-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
+.pricing-card--featured {
+  border: 1.5px solid var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light), var(--shadow-lg);
 }
 .pricing-card::after {
   content: ''; position: absolute; inset: 0; z-index: 0;
   background: linear-gradient(135deg, var(--primary-light), transparent);
-  border-radius: inherit; pointer-events: none;
+  border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.3s;
 }
+.pricing-card--featured::after { opacity: 1; }
 .pricing-badge {
-  display: inline-flex; font-size: 12px; font-weight: 700;
+  display: inline-flex; align-self: flex-start; font-size: 11px; font-weight: 700;
   background: linear-gradient(135deg,#10b981,#059669); color: white;
-  padding: 4px 12px; border-radius: 99px; margin-bottom: 20px;
+  padding: 4px 12px; border-radius: 99px; margin-bottom: 18px;
+  position: relative; z-index: 1;
 }
-.pricing-header { margin-bottom: 28px; position: relative; z-index: 1; }
-.pricing-name { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
-.pricing-amount { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
-.pricing-currency { font-size: 18px; font-weight: 700; color: var(--text2); }
-.pricing-price { font-size: 52px; font-weight: 900; letter-spacing: -0.05em; color: var(--text); }
-.pricing-period { font-size: 16px; color: var(--text3); }
-.pricing-sub-desc { font-size: 13px; color: var(--text3); }
-.pricing-features { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
-.pricing-features li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); }
-.pricing-features svg { width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
-.pricing-cta { width: 100%; justify-content: center; position: relative; z-index: 1; }
-.pricing-note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 12px; }
-.pricing-features-extra { display: flex; flex-direction: column; gap: 24px; padding-top: 8px; }
-.extra-item { display: flex; gap: 16px; align-items: flex-start; padding: 20px; border-radius: 16px; background: var(--card-bg); border: 1px solid var(--card-border); transition: all 0.3s; }
-.extra-item:hover { border-color: var(--primary); transform: translateX(4px); }
+.pricing-badge--free { background: var(--card-bg); color: var(--text2); border: 1px solid var(--card-border); }
+.pricing-header { margin-bottom: 20px; position: relative; z-index: 1; }
+.pricing-name { font-size: 19px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+.pricing-amount { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+.pricing-currency { font-size: 15px; font-weight: 700; color: var(--text2); }
+.pricing-price { font-size: 40px; font-weight: 900; letter-spacing: -0.05em; color: var(--text); }
+.pricing-period { font-size: 14px; color: var(--text3); }
+.pricing-sub-desc { font-size: 12.5px; color: var(--text3); line-height: 1.5; }
+.pricing-features { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 9px; position: relative; z-index: 1; flex: 1; }
+.pricing-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text); line-height: 1.45; }
+.pricing-features svg { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 1px; }
+.pricing-features .pricing-quota {
+  margin-top: 4px; padding-top: 10px; border-top: 1px dashed var(--card-border);
+  display: block; font-size: 11.5px; font-weight: 700; color: var(--text3);
+}
+.pricing-cta { width: 100%; justify-content: center; position: relative; z-index: 1; margin-top: auto; font-size: 13.5px; }
+.pricing-cta--ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); box-shadow: none; }
+.pricing-cta--ghost:hover { background: var(--primary-light); }
+.pricing-note { font-size: 11px; color: var(--text3); text-align: center; margin-top: 10px; position: relative; z-index: 1; }
+.pricing-extras {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+  margin-top: 32px; position: relative; z-index: 1;
+}
+.extra-item { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 16px; background: var(--card-bg); border: 1px solid var(--card-border); transition: all 0.3s; }
+.extra-item:hover { border-color: var(--primary); transform: translateY(-2px); }
 .extra-icon-wrap { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .extra-icon-wrap svg { width: 20px; height: 20px; }
 .extra-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .extra-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.extra-links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.extra-link { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 99px; background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s; border: 1px solid rgba(5,150,105,0.2); }
+.extra-link:hover { background: var(--primary); color: #fff; }
 
 /* ── Final CTA ── */
 .final-cta-section {
@@ -1184,7 +1295,7 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
   .bento-large { grid-column: span 2; }
   .bento-small { grid-column: span 1; }
   .steps-grid { grid-template-columns: repeat(2, 1fr); }
-  .pricing-card-wrap { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-inner { grid-template-columns: 1fr; gap: 32px; }
   .float-card { display: none; }
 }
@@ -1232,7 +1343,9 @@ onUnmounted(() => observers.forEach(o => o.disconnect()));
   .bento-grid { grid-template-columns: 1fr; }
   .bento-large { grid-column: span 1; }
   .steps-grid { grid-template-columns: 1fr 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
   .pricing-card { padding: 28px 22px; }
+  .pricing-extras { grid-template-columns: 1fr; }
   .final-cta-section { padding: 72px 20px; }
   .landing-footer { padding: 44px 20px 0; }
   .footer-links { flex-wrap: wrap; gap: 32px; }

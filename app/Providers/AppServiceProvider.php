@@ -159,7 +159,7 @@ class AppServiceProvider extends ServiceProvider
             }
             app(PermissionRegistrar::class)->setPermissionsTeamId($user->company_id);
 
-            return $user->hasRole('admin') ? true : null;
+            return ($user->is_super_admin || $user->hasRole('admin')) ? true : null;
         });
 
         Gate::before(function (User $user, string $ability) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use App\Traits\Freezable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 
 class Warehouse extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToTenant, Freezable;
 
     protected $fillable = [
         'company_id',
@@ -24,6 +25,7 @@ class Warehouse extends Model
         'phone',
         'email',
         'is_active',
+        'frozen_at',
     ];
 
     protected function casts(): array

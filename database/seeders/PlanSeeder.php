@@ -35,7 +35,7 @@ class PlanSeeder extends Seeder
                 'sort' => 0,
             ],
             [
-                'name' => 'Starter',
+                'name' => 'Simple',
                 'slug' => 'starter',
                 'description' => 'Pour les entreprises en croissance avec plus de besoins.',
                 'stripe_price_id' => null,
@@ -44,7 +44,7 @@ class PlanSeeder extends Seeder
                 'trial_days' => 14,
                 'features' => [
                     'Tout le plan Free',
-                    'Jusqu\'à 3 utilisateurs',
+                    'Jusqu\'à 10 utilisateurs',
                     'Transferts de stock',
                     'Bons de livraison',
                     'Devis',

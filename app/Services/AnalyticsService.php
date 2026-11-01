@@ -170,6 +170,7 @@ class AnalyticsService
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $limit) {
             $results = InvoiceItem::where('invoice_items.company_id', $companyId)
                 ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+                ->whereNull('invoices.frozen_at')
                 ->whereIn('invoices.status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
                 ->whereNotNull('invoice_items.product_id')
                 ->groupBy('invoice_items.product_id')
@@ -216,6 +217,7 @@ class AnalyticsService
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($companyId, $limit) {
             $results = InvoiceItem::where('invoice_items.company_id', $companyId)
                 ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+                ->whereNull('invoices.frozen_at')
                 ->whereIn('invoices.status', [InvoiceStatus::Paid, InvoiceStatus::Sent])
                 ->groupBy('invoices.customer_id')
                 ->select(

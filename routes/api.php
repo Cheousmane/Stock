@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\v1\ExpenseController;
 use App\Http\Controllers\Api\v1\ExportController;
 use App\Http\Controllers\Api\v1\InvoiceController;
 use App\Http\Controllers\Api\v1\InvoicePdfController;
+use App\Http\Controllers\Api\v1\PayrollController;
 use App\Http\Controllers\Api\v1\PaymentController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\ProductVariantController;
@@ -41,15 +42,7 @@ use App\Http\Controllers\Api\v1\Admin\AdminCompanyController;
 use App\Http\Controllers\Api\v1\Admin\AdminLoginLogController;
 use App\Http\Controllers\Api\v1\Admin\AdminUserController;
 use App\Http\Controllers\Api\v1\Admin\AdminActivityLogController;
-use App\Http\Controllers\Api\WebhookController;
-
-// Stripe webhooks (no auth, no CSRF)
-Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
-
-// Internal webhooks prefix
-Route::prefix('webhooks')->group(function (): void {
-    Route::post('stripe', [WebhookController::class, 'handleWebhook']);
-});
+use App\Http\Controllers\Api\v1\Admin\AdminSubscriptionController;
 
 Route::name('api.v1.')->prefix('v1')->group(function () {
 
@@ -167,13 +160,8 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::get('quotes/{quote}/pdf/preview', [QuotePdfController::class, 'preview'])->name('quotes.pdf.preview');
         Route::post('quotes/{quote}/pdf/async', [QuotePdfController::class, 'exportAsync'])->name('quotes.pdf.async');
 
-        // Subscriptions
+        // Subscriptions (lecture seule : la gestion est dans le panneau Super Admin)
         Route::get('subscriptions/current', [SubscriptionController::class, 'current'])->name('subscriptions.current');
-        Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
-        Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
-        Route::post('subscriptions/resume', [SubscriptionController::class, 'resume'])->name('subscriptions.resume');
-        Route::post('subscriptions/swap/{planSlug}', [SubscriptionController::class, 'swap'])->name('subscriptions.swap');
-        Route::get('subscriptions/invoice-portal', [SubscriptionController::class, 'invoicePortal'])->name('subscriptions.invoice-portal');
 
         // Users
         Route::apiResource('users', UserController::class);
@@ -190,7 +178,6 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::put('/company', [CompanyController::class, 'update'])->name('company.update');
         Route::post('company/logo', [CompanyController::class, 'uploadLogo'])->name('company.logo');
         Route::delete('company/logo', [CompanyController::class, 'deleteLogo'])->name('company.logo.delete');
-        Route::put('/company/plan', [CompanyController::class, 'switchPlan'])->name('company.plan');
 
         // Units
         Route::apiResource('units', UnitController::class);
@@ -200,6 +187,14 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
 
         // Expenses
         Route::apiResource('expenses', ExpenseController::class)->only(['index', 'store', 'destroy']);
+
+        // Payroll (RH / paie)
+        Route::apiResource('employees', PayrollController::class)->parameters(['employees' => 'employee'])->only(['index', 'store', 'show', 'update', 'destroy']);
+        Route::get('payroll-runs', [PayrollController::class, 'runsIndex'])->name('payroll-runs.index');
+        Route::post('payroll-runs', [PayrollController::class, 'runsStore'])->name('payroll-runs.store');
+        Route::get('payroll-runs/{payrollRun}', [PayrollController::class, 'runsShow'])->name('payroll-runs.show');
+        Route::post('payroll-runs/{payrollRun}/validate', [PayrollController::class, 'runsValidate'])->name('payroll-runs.validate');
+        Route::post('payroll-runs/{payrollRun}/pay', [PayrollController::class, 'runsPay'])->name('payroll-runs.pay');
 
         // Webhook Endpoints
         Route::get('webhook-events', [WebhookEndpointController::class, 'events'])->name('webhook-events');
@@ -283,6 +278,20 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::post('/companies/{company}/suspend', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
         Route::post('/companies/{company}/activate', [AdminCompanyController::class, 'activate'])->name('companies.activate');
         Route::post('/companies/{company}/assign-plan', [AdminCompanyController::class, 'assignPlan'])->name('companies.assign-plan');
+
+        // Gestion centralisée des abonnements
+        Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
+        Route::get('/subscriptions/plans', [AdminSubscriptionController::class, 'plans'])->name('subscriptions.plans');
+        Route::get('/subscriptions/over-quota', [AdminSubscriptionController::class, 'overQuota'])->name('subscriptions.over-quota');
+        Route::get('/subscriptions/{company}', [AdminSubscriptionController::class, 'show'])->name('subscriptions.show');
+        Route::post('/subscriptions/{company}/assign', [AdminSubscriptionController::class, 'assign'])->name('subscriptions.assign');
+        Route::post('/subscriptions/{company}/renew', [AdminSubscriptionController::class, 'renew'])->name('subscriptions.renew');
+        Route::post('/subscriptions/{company}/trial/extend', [AdminSubscriptionController::class, 'extendTrial'])->name('subscriptions.trial.extend');
+        Route::post('/subscriptions/{company}/trial/reset', [AdminSubscriptionController::class, 'resetTrial'])->name('subscriptions.trial.reset');
+        Route::post('/subscriptions/{company}/suspend', [AdminSubscriptionController::class, 'suspend'])->name('subscriptions.suspend');
+        Route::post('/subscriptions/{company}/reactivate', [AdminSubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
+        Route::post('/subscriptions/{company}/sync-freeze', [AdminSubscriptionController::class, 'syncFreeze'])->name('subscriptions.sync-freeze');
+
         Route::get('/login-logs', [AdminLoginLogController::class, 'index'])->name('login-logs');
         Route::get('/login-logs/export', [AdminLoginLogController::class, 'export'])->name('login-logs.export');
         Route::get('/login-logs/summary', [AdminLoginLogController::class, 'summary'])->name('login-logs.summary');

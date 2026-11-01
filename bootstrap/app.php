@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->removeFromGroup('api', SubstituteBindings::class);
 
+        // API requests must never redirect to a (non-existent) login page: return 401 JSON instead.
+        $middleware->redirectGuestsTo(fn () => null);
+
         // Apply security headers to all routes
         $middleware->prependToGroup('web', SecurityHeadersMiddleware::class);
         $middleware->prependToGroup('api', SecurityHeadersMiddleware::class);
@@ -36,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping();
         $schedule->command('stock:alerts')->dailyAt('08:05')->withoutOverlapping();
-        $schedule->command('companies:manage-statuses')->dailyAt('08:10')->withoutOverlapping();
+        $schedule->command('companies:manage-statuses')->everyTenMinutes()->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

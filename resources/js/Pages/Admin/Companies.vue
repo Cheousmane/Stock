@@ -300,26 +300,44 @@
 
                 <!-- Plan & usage -->
                 <section class="lg:col-span-2 p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm flex flex-col">
-                  <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Plan & usage</h4>
-                  <p class="text-xs font-medium text-text-tertiary">Abonnement et activité</p>
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Plan & usage</h4>
+                      <p class="text-xs font-medium text-text-tertiary">Abonnement et activité</p>
+                    </div>
+                    <span v-if="selectedCompany.over_quota" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25">Sur-quota</span>
+                  </div>
                   <div class="mt-4 flex items-center gap-3 p-3.5 rounded-2xl bg-violet-500/[0.07] border border-violet-500/20">
                     <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md shadow-violet-500/25 shrink-0 text-lg font-black">◆</span>
                     <div class="min-w-0 flex-1">
                       <p class="text-sm font-extrabold text-text-primary truncate">{{ selectedCompany.plan?.name || 'Aucun plan' }}</p>
-                      <p v-if="selectedCompany.subscription" class="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">{{ selectedCompany.subscription.stripe_status }}</p>
+                      <p v-if="selectedCompany.subscription" class="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">{{ subscriptionStatusLabel(selectedCompany.subscription.status) }}</p>
+                      <p v-else-if="selectedCompany.trial_active" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Essai en cours</p>
                       <p v-else class="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">Sans abonnement</p>
                     </div>
                   </div>
-                  <div v-if="selectedCompany.subscription?.trial_ends_at || selectedCompany.subscription?.ends_at" class="mt-2.5 space-y-1.5 text-xs font-semibold">
-                    <div v-if="selectedCompany.subscription?.trial_ends_at" class="flex items-center justify-between rounded-xl bg-surface-secondary/60 px-3 py-2">
+                  <div class="mt-2.5 space-y-1.5 text-xs font-semibold">
+                    <div v-if="selectedCompany.trial_ends_at" class="flex items-center justify-between rounded-xl bg-surface-secondary/60 px-3 py-2">
                       <span class="text-text-tertiary">Fin d'essai</span>
-                      <span class="text-text-primary tabular-nums">{{ formatDateShort(selectedCompany.subscription.trial_ends_at) }}</span>
+                      <span class="text-text-primary tabular-nums">{{ formatDateShort(selectedCompany.trial_ends_at) }}</span>
                     </div>
                     <div v-if="selectedCompany.subscription?.ends_at" class="flex items-center justify-between rounded-xl bg-surface-secondary/60 px-3 py-2">
                       <span class="text-text-tertiary">Fin d'abonnement</span>
                       <span class="text-text-primary tabular-nums">{{ formatDateShort(selectedCompany.subscription.ends_at) }}</span>
                     </div>
                   </div>
+
+                  <!-- Quotas -->
+                  <div v-if="selectedCompany.quota_snapshot?.resources?.length" class="mt-3 space-y-1.5">
+                    <div v-for="q in selectedCompany.quota_snapshot.resources" :key="q.resource" class="flex items-center justify-between gap-2 rounded-xl bg-surface-secondary/60 px-3 py-2 text-xs font-semibold">
+                      <span class="text-text-tertiary">{{ q.label }}</span>
+                      <span class="tabular-nums" :class="q.over_quota ? 'text-amber-600 dark:text-amber-400 font-extrabold' : 'text-text-primary'">
+                        {{ q.used }}/{{ q.limit < 0 ? '∞' : q.limit }}
+                        <span v-if="q.frozen > 0" class="text-amber-600 dark:text-amber-400"> · {{ q.frozen }} gelé(s)</span>
+                      </span>
+                    </div>
+                  </div>
+
                   <div class="mt-3 grid grid-cols-2 gap-2 text-center">
                     <div class="rounded-2xl bg-surface-secondary/60 border border-border/50 px-2 py-3">
                       <p class="text-base font-black tabular-nums text-text-primary">{{ selectedCompany.products_count || 0 }}</p>
@@ -329,6 +347,10 @@
                       <p class="text-base font-black tabular-nums text-text-primary">{{ selectedCompany.invoices_count_30d || 0 }}</p>
                       <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mt-0.5">Fact. 30j</p>
                     </div>
+                  </div>
+                  <div v-if="selectedCompany.frozen_total > 0" class="mt-2.5 flex items-center gap-2 rounded-xl bg-amber-500/[0.07] border border-amber-500/25 px-3 py-2">
+                    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                    <p class="text-[11px] font-bold text-amber-700 dark:text-amber-400">{{ selectedCompany.frozen_total }} donnée(s) gelée(s) — réversible via upgrade.</p>
                   </div>
                   <div class="mt-3 rounded-2xl bg-surface-secondary/60 border border-border/50 px-3.5 py-3">
                     <p class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-text-tertiary">Propriétaire</p>
@@ -437,6 +459,11 @@ function statusClass(status) {
 function sizeLabel(size) {
   const map = { petite: 'Petite', moyenne: 'Moyenne', grande: 'Grande' }
   return map[size] || size
+}
+
+function subscriptionStatusLabel(status) {
+  const map = { active: 'Abonnement actif', suspended: 'Abonnement suspendu', expired: 'Abonnement expiré', canceled: 'Abonnement annulé' }
+  return map[status] || status || 'Sans abonnement'
 }
 
 const infoRows = computed(() => {

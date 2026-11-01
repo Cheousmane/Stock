@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use App\Traits\Freezable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory, BelongsToTenant, SoftDeletes;
+    use HasFactory, BelongsToTenant, Freezable, SoftDeletes;
 
     protected $fillable = [
         'company_id',
@@ -34,6 +35,7 @@ class Product extends Model
         'is_active',
         'metadata',
         'image',
+        'frozen_at',
     ];
 
     protected function casts(): array

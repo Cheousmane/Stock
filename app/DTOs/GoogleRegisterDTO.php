@@ -19,6 +19,5 @@ final readonly class GoogleRegisterDTO
         public ?string $avatar = null,
         public ?string $companyIndustry = null,
         public ?string $companySize = null,
-        public ?int $planId = null,
     ) {}
 }

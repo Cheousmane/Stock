@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -29,15 +30,17 @@ class Company extends Model
         'address',
         'metadata',
         'plan_id',
+        'trial_started_at',
+        'trial_ends_at',
         'manual_capital',
         'capital_updated_at',
-        'trial_ends_at',
         'suspended_at',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'capital_updated_at' => 'datetime',
+        'trial_started_at' => 'datetime',
         'trial_ends_at' => 'datetime',
         'suspended_at' => 'datetime',
     ];
@@ -45,6 +48,18 @@ class Company extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', Subscription::STATUS_ACTIVE)
+            ->latestOfMany();
     }
 
     protected static function booted(): void
@@ -56,7 +71,7 @@ class Company extends Model
         });
 
         static::updated(function (Company $company) {
-            if ($company->isDirty(['plan_id', 'status', 'trial_ends_at'])) {
+            if ($company->isDirty(['plan_id', 'status', 'trial_started_at', 'trial_ends_at'])) {
                 $company->clearPlanCache();
             }
         });
@@ -70,6 +85,18 @@ class Company extends Model
         return $this->status === 'trial'
             && $this->trial_ends_at !== null
             && $this->trial_ends_at->isFuture();
+    }
+
+    public function isTrialExpired(): bool
+    {
+        return $this->status === 'trial'
+            && $this->trial_ends_at !== null
+            && $this->trial_ends_at->isPast();
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
     }
 
     public function clearPlanCache(): void

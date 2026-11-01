@@ -17,6 +17,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\EmailVerificationService;
 use App\Services\GoogleTokenVerifier;
+use App\Services\SubscriptionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,7 +71,7 @@ class AuthController extends Controller
     /**
      * Confirm the registered account with the emailed code.
      */
-    public function verifyEmail(Request $request, EmailVerificationService $verification): JsonResponse
+    public function verifyEmail(Request $request, EmailVerificationService $verification, SubscriptionService $subscriptions): JsonResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:255'],
@@ -102,6 +103,12 @@ class AuthController extends Controller
         }
 
         $user->forceFill(['email_verified_at' => now()])->save();
+
+        // Le compte n'est activé qu'après vérification : l'essai de 14 jours démarre ici.
+        $company = $user->company;
+        if ($company !== null && $company->status === 'pending') {
+            $subscriptions->startTrial($company);
+        }
 
         // Generate Sanctum API token
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -214,7 +221,6 @@ class AuthController extends Controller
             'company_slug' => ['sometimes', 'nullable', 'string', 'alpha_dash', 'max:255', 'unique:companies,slug'],
             'industry' => ['sometimes', 'nullable', 'string', 'max:100'],
             'size' => ['sometimes', 'nullable', 'string', 'in:petite,moyenne,grande'],
-            'plan_id' => ['sometimes', 'nullable', 'integer', 'exists:plans,id'],
         ]);
 
         $profile = $this->verifiedGoogleProfile($verifier, $validated['id_token']);
@@ -242,7 +248,6 @@ class AuthController extends Controller
                 avatar: $profile['picture'],
                 companyIndustry: $validated['industry'] ?? null,
                 companySize: $validated['size'] ?? null,
-                planId: $validated['plan_id'] ?? null,
             ));
 
             $user = $result['user'];

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\InvoiceStatus;
 use App\Traits\BelongsToTenant;
+use App\Traits\Freezable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Illuminate\Support\Str;
 
 class Invoice extends Model
 {
-    use HasFactory, BelongsToTenant, SoftDeletes;
+    use HasFactory, BelongsToTenant, Freezable, SoftDeletes;
 
     protected $fillable = [
         'company_id',
@@ -40,6 +41,7 @@ class Invoice extends Model
         'is_fiscal',
         'fiscal_issue_date',
         'fiscal_metadata',
+        'frozen_at',
     ];
 
     protected function casts(): array

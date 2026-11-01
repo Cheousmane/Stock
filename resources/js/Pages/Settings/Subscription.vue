@@ -25,189 +25,234 @@
       </template>
 
       <template v-else>
-        <!-- Current Subscription -->
-        <BaseCard v-if="currentSubscription" :title="$t('subscription.current_plan')" padding="lg">
-          <div class="space-y-4">
+        <!-- Trial banner -->
+        <div
+          v-if="snapshot?.trial?.active"
+          class="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent p-5"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
+                <SparklesIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <p class="font-extrabold text-text-primary">{{ $t('subscription.trial_active') }}</p>
+                <p class="text-sm text-text-secondary mt-0.5">
+                  {{ $t('subscription.trial_banner', { n: snapshot.trial.days_remaining }) }}
+                </p>
+              </div>
+            </div>
+            <BaseBadge variant="success" dot>
+              {{ $t('subscription.trial_days_left', { n: snapshot.trial.days_remaining }) }}
+            </BaseBadge>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Current plan -->
+          <BaseCard class="lg:col-span-2" :title="$t('subscription.current_plan')" padding="lg">
             <div class="flex flex-wrap items-center justify-between gap-4 p-4 bg-surface-tertiary rounded-xl">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <CheckCircleIcon class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <ShieldCheckIcon class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-extrabold text-lg text-text-primary">
+                      {{ snapshot?.plan?.name || $t('subscription.no_plan') }}
+                    </h3>
+                    <BaseBadge :variant="statusVariant" dot>{{ statusLabel }}</BaseBadge>
+                  </div>
+                  <p class="text-sm text-text-tertiary mt-0.5">
+                    {{ planPriceLabel }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-sm">
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.trial_started') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ formatDateOrDash(snapshot?.trial?.started_at) }}</p>
+              </div>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.trial_ends') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ formatDateOrDash(snapshot?.trial?.ends_at) }}</p>
+              </div>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.subscription_ends') }}</p>
+                <p class="mt-0.5 font-bold text-text-primary">{{ formatDateOrDash(snapshot?.subscription?.ends_at) }}</p>
+              </div>
+            </div>
+
+            <!-- Plan features -->
+            <div v-if="snapshot?.plan?.features?.length" class="mt-4 pt-4 border-t border-border">
+              <p class="text-xs font-bold uppercase tracking-wide text-text-tertiary mb-2">{{ $t('subscription.plan_features') }}</p>
+              <ul class="grid sm:grid-cols-2 gap-2">
+                <li v-for="feature in snapshot.plan.features" :key="feature" class="flex items-start gap-2 text-sm text-text-secondary">
+                  <CheckIcon class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  {{ feature }}
+                </li>
+              </ul>
+            </div>
+          </BaseCard>
+
+          <!-- Frozen data / admin managed -->
+          <div class="space-y-4">
+            <BaseCard :title="$t('subscription.frozen_title')" padding="lg">
+              <div class="flex items-start gap-3">
+                <div
+                  class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                  :class="totalFrozen > 0
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : 'bg-surface-tertiary border-border'"
+                >
+                  <LockClosedIcon class="w-5 h-5" :class="totalFrozen > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-text-tertiary'" />
                 </div>
                 <div>
-                  <h3 class="font-semibold text-text-primary">{{ currentSubscription.plan_name || $t('subscription.active_badge') }}</h3>
-                  <p class="text-sm text-text-tertiary">{{ formatStatus(currentSubscription.stripe_status) }}</p>
+                  <p class="text-2xl font-black tabular-nums text-text-primary">{{ totalFrozen }}</p>
+                  <p class="text-xs font-medium text-text-tertiary mt-0.5">{{ $t('subscription.frozen_items', { n: totalFrozen }) }}</p>
                 </div>
               </div>
-              <div class="flex items-center gap-3">
-                <BaseBadge v-if="currentSubscription.trial_ends_at" variant="warning">
-                  {{ $t('subscription.trial_until', { date: formatDate(currentSubscription.trial_ends_at) }) }}
-                </BaseBadge>
-                <BaseBadge v-else-if="currentSubscription.ends_at" variant="danger">
-                  {{ $t('subscription.ends_on', { date: formatDate(currentSubscription.ends_at) }) }}
-                </BaseBadge>
-                <BaseBadge variant="success">{{ $t('subscription.active_badge') }}</BaseBadge>
-              </div>
-            </div>
+              <p class="text-xs text-text-secondary leading-relaxed mt-3">
+                {{ $t('subscription.frozen_desc') }}
+              </p>
+            </BaseCard>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div class="p-3.5 bg-surface-tertiary rounded-xl">
-                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.cycle') }}</p>
-                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.billing_cycle || $t('subscription.cycle_monthly') }}</p>
+            <BaseCard padding="lg">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                  <InformationCircleIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p class="font-extrabold text-text-primary">{{ $t('subscription.admin_managed_title') }}</p>
+                  <p class="text-xs text-text-secondary leading-relaxed mt-1">{{ $t('subscription.admin_managed_desc') }}</p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <a href="https://wa.me/22394147375?text=Bonjour%2C%20je%20souhaite%20faire%20%C3%A9voluer%20mon%20abonnement%20SIDIBE%20CORPORATE." target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 transition">
+                      Chat WhatsApp
+                    </a>
+                    <a href="mailto:supportsidibecorporate@gmail.com?subject=Demande%20de%20changement%20de%20plan" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/25 transition">
+                      Envoyer un email
+                    </a>
+                  </div>
+                </div>
               </div>
-              <div class="p-3.5 bg-surface-tertiary rounded-xl">
-                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.next_billing') }}</p>
-                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.next_billing_date ? formatDate(currentSubscription.next_billing_date) : '—' }}</p>
-              </div>
-              <div class="p-3.5 bg-surface-tertiary rounded-xl">
-                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.payment_method') }}</p>
-                <p class="mt-0.5 font-bold text-text-primary">{{ currentSubscription.payment_method_brand ? currentSubscription.payment_method_brand.toUpperCase() + ' •••• ' + currentSubscription.payment_method_last4 : '—' }}</p>
-              </div>
-              <div class="p-3.5 bg-surface-tertiary rounded-xl">
-                <p class="text-xs font-semibold text-text-tertiary">ID Stripe</p>
-                <p class="mt-0.5 font-bold text-text-primary font-mono text-xs">{{ currentSubscription.stripe_id || '—' }}</p>
-              </div>
-            </div>
+            </BaseCard>
+          </div>
+        </div>
 
-            <div class="flex flex-wrap gap-3 pt-4 border-t border-border">
-              <BaseButton
-                v-if="currentSubscription.stripe_id && (currentSubscription.stripe_status === 'active' || currentSubscription.stripe_status === 'trialing')"
-                variant="secondary"
-                size="sm"
-                @click="openBillingPortal"
-                :loading="portalLoading"
-              >
-                <CreditCardIcon class="w-4 h-4" /> {{ $t('subscription.stripe_portal') }}
-              </BaseButton>
-              <BaseButton
-                v-if="currentSubscription.stripe_id && (currentSubscription.stripe_status === 'active' || currentSubscription.stripe_status === 'trialing')"
-                variant="danger-ghost"
-                size="sm"
-                @click="showCancelModal = true"
-              >
-                <XCircleIcon class="w-4 h-4" /> {{ $t('subscription.cancel_sub') }}
-              </BaseButton>
-              <BaseButton
-                v-else-if="currentSubscription.stripe_id && currentSubscription.stripe_status === 'canceled'"
-                variant="primary"
-                size="sm"
-                @click="resumeSubscription"
-                :loading="resumeLoading"
-              >
-                <ArrowPathIcon class="w-4 h-4" /> {{ $t('subscription.reactivate') }}
-              </BaseButton>
-              <BaseButton
-                v-if="!currentSubscription.stripe_id"
-                variant="secondary"
-                size="sm"
-                @click="scrollToPlans"
-              >
-                {{ $t('subscription.change_plan') }}
-              </BaseButton>
+        <!-- Over quota alert -->
+        <div
+          v-if="snapshot?.quotas?.over_quota"
+          class="flex flex-wrap items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4"
+        >
+          <ExclamationTriangleIcon class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-text-primary">{{ $t('subscription.over_quota_title') }}</p>
+            <p class="text-sm text-text-secondary mt-0.5">{{ $t('subscription.over_quota_desc') }}</p>
+          </div>
+        </div>
+
+        <!-- Quotas -->
+        <BaseCard :title="$t('subscription.quota_usage')" :subtitle="$t('subscription.quota_usage_sub')" padding="lg">
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div
+              v-for="item in quotas"
+              :key="item.resource"
+              class="p-4 rounded-2xl border bg-surface-tertiary/60"
+              :class="item.over_quota ? 'border-amber-500/40' : 'border-border/70'"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-extrabold text-text-primary">{{ $t(`subscription.resource_${item.resource}`) }}</p>
+                <BaseBadge v-if="item.over_quota" variant="warning" size="xs">{{ $t('subscription.over_quota_short') }}</BaseBadge>
+              </div>
+
+              <div class="mt-3 flex items-baseline gap-1.5">
+                <span class="text-2xl font-black tabular-nums" :class="item.over_quota ? 'text-amber-600 dark:text-amber-400' : 'text-text-primary'">
+                  {{ item.used }}
+                </span>
+                <span class="text-sm font-semibold text-text-tertiary">
+                  / {{ item.limit < 0 ? $t('subscription.unlimited_label') : item.limit }}
+                </span>
+              </div>
+
+              <div class="mt-3 h-1.5 rounded-full bg-border/70 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all"
+                  :class="item.over_quota ? 'bg-amber-500' : 'bg-emerald-500'"
+                  :style="{ width: barWidth(item) }"
+                ></div>
+              </div>
+
+              <div class="mt-2 flex items-center justify-between gap-2 text-[11px] font-semibold">
+                <span class="text-text-tertiary">{{ $t('subscription.remaining', { n: item.remaining ?? '∞' }) }}</span>
+                <span v-if="item.frozen > 0" class="text-amber-600 dark:text-amber-400">
+                  {{ $t('subscription.frozen_count', { n: item.frozen }) }}
+                </span>
+              </div>
             </div>
           </div>
         </BaseCard>
 
-        <!-- No Subscription -->
-        <BaseEmptyState
-          v-else
-          :title="$t('subscription.no_sub_title')"
-          :description="$t('subscription.no_sub_desc')"
+        <!-- Available plans (read only) -->
+        <BaseCard
+          v-if="plans.length"
+          :title="$t('subscription.available_plans')"
+          :subtitle="$t('subscription.available_plans_readonly')"
+          padding="lg"
         >
-          <BaseButton variant="primary" size="sm" @click="scrollToPlans">
-            <SparklesIcon class="w-4 h-4" /> {{ $t('subscription.view_available_plans') }}
-          </BaseButton>
-        </BaseEmptyState>
-
-        <!-- Available Plans -->
-        <BaseCard :title="$t('subscription.available_plans')" :subtitle="$t('subscription.available_plans_sub')" padding="lg" id="plans">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div
               v-for="plan in plans"
               :key="plan.id"
               class="relative p-5 rounded-2xl border-2 transition-all duration-200"
               :class="[
-                isCurrentPlan(plan) ? 'border-emerald-500 bg-emerald-500/[0.06] ring-4 ring-emerald-500/10' : 'border-border/70 bg-surface hover:border-emerald-400/50'
+                isCurrentPlan(plan)
+                  ? 'border-emerald-500 bg-emerald-500/[0.06] ring-4 ring-emerald-500/10'
+                  : 'border-border/70 bg-surface'
               ]"
             >
               <BaseBadge v-if="isCurrentPlan(plan)" variant="success" class="absolute -top-3 right-4 shadow-sm">
                 {{ $t('subscription.current') }}
               </BaseBadge>
-              <BaseBadge v-else-if="plan.slug === 'free' && !currentSubscription" variant="default" class="absolute -top-3 right-4 shadow-sm">
-                {{ $t('subscription.free_badge') }}
-              </BaseBadge>
-              <BaseBadge v-else-if="isUpgrade(plan)" variant="success" class="absolute -top-3 right-4 shadow-sm">
-                Upgrade
-              </BaseBadge>
-              <BaseBadge v-else-if="isDowngrade(plan)" variant="warning" class="absolute -top-3 right-4 shadow-sm">
-                Downgrade
-              </BaseBadge>
 
-              <div class="text-center mb-5">
+              <div class="text-center mb-4">
                 <h3 class="text-base font-extrabold text-text-primary">{{ plan.name }}</h3>
                 <p class="text-xs font-medium text-text-tertiary mt-1 min-h-8">{{ plan.description }}</p>
               </div>
 
-              <div class="text-center mb-5">
-                <span class="text-3xl font-black text-text-primary tabular-nums">{{ plan.price_xof === 0 ? $t('subscription.free_badge') : formatPrice(plan.price_xof, plan.currency) }}</span>
+              <div class="text-center mb-4">
+                <span class="text-2xl font-black text-text-primary tabular-nums">
+                  {{ plan.price_xof === 0 ? $t('subscription.free_badge') : formatPrice(plan.price_xof, plan.currency) }}
+                </span>
                 <span v-if="plan.price_xof > 0" class="text-xs font-medium text-text-tertiary">{{ $t('subscription.per_month_short') }}</span>
               </div>
 
-              <ul class="space-y-2 mb-6 min-h-[120px]">
+              <ul class="space-y-2 mb-4 min-h-[96px]">
                 <li v-for="feature in plan.features" :key="feature" class="flex items-start gap-2 text-sm text-text-secondary">
                   <CheckIcon class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   {{ feature }}
                 </li>
               </ul>
 
-              <div class="space-y-2">
-                <BaseButton
-                  v-if="isCurrentPlan(plan)"
-                  variant="secondary"
-                  class="w-full"
-                  disabled
-                >
-                  <CheckIcon class="w-4 h-4" /> {{ $t('subscription.current_plan_btn') }}
-                </BaseButton>
-                <BaseButton
-                  v-else-if="canSubscribe(plan)"
-                  variant="primary"
-                  class="w-full"
-                  @click="subscribeToPlan(plan)"
-                  :loading="subscribingPlan === plan.id"
-                >
-                  {{ getButtonText(plan) }}
-                </BaseButton>
-                <BaseButton
-                  v-else
-                  variant="secondary"
-                  class="w-full"
-                  disabled
-                >
-                  {{ getDisabledReason(plan) }}
-                </BaseButton>
+              <div class="pt-3 border-t border-border/70 space-y-1.5">
+                <div v-for="quota in planQuotaRows(plan)" :key="quota.key" class="flex items-center justify-between text-xs">
+                  <span class="text-text-tertiary font-medium">{{ $t(`subscription.resource_${quota.resource}`) }}</span>
+                  <span class="font-bold text-text-primary tabular-nums">
+                    {{ quota.limit < 0 ? $t('subscription.unlimited_label') : quota.limit }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </BaseCard>
-
-        <!-- Cancel Confirmation Modal -->
-        <BaseModal v-model="showCancelModal" :title="$t('subscription.cancel_title')" size="sm">
-          <p class="text-sm text-text-secondary">
-            {{ $t('subscription.cancel_text', { date: currentSubscription?.ends_at ? formatDate(currentSubscription.ends_at) : $t('subscription.unknown_date') }) }}
-          </p>
-          <template #footer>
-            <BaseButton variant="ghost" @click="showCancelModal = false">{{ $t('common.cancel') }}</BaseButton>
-            <BaseButton variant="danger" @click="cancelSubscription" :loading="cancelLoading">{{ $t('subscription.confirm_cancel') }}</BaseButton>
-          </template>
-        </BaseModal>
       </template>
     </div>
   </AdminLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import AdminLayout from '../../Components/AdminLayout.vue'
@@ -217,182 +262,82 @@ import BaseBadge from '../../Components/ui/BaseBadge.vue'
 import BasePageHeader from '../../Components/ui/BasePageHeader.vue'
 import BaseSkeleton from '../../Components/ui/BaseSkeleton.vue'
 import BaseEmptyState from '../../Components/ui/BaseEmptyState.vue'
-import BaseModal from '../../Components/ui/BaseModal.vue'
 import {
-  ArrowLeftIcon, CheckCircleIcon, XCircleIcon,
-  ArrowPathIcon, CreditCardIcon, SparklesIcon, CheckIcon,
+  ArrowLeftIcon, ArrowPathIcon, CheckIcon, ExclamationTriangleIcon,
+  InformationCircleIcon, LockClosedIcon, ShieldCheckIcon, SparklesIcon,
 } from '@heroicons/vue/24/outline'
-import { inject } from 'vue'
 import { formatPrice, formatDate } from '../../utils/format'
 
-const router = useRouter()
-const showToast = inject('showToast')
 const { t } = useI18n()
 
 const loading = ref(true)
 const error = ref(null)
+const snapshot = ref(null)
 const plans = ref([])
-const currentSubscription = ref(null)
-const subscribingPlan = ref(null)
-const cancelLoading = ref(false)
-const resumeLoading = ref(false)
-const portalLoading = ref(false)
-const showCancelModal = ref(false)
 
-function formatStatus(status) {
-  const map = {
-    active: t('subscription.status_active'),
-    trialing: t('subscription.status_trialing'),
-    past_due: t('subscription.status_past_due'),
-    canceled: t('subscription.status_canceled'),
-    incomplete: t('subscription.status_incomplete'),
-    incomplete_expired: t('subscription.status_expired'),
-    unpaid: t('subscription.status_unpaid'),
-    paused: t('subscription.status_paused')
-  }
-  return map[status] || status
+const quotas = computed(() => snapshot.value?.quotas?.resources ?? [])
+const totalFrozen = computed(() => snapshot.value?.total_frozen ?? snapshot.value?.quotas?.frozen_total ?? 0)
+
+const COMPANY_STATUS = {
+  trial: { label: 'subscription.status_trialing', variant: 'info' },
+  active: { label: 'subscription.status_active', variant: 'success' },
+  suspended: { label: 'subscription.status_suspended', variant: 'danger' },
+  disabled: { label: 'subscription.status_disabled', variant: 'default' },
+}
+
+const statusLabel = computed(() => {
+  const status = snapshot.value?.company?.status
+  return COMPANY_STATUS[status] ? t(COMPANY_STATUS[status].label) : (status || '—')
+})
+
+const statusVariant = computed(() => COMPANY_STATUS[snapshot.value?.company?.status]?.variant ?? 'default')
+
+const planPriceLabel = computed(() => {
+  const plan = snapshot.value?.plan
+  if (!plan) return t('subscription.no_plan')
+  return plan.price_xof === 0
+    ? t('subscription.free_badge')
+    : `${formatPrice(plan.price_xof, plan.currency)} ${t('subscription.per_month_short')}`
+})
+
+function formatDateOrDash(value) {
+  return value ? formatDate(value) : '—'
+}
+
+function barWidth(item) {
+  if (item.limit < 0) return '100%'
+  if (item.limit === 0) return '100%'
+  return `${Math.min(100, Math.round((item.used / item.limit) * 100))}%`
 }
 
 function isCurrentPlan(plan) {
-  if (!currentSubscription.value) return false
-  const currentPlanId = currentSubscription.value.plan_id
-  const currentPlanSlug = currentSubscription.value.plan_slug
-  return (currentPlanId && currentPlanId === plan.id) ||
-         (currentPlanSlug && currentPlanSlug === plan.slug)
+  return snapshot.value?.plan?.id === plan.id
 }
 
-function getCurrentPlan() {
-  if (!currentSubscription.value) return null
-  const currentPlanId = currentSubscription.value.plan_id
-  const currentPlanSlug = currentSubscription.value.plan_slug
-  if (currentPlanId) return plans.value.find(p => p.id === currentPlanId)
-  if (currentPlanSlug) return plans.value.find(p => p.slug === currentPlanSlug)
-  return plans.value.find(p => p.stripe_price_id === currentSubscription.value.stripe_price)
-}
-
-function isUpgrade(plan) {
-  if (!currentSubscription.value) return plan.price_xof > 0
-  const currentPlan = getCurrentPlan()
-  if (!currentPlan) return plan.price_xof > 0
-  return plan.price_xof > currentPlan.price_xof
-}
-
-function isDowngrade(plan) {
-  if (!currentSubscription.value) {
-    return plan.slug === 'free'
-  }
-  const currentPlan = getCurrentPlan()
-  if (!currentPlan) return false
-  return plan.price_xof < currentPlan.price_xof
-}
-
-function canSubscribe(plan) {
-  if (isCurrentPlan(plan)) return false
-  if (!currentSubscription.value) return true
-  return isUpgrade(plan) || isDowngrade(plan)
-}
-
-function getButtonText(plan) {
-  if (!currentSubscription.value) return t('subscription.subscribe_to', { plan: plan.name })
-  if (isUpgrade(plan)) return t('subscription.upgrade_to', { plan: plan.name })
-  if (isDowngrade(plan)) return t('subscription.downgrade_to', { plan: plan.name })
-  return t('subscription.subscribe_to', { plan: plan.name })
-}
-
-function getDisabledReason(plan) {
-  if (isCurrentPlan(plan)) return t('subscription.current_plan_btn')
-  if (!currentSubscription.value) return t('subscription.unavailable')
-  return t('subscription.not_available')
+function planQuotaRows(plan) {
+  return quotas.value.map((item) => ({
+    key: item.resource,
+    resource: item.resource,
+    limit: plan.quotas?.[`max_${item.resource}`] ?? -1,
+  }))
 }
 
 async function fetchData() {
   loading.value = true
   error.value = null
   try {
-    const [plansRes, subRes] = await Promise.all([
+    const [currentRes, plansRes] = await Promise.all([
+      axios.get('/subscriptions/current'),
       axios.get('/subscriptions/plans'),
-      axios.get('/subscriptions/current')
     ])
+    snapshot.value = currentRes.data.data ?? null
     plans.value = Array.isArray(plansRes.data) ? plansRes.data : (plansRes.data.data || [])
-    currentSubscription.value = subRes.data.data ?? null
   } catch (err) {
     console.error('Erreur chargement abonnement:', err)
     error.value = t('subscription.load_error_info')
-    showToast(t('subscription.load_toast_error'), 'error')
   } finally {
     loading.value = false
   }
-}
-
-async function subscribeToPlan(plan) {
-  subscribingPlan.value = plan.id
-  try {
-    const paymentMethodId = prompt(t('subscription.stripe_prompt'))
-    if (!paymentMethodId) return
-
-    await axios.post('/subscriptions/subscribe', {
-      plan_id: plan.id,
-      payment_method_id: paymentMethodId
-    })
-
-    showToast(t('subscription.created_ok'), 'success')
-    await fetchData()
-  } catch (err) {
-    console.error('Erreur souscription:', err)
-    const msg = err.response?.data?.message || t('subscription.subscribe_error')
-    showToast(msg, 'error')
-  } finally {
-    subscribingPlan.value = null
-  }
-}
-
-async function cancelSubscription() {
-  cancelLoading.value = true
-  try {
-    await axios.post('/subscriptions/cancel')
-    showToast(t('subscription.canceled_ok'), 'success')
-    showCancelModal.value = false
-    await fetchData()
-  } catch (err) {
-    console.error('Erreur annulation:', err)
-    const msg = err.response?.data?.message || t('subscription.cancel_error')
-    showToast(msg, 'error')
-  } finally {
-    cancelLoading.value = false
-  }
-}
-
-async function resumeSubscription() {
-  resumeLoading.value = true
-  try {
-    await axios.post('/subscriptions/resume')
-    showToast(t('subscription.reactivated_ok'), 'success')
-    await fetchData()
-  } catch (err) {
-    console.error('Erreur réactivation:', err)
-    const msg = err.response?.data?.message || t('subscription.reactivate_error')
-    showToast(msg, 'error')
-  } finally {
-    resumeLoading.value = false
-  }
-}
-
-async function openBillingPortal() {
-  portalLoading.value = true
-  try {
-    const { data } = await axios.get('/subscriptions/invoice-portal')
-    window.open(data.url, '_blank')
-  } catch (err) {
-    console.error('Erreur portail:', err)
-    showToast(t('subscription.portal_error'), 'error')
-  } finally {
-    portalLoading.value = false
-  }
-}
-
-function scrollToPlans() {
-  const el = document.getElementById('plans')
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
 onMounted(fetchData)

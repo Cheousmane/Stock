@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 class Plan extends Model
 {
     use HasFactory;
+
+    public const FREE_SLUG = 'free';
+
     protected $fillable = [
         'name',
         'slug',
@@ -34,5 +37,30 @@ class Plan extends Model
             'trial_days' => 'integer',
             'sort' => 'integer',
         ];
+    }
+
+    public static function free(): ?self
+    {
+        return static::where('slug', self::FREE_SLUG)->first();
+    }
+
+    public function isFree(): bool
+    {
+        return $this->slug === self::FREE_SLUG;
+    }
+
+    /**
+     * Renvoie la limite d'un quota. -1 (ou null) signifie illimité.
+     */
+    public function quota(string $key): int
+    {
+        $value = $this->quotas[$key] ?? -1;
+
+        return is_numeric($value) ? (int) $value : -1;
+    }
+
+    public function isUnlimited(string $key): bool
+    {
+        return $this->quota($key) < 0;
     }
 }

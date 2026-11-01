@@ -10,14 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use BelongsToTenant, Billable, HasApiTokens, HasFactory, HasRoles, Notifiable;
+    use BelongsToTenant, HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +31,7 @@ class User extends Authenticatable
         'company_id',
         'last_login_at',
         'last_seen_at',
+        'frozen_at',
     ];
 
     /**
@@ -72,6 +72,7 @@ class User extends Authenticatable
             'last_seen_at' => 'datetime',
             'is_super_admin' => 'boolean',
             'is_active' => 'boolean',
+            'frozen_at' => 'datetime',
         ];
     }
 
@@ -83,5 +84,10 @@ class User extends Authenticatable
     public function isOnline(): bool
     {
         return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    public function isFrozen(): bool
+    {
+        return $this->frozen_at !== null;
     }
 }

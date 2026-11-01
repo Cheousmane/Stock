@@ -274,13 +274,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import {
   HomeIcon, BuildingOfficeIcon, ClockIcon, UsersIcon, ShieldExclamationIcon,
-  ChartBarIcon, Cog6ToothIcon
+  ChartBarIcon, Cog6ToothIcon, CreditCardIcon
 } from '@heroicons/vue/24/outline'
 import { initAnalytics, setSuperAdminUser } from '@/composables/useAnalytics'
 import ThemeToggle from '@/Components/ThemeToggle.vue'
@@ -327,6 +327,7 @@ watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
 const searchSections = [
   { label: t('admin.dashboard'), to: '/admin/dashboard', icon: HomeIcon, section: t('admin.section_pilotage') },
   { label: t('admin.companies'), to: '/admin/companies', icon: BuildingOfficeIcon, section: t('admin.section_pilotage') },
+  { label: t('admin.subscriptions'), to: '/admin/subscriptions', icon: CreditCardIcon, section: t('admin.section_pilotage') },
   { label: t('admin.users'), to: '/admin/users', icon: UsersIcon, section: t('admin.section_pilotage') },
   { label: t('admin.logins'), to: '/admin/login-logs', icon: ClockIcon, section: t('admin.section_securite') },
   { label: t('admin.activity'), to: '/admin/activity-logs', icon: ShieldExclamationIcon, section: t('admin.section_securite') },
@@ -356,6 +357,7 @@ const navSections = computed(() => [
     items: [
       { label: t('admin.dashboard'), to: '/admin/dashboard', icon: HomeIcon },
       { label: t('admin.companies'), to: '/admin/companies', icon: BuildingOfficeIcon },
+      { label: t('admin.subscriptions'), to: '/admin/subscriptions', icon: CreditCardIcon },
       { label: t('admin.users'), to: '/admin/users', icon: UsersIcon },
     ],
   },
@@ -378,6 +380,7 @@ const navSections = computed(() => [
 const pageTitles = computed(() => ({
   '/admin/dashboard': t('admin.dashboard'),
   '/admin/companies': t('admin.companies'),
+  '/admin/subscriptions': t('admin.subscriptions'),
   '/admin/users': t('admin.users'),
   '/admin/login-logs': t('admin.logins'),
   '/admin/activity-logs': t('admin.activity'),

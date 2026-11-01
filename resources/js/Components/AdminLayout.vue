@@ -300,7 +300,7 @@
             {{ $t('subscription.trial_banner', { n: trialDaysLeft }) }}
           </p>
           <router-link to="/settings/subscription" class="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-2xl text-xs font-extrabold text-white bg-neutral-900 hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 active:scale-[0.98] transition shrink-0">
-            {{ $t('subscription.change_plan') }} →
+            {{ $t('subscription.view_subscription') }} →
           </router-link>
         </div>
       </div>
@@ -461,6 +461,7 @@ const allNavItems = [
   { divider: true, key: 'nav.finance', label: 'Finance' },
   { label: 'Paiements', to: '/payments', icon: CreditCardIcon, key: 'nav.payments', permission: 'view_payment' },
   { label: 'Dépenses', to: '/expenses', icon: BanknotesIcon, key: 'nav.expenses', permission: 'view_expenses' },
+  { label: 'Comptabilité', to: '/payroll', icon: BanknotesIcon, key: 'nav.payroll', permission: 'view_payroll' },
   { label: 'Capital', to: '/capital', icon: CurrencyDollarIcon, key: 'nav.capital', permission: 'view_capital' },
   { divider: true, key: 'nav.management', label: 'Gestion' },
   { label: 'Stock', to: '/stock', icon: ArchiveBoxIcon, key: 'nav.stock', permission: 'view_stock' },
