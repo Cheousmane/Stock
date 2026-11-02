@@ -6,7 +6,10 @@ namespace Tests\Feature\Api\v1;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 uses(RefreshDatabase::class);
@@ -86,7 +89,7 @@ describe('Auth', function () {
 
         $response = $this->withHeaders([
             'X-Tenant-Slug' => 'acme',
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/v1/auth/me');
 
         $response->assertStatus(Response::HTTP_OK)
@@ -103,13 +106,50 @@ describe('Auth', function () {
 
         $response = $this->withHeaders([
             'X-Tenant-Slug' => 'acme',
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/v1/auth/logout');
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJsonPath('message', 'Déconnexion réussie.');
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
+    });
+
+    it('sends password reset links to the configured frontend URL', function () {
+        config(['app.frontend_url' => 'https://app.example.com/']);
+
+        $notification = new ResetPasswordNotification('reset-token', 'john+test@acme.com');
+        $mail = $notification->toMail(new User);
+
+        expect($mail->actionUrl)
+            ->toBe('https://app.example.com/reset-password?token=reset-token&email=john%2Btest%40acme.com');
+    });
+
+    it('expires password reset tokens after the configured duration', function () {
+        config(['auth.passwords.users.expire' => 10]);
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme']);
+        User::factory()->create([
+            'company_id' => $company->id,
+            'email' => 'john@acme.com',
+        ]);
+        $token = 'reset-token';
+
+        DB::table('password_reset_tokens')->insert([
+            'email' => 'john@acme.com',
+            'token' => Hash::make($token),
+            'created_at' => now()->subMinutes(10),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/reset-password', [
+            'email' => 'john@acme.com',
+            'token' => $token,
+            'password' => 'NewPassword@123',
+            'password_confirmation' => 'NewPassword@123',
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonPath('message', 'Token de réinitialisation expiré.');
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'john@acme.com']);
     });
 
 });

@@ -9,6 +9,7 @@ use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -21,7 +22,7 @@ class PasswordResetController extends Controller
     {
         $user = User::where('email', $request->input('email'))->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Si un compte est associé à cette adresse, un lien de réinitialisation vous a été envoyé.'], Response::HTTP_OK);
         }
 
@@ -43,18 +44,22 @@ class PasswordResetController extends Controller
             ->where('email', $request->input('email'))
             ->first();
 
-        if (!$record || !Hash::check($request->input('token'), $record->token)) {
+        if (! $record || ! Hash::check($request->input('token'), $record->token)) {
             return response()->json(['message' => 'Token de réinitialisation invalide ou expiré.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        if (now()->diffInMinutes($record->created_at) > 60) {
+        $expiresAt = Carbon::parse($record->created_at)
+            ->addMinutes((int) config('auth.passwords.users.expire'));
+
+        if (now()->greaterThanOrEqualTo($expiresAt)) {
             DB::table('password_reset_tokens')->where('email', $request->input('email'))->delete();
+
             return response()->json(['message' => 'Token de réinitialisation expiré.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = User::where('email', $request->input('email'))->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
         }
 

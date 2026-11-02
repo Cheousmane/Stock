@@ -372,13 +372,17 @@ npm run dev
 
 | Variable | Description |
 |---|---|
-| `APP_URL` | URL de l'application |
+| `APP_URL` | URL du backend Laravel |
+| `APP_FRONTEND_URL` | URL publique du frontend, utilisée notamment pour les liens de réinitialisation de mot de passe |
+| `AUTH_PASSWORD_RESET_EXPIRE` | Durée de validité du lien de réinitialisation, en minutes (10 par défaut) |
 | `DB_CONNECTION` | `mysql` (production) / `sqlite` (tests) |
 | `SANCTUM_TOKEN_PREFIX` | Préfixe des tokens |
 | `SANCTUM_TOKEN_EXPIRATION` | Durée de validité (minutes) |
 | `STRIPE_KEY` | Clé publique Stripe |
 | `STRIPE_SECRET` | Clé secrète Stripe |
 | `STRIPE_WEBHOOK_SECRET` | Secret du webhook Stripe |
+
+En production, configurez `APP_FRONTEND_URL` avec l'URL HTTPS publique du frontend (sans chemin, par exemple `https://app.exemple.com`), puis actualisez le cache de configuration Laravel (`php artisan config:clear` puis `php artisan config:cache`). Ne laissez pas l'URL locale de développement.
 
 ---
 
