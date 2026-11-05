@@ -8,12 +8,15 @@
         <div class="tour-shade" :style="panelStyle('bottom')" />
         <div class="tour-highlight" :style="highlightStyle" aria-hidden="true" />
       </template>
+      <div v-else class="tour-intro-backdrop" aria-hidden="true" />
 
       <section
         class="tour-card"
+        :class="{ 'tour-card--intro': !currentStep.selector }"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="`tour-title-${stepIndex}`"
+        :aria-describedby="`tour-description-${stepIndex}`"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -36,7 +39,16 @@
           </button>
         </div>
 
-        <p class="mt-2 text-sm leading-relaxed text-text-secondary">{{ $t(currentStep.description) }}</p>
+        <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-surface-tertiary" aria-hidden="true">
+          <div
+            class="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
+            :style="{ width: `${((stepIndex + 1) / steps.length) * 100}%` }"
+          />
+        </div>
+
+        <p :id="`tour-description-${stepIndex}`" class="mt-3 text-sm leading-relaxed text-text-secondary">
+          {{ $t(currentStep.description) }}
+        </p>
 
         <div class="mt-5 flex items-center justify-between gap-3">
           <button
@@ -70,7 +82,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -83,18 +95,14 @@ const open = ref(false)
 const stepIndex = ref(0)
 const targetRect = ref(null)
 const allSteps = [
+  { selector: null, title: 'appTour.welcome_title', description: 'appTour.welcome_description' },
   { selector: '[data-tour="dashboard"]', title: 'appTour.dashboard_title', description: 'appTour.dashboard_description' },
-  { selector: '[data-tour="products"]', title: 'appTour.navigation_title', description: 'appTour.navigation_description' },
+  { selector: '[data-tour="navigation"]', title: 'appTour.navigation_title', description: 'appTour.navigation_description' },
   { selector: '[data-tour="quick-create"]', title: 'appTour.quick_create_title', description: 'appTour.quick_create_description' },
   { selector: '[data-tour="search"]', title: 'appTour.search_title', description: 'appTour.search_description' },
   { selector: '[data-tour="settings"]', title: 'appTour.settings_title', description: 'appTour.settings_description' },
   { selector: '[data-tour="profile"]', title: 'appTour.profile_title', description: 'appTour.profile_description' },
 ]
-const fallbackStep = {
-  selector: null,
-  title: 'appTour.dashboard_title',
-  description: 'appTour.dashboard_description',
-}
 const steps = ref([])
 
 const currentStep = computed(() => steps[stepIndex.value])
@@ -145,12 +153,11 @@ function seenKey(identity) {
 }
 
 async function show() {
-  steps.value = allSteps.filter((step) => document.querySelector(step.selector))
-  if (!steps.value.length) steps.value = [fallbackStep]
+  steps.value = allSteps.filter((step) => !step.selector || document.querySelector(step.selector))
   stepIndex.value = 0
   const firstStep = steps.value[0]
   open.value = true
-  emit('navigation-target', Boolean(firstStep.selector && /data-tour="(?:dashboard|products|settings)"/.test(firstStep.selector)))
+  emit('navigation-target', Boolean(firstStep.selector && /data-tour="(?:dashboard|navigation|settings)"/.test(firstStep.selector)))
   await nextTick()
   if (!open.value || currentStep.value !== firstStep) return
   if (firstStep.selector) {
@@ -166,13 +173,18 @@ async function start() {
   await show()
 }
 
+async function startIfNew() {
+  if (!props.identity || localStorage.getItem(seenKey(props.identity))) return
+  await start()
+}
+
 async function moveTo(index) {
   if (index < 0 || index >= steps.value.length) return
   stepIndex.value = index
   targetRect.value = null
   const step = currentStep.value
   if (!step) return
-  emit('navigation-target', Boolean(step.selector && /data-tour="(?:dashboard|products|settings)"/.test(step.selector)))
+  emit('navigation-target', Boolean(step.selector && /data-tour="(?:dashboard|navigation|settings)"/.test(step.selector)))
   await nextTick()
   if (!open.value || currentStep.value !== step) return
   const target = step.selector ? document.querySelector(step.selector) : null
@@ -206,18 +218,10 @@ function onKeydown(event) {
   if (event.key === 'ArrowLeft') previous()
 }
 
-watch(() => props.identity, (identity) => {
-  if (!identity || localStorage.getItem(seenKey(identity))) return
-  window.setTimeout(start, 900)
-})
-
 onMounted(() => {
   window.addEventListener('resize', updateTarget)
   window.addEventListener('scroll', updateTarget, true)
   window.addEventListener('keydown', onKeydown)
-  if (props.identity && !localStorage.getItem(seenKey(props.identity))) {
-    window.setTimeout(start, 900)
-  }
 })
 
 onBeforeUnmount(() => {
@@ -226,7 +230,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-defineExpose({ start })
+defineExpose({ start, startIfNew })
 </script>
 
 <style scoped>
@@ -234,6 +238,13 @@ defineExpose({ start })
   position: fixed;
   z-index: 100;
   pointer-events: auto;
+}
+
+.tour-intro-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  background: rgb(2 6 23 / 0.72);
 }
 
 .tour-highlight {
@@ -258,5 +269,11 @@ defineExpose({ start })
   border-radius: 1.25rem;
   background: var(--color-surface);
   box-shadow: 0 24px 80px rgb(0 0 0 / 0.28);
+}
+
+.tour-card--intro {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
 }
 </style>

@@ -54,7 +54,7 @@
       </div>
 
       <!-- Navigation links (Scrollable sans barre visible) -->
-      <nav ref="navRef" class="flex-1 px-2.5 py-2.5 overflow-y-auto overflow-x-hidden no-scrollbar">
+      <nav ref="navRef" data-tour="navigation" class="flex-1 px-2.5 py-2.5 overflow-y-auto overflow-x-hidden no-scrollbar">
         <div class="space-y-3">
           <template v-for="item in navItems" :key="item.name || item.key">
             <p
@@ -142,8 +142,9 @@
 
         <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           <!-- Quick Create Action -->
-          <div class="relative" data-tour="quick-create" v-click-outside="() => quickCreateOpen = false">
+          <div class="relative" v-click-outside="() => quickCreateOpen = false">
             <button
+              data-tour="quick-create"
               v-if="can('create_invoice') || can('access_pos') || can('create_product') || can('create_customer')"
               @click="quickCreateOpen = !quickCreateOpen"
               :aria-expanded="quickCreateOpen"
@@ -154,7 +155,6 @@
               <span class="hidden sm:inline">{{ $t('header.new') }}</span>
             </button>
             <div
-              data-tour="search"
               v-if="quickCreateOpen"
               id="quick-create-menu"
               class="fixed right-2 top-[72px] z-50 mt-2 w-[min(15rem,calc(100vw-1rem))] max-h-[calc(100dvh-5rem)] overflow-y-auto bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-60 sm:max-h-[calc(100vh-5rem)]"
@@ -203,6 +203,7 @@
 
           <!-- Global search (repliable) -->
           <div
+            data-tour="search"
             class="relative h-10 flex items-center transition-all duration-300 ease-out"
             :class="searchOpen ? 'w-52 xl:w-64' : 'w-10'"
             v-click-outside="() => { if (!searchJustOpened) searchOpen = false }"
@@ -495,10 +496,9 @@ function onTourNavigationTarget(isNavigationTarget) {
   sidebarOpen.value = window.innerWidth < 1024 && isNavigationTarget
 }
 
-async function restartTour() {
+function restartTour() {
   dropdownOpen.value = false
-  await nextTick()
-  await appTourRef.value?.start()
+  appTourRef.value?.start()
 }
 
 const navItems = computed(() => {
@@ -628,6 +628,8 @@ onMounted(async () => {
       if (fresh.is_super_admin) isSuperAdmin.value = fresh.is_super_admin
     }
   } catch {}
+  await nextTick()
+  await appTourRef.value?.startIfNew()
   try {
     const cachedCompany = JSON.parse(localStorage.getItem('company') || '{}')
     if (cachedCompany.name) {
