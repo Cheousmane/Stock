@@ -15,12 +15,12 @@
           <AppLogo :size="40" />
           <div>
             <p class="auth-logo-name">SIDIBE CORPORATE</p>
-            <p class="auth-logo-sub">Facturation &amp; Stock</p>
+            <p class="auth-logo-sub">{{ $t('auth.brand_subtitle') }}</p>
           </div>
         </router-link>
 
-        <h2 class="auth-left-title">Bienvenue,<br><span>connectez-vous</span></h2>
-        <p class="auth-left-desc">Reprenez là où vous vous êtes arrêté. Vos factures, votre stock, tout vous attend.</p>
+        <h2 class="auth-left-title">{{ $t('auth.login_welcome_title') }}</h2>
+        <p class="auth-left-desc">{{ $t('auth.login_welcome_description') }}</p>
 
         <!-- Feature list -->
         <ul class="auth-features">
@@ -39,20 +39,20 @@
               <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
             </div>
             <div>
-              <p class="notif-title">Paiement reçu</p>
+              <p class="notif-title">{{ $t('auth.sample_payment_received') }}</p>
               <p class="notif-sub">FAC-2024-248 · 125 000 FCFA</p>
             </div>
-            <span class="notif-time">À l'instant</span>
+            <span class="notif-time">{{ $t('adminPages.activity.just_now') }}</span>
           </div>
           <div class="notif-card notif-2">
             <div class="notif-icon notif-blue">
               <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/><path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41z" clip-rule="evenodd"/></svg>
             </div>
             <div>
-              <p class="notif-title">+12 clients actifs</p>
-              <p class="notif-sub">Ce mois-ci</p>
+              <p class="notif-title">{{ $t('auth.sample_active_customers') }}</p>
+              <p class="notif-sub">{{ $t('auth.this_month') }}</p>
             </div>
-            <span class="notif-time">Aujourd'hui</span>
+            <span class="notif-time">{{ $t('dashboard.activity.today') }}</span>
           </div>
         </div>
       </div>
@@ -74,8 +74,8 @@
       <!-- Form card -->
       <div class="auth-card">
         <div class="auth-card-header">
-          <h1 class="auth-card-title">Se connecter</h1>
-          <p class="auth-card-sub">Accédez à votre espace de gestion</p>
+          <h1 class="auth-card-title">{{ $t('auth.login') }}</h1>
+          <p class="auth-card-sub">{{ $t('auth.login_description') }}</p>
         </div>
 
         <!-- Error alert -->
@@ -89,11 +89,11 @@
         <form @submit.prevent="login" class="auth-form">
           <template v-if="googleConfigured">
             <GoogleSignInButton text="signin_with" @credential="onGoogleCredential" @error="onGoogleError" />
-            <div class="auth-divider"><span>ou</span></div>
+            <div class="auth-divider"><span>{{ $t('auth.or') }}</span></div>
           </template>
           <!-- Email -->
           <div class="field-group">
-            <label class="field-label">Email <span class="field-req">*</span></label>
+            <label class="field-label">{{ $t('auth.email') }} <span class="field-req">*</span></label>
             <div class="field-wrap" :class="{ 'field-focused': focused === 'email' }">
               <div class="field-icon">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/><path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/></svg>
@@ -101,7 +101,7 @@
               <input
                 v-model="form.email"
                 type="email" required autocomplete="email"
-                placeholder="vous@exemple.com"
+                :placeholder="$t('auth.email_placeholder')"
                 list="login-email-list"
                 class="field-input"
                 @focus="focused = 'email'"
@@ -116,8 +116,8 @@
           <!-- Password -->
           <div class="field-group">
             <div class="field-label-row">
-              <label class="field-label">Mot de passe <span class="field-req">*</span></label>
-              <router-link :to="{ name: 'ForgotPassword' }" class="forgot-link">Mot de passe Oublié ?</router-link>
+              <label class="field-label">{{ $t('auth.password') }} <span class="field-req">*</span></label>
+              <router-link :to="{ name: 'ForgotPassword' }" class="forgot-link">{{ $t('auth.forgot_password') }}</router-link>
             </div>
             <div class="field-wrap" :class="{ 'field-focused': focused === 'pwd' }">
               <div class="field-icon">
@@ -144,7 +144,7 @@
             <label class="remember-label">
               <input type="checkbox" v-model="form.remember" class="remember-check" />
               <span class="remember-box"></span>
-              <span class="remember-text">Se souvenir de moi</span>
+              <span class="remember-text">{{ $t('auth.remember_me') }}</span>
             </label>
           </div>
 
@@ -152,18 +152,18 @@
           <button type="submit" :disabled="loading" class="auth-submit-btn">
             <span v-if="loading" class="btn-loader">
               <svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" stroke-linecap="round" opacity="0.3"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15" stroke-dashoffset="0" stroke-linecap="round"/></svg>
-              Connexion en cours...
+              {{ $t('auth.login_loading') }}
             </span>
             <span v-else class="btn-inner">
-              Se connecter
+              {{ $t('auth.sign_in') }}
               <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
             </span>
           </button>
         </form>
 
         <p class="auth-switch-text">
-          Pas encore de compte ?
-          <router-link :to="{ name: 'Register' }" class="auth-switch-link">Créer un compte</router-link>
+          {{ $t('auth.no_account') }}
+          <router-link :to="{ name: 'Register' }" class="auth-switch-link">{{ $t('auth.create_account') }}</router-link>
         </p>
       </div>
 
@@ -171,9 +171,9 @@
       <div class="auth-footer">
         <span>© 2026 SIDIBE CORPORATE</span>
         <span class="auth-footer-sep">·</span>
-        <a href="#">Confidentialité</a>
+        <a href="#">{{ $t('auth.privacy') }}</a>
         <span class="auth-footer-sep">·</span>
-        <a href="#">Aide</a>
+        <a href="#">{{ $t('auth.help') }}</a>
       </div>
     </div>
   </div>
@@ -203,12 +203,7 @@ const focused = ref('');
 const form = reactive({ email: '', password: '', remember: false });
 const googleConfigured = isGoogleConfigured();
 
-const features = [
-  'Factures et devis professionnels en un clic',
-  'Gestion de stock multi-entrepôts en temps réel',
-  'Point de vente avec sessions de caisse',
-  'Rapports financiers et tableau de bord analytique',
-];
+const features = computed(() => [1, 2, 3, 4].map(number => t(`auth.features.${number}`)))
 
 const emailSuggestions = computed(() => {
   const all = JSON.parse(localStorage.getItem('form_suggestions') || '{}');

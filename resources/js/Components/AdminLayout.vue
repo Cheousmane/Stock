@@ -19,7 +19,7 @@
         <button
           @click="sidebarOpen = false"
           class="p-1.5 rounded-lg lg:hidden text-sidebar-text-secondary hover:text-sidebar-text hover:bg-sidebar-surface-hover active:scale-95 transition"
-          aria-label="Fermer le menu"
+          :aria-label="$t('header.close_navigation')"
         >
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -67,6 +67,7 @@
             <router-link
               v-else
               :to="item.to"
+              :data-tour="item.to === '/dashboard' ? 'dashboard' : item.to === '/products' ? 'products' : item.to === '/settings' ? 'settings' : undefined"
               @click="sidebarOpen = false"
               ref="linkRefs"
               class="sidebar-link"
@@ -110,7 +111,7 @@
             {{ userInitial }}
           </span>
           <div class="min-w-0 flex-1 leading-tight" :class="sidebarCollapsed ? 'lg:hidden' : ''">
-            <p class="text-[11.5px] font-bold text-sidebar-text truncate">{{ userName || 'Utilisateur' }}</p>
+            <p class="text-[11.5px] font-bold text-sidebar-text truncate">{{ userName || $t('header.administrator') }}</p>
             <p v-if="roleLabel" class="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 truncate tracking-wider uppercase">{{ roleLabel }}</p>
           </div>
         </div>
@@ -141,18 +142,22 @@
 
         <div class="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           <!-- Quick Create Action -->
-          <div class="relative" v-click-outside="() => quickCreateOpen = false">
+          <div class="relative" data-tour="quick-create" v-click-outside="() => quickCreateOpen = false">
             <button
               v-if="can('create_invoice') || can('access_pos') || can('create_product') || can('create_customer')"
               @click="quickCreateOpen = !quickCreateOpen"
+              :aria-expanded="quickCreateOpen"
+              aria-controls="quick-create-menu"
               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:-translate-y-px active:scale-[0.98] transition-all shrink-0"
             >
               <PlusIcon class="w-4 h-4" />
               <span class="hidden sm:inline">{{ $t('header.new') }}</span>
             </button>
             <div
+              data-tour="search"
               v-if="quickCreateOpen"
-              class="absolute right-0 z-50 mt-2 w-60 bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active"
+              id="quick-create-menu"
+              class="fixed right-2 top-[72px] z-50 mt-2 w-[min(15rem,calc(100vw-1rem))] max-h-[calc(100dvh-5rem)] overflow-y-auto bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-60 sm:max-h-[calc(100vh-5rem)]"
             >
               <div class="px-3 py-2 text-[10px] font-extrabold text-text-tertiary uppercase tracking-[0.14em]">
                 {{ $t('header.quick_create') }}
@@ -256,6 +261,7 @@
           <div class="relative" v-click-outside="() => dropdownOpen = false">
             <button
               @click="dropdownOpen = !dropdownOpen"
+              data-tour="profile"
               class="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-2xl border border-border bg-surface shadow-sm hover:border-emerald-400/40 hover:shadow-md active:scale-[0.98] transition-all"
             >
               <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shadow shrink-0">{{ userInitial }}</span>
@@ -269,6 +275,16 @@
                 <p class="text-sm font-semibold text-text-primary truncate">{{ userName }}</p>
                 <p class="text-xs text-text-tertiary truncate mt-0.5">{{ userEmail }}</p>
               </div>
+              <button
+                type="button"
+                class="flex w-full items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary"
+                @click.stop="restartTour"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25M19.5 19.5v-5.25h-5.25M5.7 9.75a7.5 7.5 0 0112.6-2.4l1.2 2.4m-1.2 4.5a7.5 7.5 0 01-12.6 2.4l-1.2-2.4" />
+                </svg>
+                {{ $t('appTour.restart') }}
+              </button>
               <router-link to="/settings" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
@@ -316,6 +332,7 @@
       </div>
     </div>
 
+    <AppTour ref="appTourRef" :identity="tourIdentity" @navigation-target="onTourNavigationTarget" />
   </div>
 </template>
 
@@ -327,6 +344,7 @@ import { useI18n } from 'vue-i18n'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import AppLogo from './AppLogo.vue'
+import AppTour from './AppTour.vue'
 import {
   HomeIcon, ComputerDesktopIcon, CubeIcon, UsersIcon, DocumentTextIcon,
   DocumentDuplicateIcon, TruckIcon, CreditCardIcon, ArchiveBoxIcon,
@@ -338,7 +356,9 @@ import {
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const { t, te } = useI18n()
+const appTourRef = ref(null)
+const tourIdentity = ref('')
 
 const sidebarOpen = ref(false)
 const navRef = ref(null)
@@ -425,17 +445,10 @@ onBeforeUnmount(() => {
 
 const userInitial = computed(() => (userName.value || 'U').charAt(0).toUpperCase())
 
-const roleLabels = {
-  admin: 'Administrateur',
-  manager: 'Gestionnaire',
-  accountant: 'Comptable',
-  warehouse_manager: "Gestionnaire d'entrepôt",
-  sales: 'Commercial',
-  employee: 'Employé',
-}
 const roleLabel = computed(() => {
   if (isSuperAdmin.value) return 'Super Admin'
-  return roleLabels[userRole.value] || userRole.value || ''
+  const key = `header.roles.${userRole.value}`
+  return userRole.value ? (te(key) ? t(key) : userRole.value) : ''
 })
 
 const abbreviatedName = computed(() => {
@@ -477,6 +490,16 @@ const allNavItems = [
 ]
 
 function can(perm) { return !perm || userPermissions.value.includes(perm) }
+
+function onTourNavigationTarget(isNavigationTarget) {
+  sidebarOpen.value = window.innerWidth < 1024 && isNavigationTarget
+}
+
+async function restartTour() {
+  dropdownOpen.value = false
+  await nextTick()
+  await appTourRef.value?.start()
+}
 
 const navItems = computed(() => {
   const visible = allNavItems.filter(i => {
@@ -587,6 +610,7 @@ onMounted(async () => {
   })
   try {
     const u = JSON.parse(localStorage.getItem('user') || '{}')
+    tourIdentity.value = String(u.id || u.email || '')
     if (u.name) userName.value = u.name
     if (u.email) userEmail.value = u.email
     if (u.is_super_admin) isSuperAdmin.value = u.is_super_admin
@@ -596,6 +620,7 @@ onMounted(async () => {
       const { data } = await axios.get('/auth/me')
       const fresh = data.user ?? data.data ?? data
       localStorage.setItem('user', JSON.stringify(fresh))
+      tourIdentity.value = String(fresh.id || fresh.email || '')
       if (fresh.permissions) userPermissions.value = fresh.permissions
       if (fresh.roles?.length) userRole.value = fresh.roles[0]
       if (fresh.name) userName.value = fresh.name

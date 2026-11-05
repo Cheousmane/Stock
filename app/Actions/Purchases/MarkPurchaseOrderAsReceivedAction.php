@@ -16,19 +16,23 @@ class MarkPurchaseOrderAsReceivedAction
 {
     public function execute(PurchaseOrder $purchaseOrder): PurchaseOrder
     {
-        if ($purchaseOrder->status === 'received') {
-            throw new Exception("This purchase order is already marked as received.");
-        }
+        return DB::transaction(function () use ($purchaseOrder) {
+            $purchaseOrder = PurchaseOrder::whereKey($purchaseOrder->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if (!$purchaseOrder->warehouse_id) {
-            throw new Exception("A warehouse must be specified to receive stock.");
-        }
+            if ($purchaseOrder->status === 'received') {
+                throw new Exception("This purchase order is already marked as received.");
+            }
 
-        DB::transaction(function () use ($purchaseOrder) {
+            if (! $purchaseOrder->warehouse_id) {
+                throw new Exception("A warehouse must be specified to receive stock.");
+            }
+
             $companyId = TenantContext::getCompanyId();
             $warehouseId = $purchaseOrder->warehouse_id;
 
-            foreach ($purchaseOrder->items as $item) {
+            foreach ($purchaseOrder->items()->get() as $item) {
                 // Update or create warehouse stock
                 $stock = WarehouseStock::firstOrCreate(
                     [
@@ -42,6 +46,9 @@ class MarkPurchaseOrderAsReceivedAction
                         'available_quantity' => 0,
                     ]
                 );
+                $stock = WarehouseStock::whereKey($stock->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 $beforeQuantity = $stock->quantity;
                 $afterQuantity = $beforeQuantity + $item->quantity;
@@ -77,8 +84,8 @@ class MarkPurchaseOrderAsReceivedAction
                     $supplier->increment('balance_xof', $purchaseOrder->total_xof);
                 }
             }
-        });
 
-        return $purchaseOrder;
+            return $purchaseOrder->fresh();
+        });
     }
 }

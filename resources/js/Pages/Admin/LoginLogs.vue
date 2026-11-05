@@ -2,9 +2,9 @@
   <SuperAdminLayout>
     <div class="space-y-5">
       <div>
-        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded-full px-3 py-1">Sécurité · surveillance accès</p>
-        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">Journal des connexions</h2>
-        <p class="text-sm text-text-tertiary mt-1 font-medium">{{ total24h }} tentatives · <span class="text-rose-500 font-bold">{{ failed24h }} échecs</span> sur 24h.</p>
+        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded-full px-3 py-1">{{ $t('adminPages.logins.eyebrow') }}</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">{{ $t('admin.logins') }}</h2>
+        <p class="text-sm text-text-tertiary mt-1 font-medium">{{ $t('adminPages.logins.attempts_summary', { total: total24h, failed: failed24h }) }}</p>
       </div>
 
       <!-- Brute force alert -->
@@ -13,60 +13,60 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-extrabold text-text-primary">{{ bruteForceIps.length }} IP suspecte(s) — 5+ échecs en 24h</p>
+          <p class="text-sm font-extrabold text-text-primary">{{ $t('adminPages.logins.suspicious_ips', { count: bruteForceIps.length }) }}</p>
           <p class="text-[13px] text-text-secondary mt-0.5 font-mono truncate">{{ bruteForceIps.map(i => `${i.ip_address} (${i.attempts})`).join(' · ') }}</p>
         </div>
-        <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-extrabold shrink-0 shadow">À traiter</span>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-extrabold shrink-0 shadow">{{ $t('adminPages.logins.needs_attention') }}</span>
       </div>
 
       <!-- Hourly chart -->
       <div class="rounded-[1.25rem] bg-surface border border-border/70 shadow-sm p-6">
         <div class="flex items-center justify-between gap-3 mb-4">
           <div>
-            <h3 class="text-base font-extrabold text-text-primary tracking-tight">Connexions par heure · 24h</h3>
-            <p class="text-xs text-text-tertiary font-medium">{{ total24h }} tentatives · {{ failed24h }} échecs</p>
+            <h3 class="text-base font-extrabold text-text-primary tracking-tight">{{ $t('adminPages.logins.hourly_title') }}</h3>
+            <p class="text-xs text-text-tertiary font-medium">{{ $t('adminPages.logins.attempts_short', { total: total24h, failed: failed24h }) }}</p>
           </div>
           <div class="flex items-center gap-1.5 text-[11px] font-bold">
-            <span class="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-emerald-500" />Succès</span>
-            <span class="inline-flex items-center gap-1 bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-500" />Échecs</span>
+            <span class="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-emerald-500" />{{ $t('adminPages.logins.success') }}</span>
+            <span class="inline-flex items-center gap-1 bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-500" />{{ $t('adminPages.logins.failures') }}</span>
           </div>
         </div>
         <div class="h-48">
           <Bar v-if="chartDataHourly" :data="chartDataHourly" :options="chartOptionsHourly" />
-          <div v-else class="flex items-center justify-center h-full text-sm text-text-tertiary">Chargement...</div>
+          <div v-else class="flex items-center justify-center h-full text-sm text-text-tertiary">{{ $t('common.loading') }}</div>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-3">
         <div class="w-64 max-w-full">
-          <BaseInput :model-value="filters.search" placeholder="Email ou IP..." @update:modelValue="onSearch" />
+          <BaseInput :model-value="filters.search" :placeholder="$t('adminPages.logins.search')" @update:modelValue="onSearch" />
         </div>
         <label class="flex items-center gap-2 text-sm font-semibold text-text-secondary">
           <input type="checkbox" :checked="filters.failed" @change="e => { filters.failed = e.target.checked; fetchLogs() }" class="rounded border-border text-emerald-500 focus:ring-4 focus:ring-emerald-500/20" />
-          Échecs uniquement
+          {{ $t('adminPages.logins.failures_only') }}
         </label>
-        <BaseSelect :model-value="filters.date_from" :options="dateOptions" placeholder="Du..." @update:modelValue="onDateChange" />
-        <BaseButton variant="secondary" :loading="exporting" @click="exportCsv">⬇ Exporter CSV</BaseButton>
+        <BaseSelect :model-value="filters.date_from" :options="dateOptions" :placeholder="$t('adminPages.logins.from')" @update:modelValue="onDateChange" />
+        <BaseButton variant="secondary" :loading="exporting" @click="exportCsv">⬇ {{ exporting ? $t('common.exporting') : $t('adminPages.logins.export_csv') }}</BaseButton>
       </div>
 
       <div class="rounded-xl bg-surface border border-border shadow-sm overflow-hidden">
-        <div v-if="loading" class="p-8 text-center text-sm text-text-tertiary">Chargement...</div>
+        <div v-if="loading" class="p-8 text-center text-sm text-text-tertiary">{{ $t('common.loading') }}</div>
         <div v-else class="overflow-x-auto">
         <table class="w-full min-w-[760px]">
           <thead>
             <tr class="border-b border-border text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider">
-              <th class="px-4 py-3">Statut</th>
-              <th class="px-4 py-3">Email</th>
-              <th class="px-4 py-3">Entreprise</th>
+              <th class="px-4 py-3">{{ $t('adminPages.users.status') }}</th>
+              <th class="px-4 py-3">{{ $t('adminPages.users.email') }}</th>
+              <th class="px-4 py-3">{{ $t('adminPages.users.company') }}</th>
               <th class="px-4 py-3">IP</th>
-              <th class="px-4 py-3">Navigateur</th>
-              <th class="px-4 py-3">Date</th>
+              <th class="px-4 py-3">{{ $t('adminPages.logins.browser') }}</th>
+              <th class="px-4 py-3">{{ $t('common.date') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
             <tr v-for="log in logs" :key="log.id" class="hover:bg-surface-tertiary/50 transition-all duration-200 hover:translate-x-0.5">
               <td class="px-4 py-3">
-                <span class="w-2.5 h-2.5 rounded-full inline-block transition-transform duration-300 group-hover:scale-125" :class="log.success ? 'bg-emerald-500' : 'bg-red-500'" :title="log.success ? 'Succès' : 'Échec'" />
+                <span class="w-2.5 h-2.5 rounded-full inline-block transition-transform duration-300 group-hover:scale-125" :class="log.success ? 'bg-emerald-500' : 'bg-red-500'" :title="log.success ? $t('adminPages.logins.success') : $t('adminPages.logins.failure')" />
               </td>
               <td class="px-4 py-3 text-sm font-medium text-text-primary">{{ log.email }}</td>
               <td class="px-4 py-3 text-sm text-text-secondary">{{ log.company?.name || '-' }}</td>
@@ -77,10 +77,10 @@
           </tbody>
         </table>
         </div>
-        <div v-if="!loading && logs.length === 0" class="p-8 text-center text-sm text-text-tertiary">Aucun log trouvé</div>
+        <div v-if="!loading && logs.length === 0" class="p-8 text-center text-sm text-text-tertiary">{{ $t('adminPages.logins.empty') }}</div>
 
         <div v-if="pagination" class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-border">
-          <p class="text-xs text-text-tertiary">{{ pagination.from }}-{{ pagination.to }} sur {{ pagination.total }}</p>
+          <p class="text-xs text-text-tertiary">{{ $t('common.pagination_summary', { from: pagination.from, to: pagination.to, total: pagination.total }) }}</p>
           <div class="flex items-center gap-1">
             <button :disabled="!pagination.prev_page_url" @click="goToPage(pagination.current_page - 1)" class="px-3 py-1 text-sm rounded-lg border border-border hover:bg-surface-tertiary disabled:opacity-40">&larr;</button>
             <span class="px-2 text-sm text-text-tertiary">{{ pagination.current_page }} / {{ pagination.last_page }}</span>
@@ -93,9 +93,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import SuperAdminLayout from './SuperAdminLayout.vue'
+import { useI18n } from 'vue-i18n'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -123,12 +124,13 @@ const failed24h = ref(0)
 const exporting = ref(false)
 const chartDataHourly = ref(null)
 const { isDark } = useTheme()
+const { t, locale } = useI18n()
 
 const dateOptions = computed(() => [
-  { value: '', label: 'Du...' },
-  { value: daysAgo(1), label: 'Hier' },
-  { value: daysAgo(7), label: '7 jours' },
-  { value: daysAgo(30), label: '30 jours' },
+  { value: '', label: t('adminPages.logins.from') },
+  { value: daysAgo(1), label: t('adminPages.logins.yesterday') },
+  { value: daysAgo(7), label: t('adminPages.logins.days', { count: 7 }) },
+  { value: daysAgo(30), label: t('adminPages.logins.days', { count: 30 }) },
 ])
 
 const chartOptionsHourly = computed(() => ({
@@ -166,7 +168,7 @@ function daysAgo(n) {
 
 function formatDate(date) {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(date).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function shortenUA(ua) {
@@ -188,8 +190,8 @@ async function fetchSummary() {
       chartDataHourly.value = {
         labels: data.hourly.map(i => i.hour),
         datasets: [
-          { label: 'Succès', data: data.hourly.map(i => i.success), backgroundColor: '#10b981', borderRadius: 3 },
-          { label: 'Échecs', data: data.hourly.map(i => i.failed), backgroundColor: '#f43f5e', borderRadius: 3 }
+          { label: t('adminPages.logins.success'), data: data.hourly.map(i => i.success), backgroundColor: '#10b981', borderRadius: 3 },
+          { label: t('adminPages.logins.failures'), data: data.hourly.map(i => i.failed), backgroundColor: '#f43f5e', borderRadius: 3 }
         ]
       }
     }
@@ -247,4 +249,5 @@ onMounted(() => {
   fetchLogs()
   fetchSummary()
 })
+watch(locale, fetchSummary)
 </script>

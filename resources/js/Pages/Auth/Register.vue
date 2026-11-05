@@ -12,12 +12,12 @@
           <AppLogo :size="40" />
           <div>
             <p class="auth-logo-name">SIDIBE CORPORATE</p>
-            <p class="auth-logo-sub">Facturation &amp; Stock</p>
+            <p class="auth-logo-sub">{{ $t('auth.brand_subtitle') }}</p>
           </div>
         </router-link>
 
-        <h2 class="auth-left-title">Créez votre<br><span>entreprise</span></h2>
-        <p class="auth-left-desc">Rejoignez +500 entreprises africaines qui gèrent leur business avec SIDIBE CORPORATE.</p>
+        <h2 class="auth-left-title">{{ $t('auth.register_welcome_title') }}</h2>
+        <p class="auth-left-desc">{{ $t('auth.register_welcome_description') }}</p>
 
         <!-- Steps progress -->
         <div class="left-steps">
@@ -26,8 +26,8 @@
               <span>1</span>
             </div>
             <div class="ls-text">
-              <p class="ls-title">Votre compte</p>
-              <p class="ls-sub">Nom, email, mot de passe</p>
+              <p class="ls-title">{{ $t('auth.your_account') }}</p>
+              <p class="ls-sub">{{ $t('auth.account_fields') }}</p>
             </div>
           </div>
         </div>
@@ -36,8 +36,8 @@
         <div class="left-testimonial">
           <div class="test-avatar">M</div>
           <div>
-            <p class="test-quote">"En 5 minutes, ma boutique était configurée et ma première facture envoyée."</p>
-            <p class="test-author">Moussa D. — Commerce général, Dakar</p>
+            <p class="test-quote">{{ $t('auth.testimonial_quote') }}</p>
+            <p class="test-author">{{ $t('auth.testimonial_author') }}</p>
           </div>
         </div>
       </div>
@@ -59,8 +59,8 @@
       <!-- Form card -->
       <div class="auth-card">
         <div class="auth-card-header">
-          <h1 class="auth-card-title">Créer votre compte</h1>
-          <p class="auth-card-sub">Quelques infos pour commencer — 14 jours d'essai gratuit</p>
+          <h1 class="auth-card-title">{{ $t('auth.register') }}</h1>
+          <p class="auth-card-sub">{{ $t('auth.register_description') }}</p>
         </div>
 
         <!-- Error alert -->
@@ -75,16 +75,16 @@
           <div class="auth-form">
               <template v-if="googleConfigured && !googleIdToken">
                 <GoogleSignInButton @credential="onGoogleCredential" @error="onGoogleError" />
-                <div class="auth-divider"><span>ou</span></div>
+                <div class="auth-divider"><span>{{ $t('auth.or') }}</span></div>
               </template>
               <div v-else-if="googleIdToken" class="google-linked">
                 <img v-if="googleAvatar" :src="googleAvatar" alt="" class="google-linked-avatar" referrerpolicy="no-referrer" />
-                <span class="google-linked-text">Inscription avec {{ form.email }}</span>
-                <button type="button" class="google-linked-cancel" @click="cancelGoogle" title="Annuler">✕</button>
+                <span class="google-linked-text">{{ $t('auth.google_signup', { email: form.email }) }}</span>
+                <button type="button" class="google-linked-cancel" @click="cancelGoogle" :title="$t('common.cancel')">✕</button>
               </div>
               <!-- Name -->
               <div class="field-group">
-                <label class="field-label">Nom de l'entreprise <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.company_name') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'name', 'field-error': errors.name }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 16.5v-13h-.25a.75.75 0 010-1.5h12.5a.75.75 0 010 1.5H16v13h.25a.75.75 0 010 1.5h-3.5a.75.75 0 010-1.5H13v-2.25a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v2.25h.25a.75.75 0 010 1.5H4.75a.75.75 0 010-1.5H5zm5.75-11h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5zM9.5 8.5a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5A.75.75 0 019.5 8.5zm.75 2.25a.75.75 0 000 1.5h.5a.75.75 0 000-1.5h-.5z" clip-rule="evenodd"/></svg>
@@ -96,24 +96,24 @@
 
               <!-- Company slug -->
               <div class="field-group">
-                <label class="field-label">Domaine de l'entreprise <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.company_domain') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'slug', 'field-error': errors.company_slug }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.493 2.853a.75.75 0 00-1.486-.205L7.545 6H4.198a.75.75 0 000 1.5h3.14l-.53 3.013a.75.75 0 001.486.205l.499-2.836A12.627 12.627 0 0112 8.25a12.627 12.627 0 013.207.411l.499 2.836a.75.75 0 001.486-.205l-.53-3.013h3.14a.75.75 0 000-1.5h-3.347l-.462-3.147a.75.75 0 00-1.486.205l.462 3.147H9.493l-.462-3.147zM12 15a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
                   </div>
-                  <input v-model="form.company_slug" type="text" required placeholder="mon-entreprise" class="field-input" @input="slugTouched = true" @focus="focused='slug'" @blur="focused=''" />
+                  <input v-model="form.company_slug" type="text" required :placeholder="$t('auth.company_slug_placeholder')" class="field-input" @input="slugTouched = true" @focus="focused='slug'" @blur="focused=''" />
                 </div>
                 <p v-if="errors.company_slug" class="field-error-msg">{{ errors.company_slug[0] }}</p>
               </div>
 
               <!-- Email -->
               <div class="field-group">
-                <label class="field-label">Email <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.email') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'email', 'field-error': errors.email }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/><path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/></svg>
                   </div>
-                  <input v-model="form.email" type="email" required placeholder="vous@exemple.com" class="field-input" :disabled="!!googleIdToken" @focus="focused='email'" @blur="focused=''" />
+                  <input v-model="form.email" type="email" required :placeholder="$t('auth.email_placeholder')" class="field-input" :disabled="!!googleIdToken" @focus="focused='email'" @blur="focused=''" />
                 </div>
                 <p v-if="errors.email" class="field-error-msg">{{ errors.email[0] }}</p>
               </div>
@@ -121,22 +121,22 @@
               <!-- Industry + Size row -->
               <div class="field-row">
                 <div class="field-group">
-                  <label class="field-label">Secteur</label>
+                  <label class="field-label">{{ $t('auth.industry') }}</label>
                   <div class="field-wrap select-wrap" :class="{ 'field-focused': focused === 'industry' }">
                     <select v-model="form.industry" class="field-input field-select" @focus="focused='industry'" @blur="focused=''">
-                      <option value="">Choisir...</option>
-                      <option v-for="s in industryOptions" :key="s" :value="s">{{ s }}</option>
+                      <option value="">{{ $t('auth.choose_industry') }}</option>
+                      <option v-for="(s, index) in industryOptions" :key="s" :value="s">{{ $t(`auth.industry_options.${index}`) }}</option>
                     </select>
                   </div>
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Taille</label>
+                  <label class="field-label">{{ $t('auth.company_size') }}</label>
                   <div class="field-wrap select-wrap" :class="{ 'field-focused': focused === 'size' }">
                     <select v-model="form.size" class="field-input field-select" @focus="focused='size'" @blur="focused=''">
-                      <option value="">Taille...</option>
-                      <option value="petite">Petite (1-9)</option>
-                      <option value="moyenne">Moyenne (10-49)</option>
-                      <option value="grande">Grande (50+)</option>
+                      <option value="">{{ $t('auth.choose_size') }}</option>
+                      <option value="petite">{{ $t('auth.size_petite') }} (1-9)</option>
+                      <option value="moyenne">{{ $t('auth.size_moyenne') }} (10-49)</option>
+                      <option value="grande">{{ $t('auth.size_grande') }} (50+)</option>
                     </select>
                   </div>
                 </div>
@@ -144,12 +144,12 @@
 
               <!-- Password -->
               <div v-if="!googleIdToken" class="field-group">
-                <label class="field-label">Mot de passe <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.password') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'pwd', 'field-error': errors.password }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>
                   </div>
-                  <input v-model="form.password" :type="showPwd ? 'text' : 'password'" required placeholder="8 caractères minimum" class="field-input" @focus="focused='pwd'" @blur="focused=''" />
+                  <input v-model="form.password" :type="showPwd ? 'text' : 'password'" required :placeholder="$t('auth.password_minimum')" class="field-input" @focus="focused='pwd'" @blur="focused=''" />
                   <button type="button" class="field-toggle" @click="showPwd = !showPwd">
                     <svg v-if="!showPwd" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/><path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41z" clip-rule="evenodd"/></svg>
                     <svg v-else viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.091 1.092a4 4 0 00-5.557-5.557z" clip-rule="evenodd"/><path d="M10.748 13.93l2.523 2.524a9.987 9.987 0 01-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 010-1.186A10.007 10.007 0 012.839 6.02L6.07 9.252a4 4 0 004.678 4.678z"/></svg>
@@ -166,7 +166,7 @@
 
               <!-- Confirm password -->
               <div v-if="!googleIdToken" class="field-group">
-                <label class="field-label">Confirmer le mot de passe <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.confirm_password') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'confirm', 'field-error': form.password_confirmation && form.password !== form.password_confirmation }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>
@@ -177,16 +177,16 @@
                     <svg v-else viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.091 1.092a4 4 0 00-5.557-5.557z" clip-rule="evenodd"/><path d="M10.748 13.93l2.523 2.524a9.987 9.987 0 01-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 010-1.186A10.007 10.007 0 012.839 6.02L6.07 9.252a4 4 0 004.678 4.678z"/></svg>
                   </button>
                 </div>
-                <p v-if="form.password_confirmation && form.password !== form.password_confirmation" class="field-error-msg">Les mots de passe ne correspondent pas</p>
+                <p v-if="form.password_confirmation && form.password !== form.password_confirmation" class="field-error-msg">{{ $t('auth.passwords_mismatch') }}</p>
               </div>
 
               <button type="submit" :disabled="loading || !canGoNext" class="auth-submit-btn">
                 <span v-if="loading" class="btn-loader">
                   <svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" opacity="0.3"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15" stroke-linecap="round"/></svg>
-                  Création...
+                  {{ $t('auth.register_loading') }}
                 </span>
                 <span v-else class="btn-inner">
-                  Démarrer mon essai gratuit
+                  {{ $t('auth.start_free_trial') }}
                   <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
                 </span>
               </button>
@@ -194,17 +194,17 @@
         </form>
 
         <p class="auth-switch-text">
-          Déjà un compte ?
-          <router-link :to="{ name: 'Login' }" class="auth-switch-link">Se connecter</router-link>
+          {{ $t('auth.has_account') }}
+          <router-link :to="{ name: 'Login' }" class="auth-switch-link">{{ $t('auth.sign_in') }}</router-link>
         </p>
       </div>
 
       <div class="auth-footer">
         <span>© 2026 SIDIBE CORPORATE</span>
         <span class="auth-footer-sep">·</span>
-        <a href="#">Confidentialité</a>
+        <a href="#">{{ $t('auth.privacy') }}</a>
         <span class="auth-footer-sep">·</span>
-        <a href="#">CGU</a>
+        <a href="#">{{ $t('auth.terms') }}</a>
       </div>
     </div>
   </div>
@@ -261,7 +261,7 @@ const pwdStrength = computed(() => {
   if (/[^A-Za-z0-9]/.test(p)) s++;
   return Math.max(1, s);
 });
-const pwdLabels = ['Très faible', 'Faible', 'Moyen', 'Fort'];
+const pwdLabels = computed(() => ['very_weak', 'weak', 'medium', 'strong'].map(key => t(`auth.password_strength.${key}`)))
 
 const canGoNext = computed(() => {
   if (googleIdToken.value) return !!(form.name && form.email);

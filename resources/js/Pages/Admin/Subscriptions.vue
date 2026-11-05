@@ -5,11 +5,11 @@
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
-            Facturation · {{ pagination?.total ?? '…' }} abonnements
+            {{ $t('adminPages.subscriptions.eyebrow', { count: pagination?.total ?? '…' }) }}
           </p>
-          <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">Abonnements</h2>
+          <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">{{ $t('admin.subscriptions') }}</h2>
           <p class="text-sm text-text-tertiary mt-1 font-medium">
-            Attribuez, renouvelez et suspendez les plans. Gérez les essais et les données gelées.
+            {{ $t('adminPages.subscriptions.description') }}
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -17,7 +17,7 @@
             <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356m-4.992 4.992l2.121-2.121a9 9 0 11-3.464 8.193" />
             </svg>
-            Actualiser
+            {{ $t('common.refresh') }}
           </button>
         </div>
       </div>
@@ -29,13 +29,13 @@
             <p class="text-sm font-extrabold text-text-primary truncate">{{ plan.name }}</p>
             <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full" :class="plan.slug === 'free' ? 'bg-neutral-500/10 text-neutral-500 border border-neutral-500/20' : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'">{{ plan.slug }}</span>
           </div>
-          <p class="mt-2 text-xl font-black tabular-nums text-text-primary">{{ plan.companies_count }} <span class="text-xs font-bold text-text-tertiary">entreprises</span></p>
-          <p class="mt-0.5 text-xs font-semibold text-text-tertiary">{{ plan.price_xof > 0 ? formatPrice(plan.price_xof, plan.currency) + '/mois' : 'Gratuit' }}</p>
+          <p class="mt-2 text-xl font-black tabular-nums text-text-primary">{{ plan.companies_count }} <span class="text-xs font-bold text-text-tertiary">{{ $t('adminPages.companies.company_plural') }}</span></p>
+          <p class="mt-0.5 text-xs font-semibold text-text-tertiary">{{ plan.price_xof > 0 ? formatCurrency(plan.price_xof, plan.currency) + '/' + $t('adminPages.subscriptions.month') : $t('adminPages.subscriptions.free') }}</p>
           <div class="mt-2 flex flex-wrap gap-1 text-[10px] font-bold text-text-tertiary">
-            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_users ?? '∞' }} util.</span>
-            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_products ?? '∞' }} prod.</span>
-            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_invoices ?? '∞' }} fact.</span>
-            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_warehouses ?? '∞' }} dép.</span>
+            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_users ?? '∞' }} {{ $t('adminPages.subscriptions.users_short') }}</span>
+            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_products ?? '∞' }} {{ $t('adminPages.subscriptions.products_short') }}</span>
+            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_invoices ?? '∞' }} {{ $t('adminPages.subscriptions.invoices_short') }}</span>
+            <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_warehouses ?? '∞' }} {{ $t('adminPages.subscriptions.warehouses_short') }}</span>
           </div>
         </div>
       </div>
@@ -48,8 +48,8 @@
               <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
             </span>
             <div>
-              <p class="text-sm font-extrabold text-text-primary">Entreprises Free au-dessus des quotas</p>
-              <p class="text-xs font-medium text-text-tertiary">Données gelées réversiblement — un upgrade les réactive automatiquement.</p>
+              <p class="text-sm font-extrabold text-text-primary">{{ $t('adminPages.subscriptions.over_quota_title') }}</p>
+              <p class="text-xs font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.over_quota_description') }}</p>
             </div>
           </div>
           <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold tabular-nums bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/25">{{ overQuota.length }}</span>
@@ -68,9 +68,9 @@
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
               <span v-for="item in row.quotas.resources.filter(r => r.over_quota)" :key="item.resource" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/25">
-                {{ item.label }} {{ item.used }}/{{ item.limit }}
+                {{ quotaLabel(item) }} {{ item.used }}/{{ item.limit }}
               </span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-surface border border-border text-text-secondary">{{ row.quotas.frozen_total }} gelé(s)</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-surface border border-border text-text-secondary">{{ $t('adminPages.companies.frozen_count', { count: row.quotas.frozen_total }) }}</span>
             </div>
             <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
           </button>
@@ -81,25 +81,25 @@
       <div class="pro-filterbar">
         <label class="flex items-center gap-2.5 flex-1 min-w-0 px-3.5 py-2.5 rounded-2xl bg-surface-secondary/70 border border-border/60 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition">
           <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-          <input v-model="filters.search" placeholder="Rechercher entreprise, slug, email…" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary placeholder:font-medium outline-none" @input="debouncedSearch" />
+          <input v-model="filters.search" :placeholder="$t('adminPages.companies.search')" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary placeholder:font-medium outline-none" @input="debouncedSearch" />
         </label>
         <div class="flex flex-wrap items-center gap-2">
           <select v-model="filters.subscription_status" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer" @change="fetchCompanies(1)">
-            <option value="">Tous les abonnements</option>
-            <option value="trial">Essai en cours</option>
-            <option value="expiring">Échéance sous 7 jours</option>
-            <option value="frozen">Avec données gelées</option>
+            <option value="">{{ $t('adminPages.subscriptions.all_subscriptions') }}</option>
+            <option value="trial">{{ $t('adminPages.companies.trial_in_progress') }}</option>
+            <option value="expiring">{{ $t('adminPages.subscriptions.expiring_soon') }}</option>
+            <option value="frozen">{{ $t('adminPages.subscriptions.with_frozen_data') }}</option>
           </select>
           <select v-model="filters.plan_id" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer" @change="fetchCompanies(1)">
-            <option value="">Tous les plans</option>
+            <option value="">{{ $t('adminPages.subscriptions.all_plans') }}</option>
             <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
           </select>
           <select v-model="filters.status" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer" @change="fetchCompanies(1)">
-            <option value="">Tous les statuts</option>
-            <option value="active">Actif</option>
-            <option value="trial">Essai</option>
-            <option value="suspended">Suspendu</option>
-            <option value="disabled">Désactivé</option>
+            <option value="">{{ $t('adminPages.subscriptions.all_statuses') }}</option>
+            <option value="active">{{ $t('adminPages.companies.statuses.active') }}</option>
+            <option value="trial">{{ $t('adminPages.companies.statuses.trial') }}</option>
+            <option value="suspended">{{ $t('adminPages.companies.statuses.suspended') }}</option>
+            <option value="disabled">{{ $t('adminPages.companies.statuses.disabled') }}</option>
           </select>
         </div>
       </div>
@@ -116,13 +116,13 @@
           <table class="w-full min-w-[980px]">
             <thead>
               <tr class="border-b border-border/70 text-left text-[11px] font-extrabold text-text-tertiary uppercase tracking-[0.1em] bg-surface-secondary/50">
-                <th class="px-5 py-4">Entreprise</th>
-                <th class="px-5 py-4">Plan</th>
-                <th class="px-5 py-4">Statut</th>
-                <th class="px-5 py-4">Essai</th>
-                <th class="px-5 py-4">Abonnement</th>
-                <th class="px-5 py-4">Gelé</th>
-                <th class="px-5 py-4 text-right">Actions</th>
+                <th class="px-5 py-4">{{ $t('adminPages.companies.company') }}</th>
+                <th class="px-5 py-4">{{ $t('adminPages.companies.plan') }}</th>
+                <th class="px-5 py-4">{{ $t('common.status') }}</th>
+                <th class="px-5 py-4">{{ $t('adminPages.subscriptions.trial') }}</th>
+                <th class="px-5 py-4">{{ $t('admin.subscriptions') }}</th>
+                <th class="px-5 py-4">{{ $t('adminPages.companies.frozen') }}</th>
+                <th class="px-5 py-4 text-right">{{ $t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border/50">
@@ -138,7 +138,7 @@
                 </td>
                 <td class="px-5 py-3.5">
                   <p class="text-[13px] font-extrabold text-text-primary">{{ company.plan?.name || '—' }}</p>
-                  <p class="text-[11px] font-semibold text-text-tertiary">{{ company.plan?.price_xof > 0 ? formatPrice(company.plan.price_xof, 'XOF') + '/mois' : 'Gratuit' }}</p>
+                  <p class="text-[11px] font-semibold text-text-tertiary">{{ company.plan?.price_xof > 0 ? formatCurrency(company.plan.price_xof, 'XOF') + '/' + $t('adminPages.subscriptions.month') : $t('adminPages.subscriptions.free') }}</p>
                 </td>
                 <td class="px-4 py-3">
                   <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full" :class="statusClass(company.status)">{{ statusLabel(company.status) }}</span>
@@ -146,15 +146,15 @@
                 <td class="px-5 py-3.5">
                   <template v-if="company.trial_ends_at">
                     <p class="text-[13px] font-bold tabular-nums" :class="company.trial_active ? 'text-amber-600 dark:text-amber-400' : 'text-text-secondary'">
-                      {{ company.trial_active ? `${daysLeft(company.trial_ends_at)} j restants` : 'Terminé' }}
+                      {{ company.trial_active ? $t('adminPages.subscriptions.days_remaining', { count: daysLeft(company.trial_ends_at) }) : $t('adminPages.subscriptions.ended') }}
                     </p>
-                    <p class="text-[11px] font-medium text-text-tertiary tabular-nums">{{ formatDateShort(company.trial_ends_at) }}</p>
+                    <p class="text-[11px] font-medium text-text-tertiary tabular-nums">{{ dateShort(company.trial_ends_at) }}</p>
                   </template>
                   <span v-else class="text-xs font-semibold text-text-tertiary">—</span>
                 </td>
                 <td class="px-5 py-3.5">
                   <template v-if="company.subscription">
-                    <p class="text-[13px] font-bold text-text-primary tabular-nums">{{ formatDateShort(company.subscription.ends_at) }}</p>
+                    <p class="text-[13px] font-bold text-text-primary tabular-nums">{{ dateShort(company.subscription.ends_at) }}</p>
                     <span class="inline-flex mt-0.5 px-1.5 py-px rounded text-[10px] font-extrabold uppercase tracking-wider" :class="subscriptionClass(company.subscription.status)">{{ subscriptionLabel(company.subscription.status) }}</span>
                   </template>
                   <span v-else class="text-xs font-semibold text-text-tertiary">—</span>
@@ -168,9 +168,9 @@
                 </td>
                 <td class="px-5 py-3.5">
                   <div class="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                    <button @click="openDetails(company.id)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blue-600 hover:text-white bg-blue-500/10 hover:bg-blue-600 border border-blue-500/20 rounded-xl transition">Gérer</button>
-                    <button v-if="company.status !== 'suspended'" @click="quickSuspend(company)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-rose-600 hover:text-white bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 rounded-xl transition">Suspendre</button>
-                    <button v-else @click="quickReactivate(company)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 hover:text-white bg-emerald-500/10 hover:bg-emerald-600 border border-emerald-500/20 rounded-xl transition">Réactiver</button>
+                    <button @click="openDetails(company.id)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blue-600 hover:text-white bg-blue-500/10 hover:bg-blue-600 border border-blue-500/20 rounded-xl transition">{{ $t('adminPages.companies.manage') }}</button>
+                    <button v-if="company.status !== 'suspended'" @click="quickSuspend(company)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-rose-600 hover:text-white bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 rounded-xl transition">{{ $t('adminPages.subscriptions.suspend') }}</button>
+                    <button v-else @click="quickReactivate(company)" class="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 hover:text-white bg-emerald-500/10 hover:bg-emerald-600 border border-emerald-500/20 rounded-xl transition">{{ $t('adminPages.subscriptions.reactivate') }}</button>
                   </div>
                 </td>
               </tr>
@@ -182,8 +182,8 @@
           <div class="mx-auto w-14 h-14 rounded-[1.25rem] bg-surface-secondary border border-border flex items-center justify-center mb-3 text-text-tertiary">
             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
           </div>
-          <p class="text-sm font-extrabold text-text-primary">Aucun abonnement trouvé</p>
-          <p class="text-xs text-text-tertiary mt-1">Ajustez vos filtres ou réessayez.</p>
+          <p class="text-sm font-extrabold text-text-primary">{{ $t('adminPages.subscriptions.empty_title') }}</p>
+          <p class="text-xs text-text-tertiary mt-1">{{ $t('adminPages.companies.empty_description') }}</p>
         </div>
 
         <div v-if="pagination" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-t border-border/70 bg-surface-secondary/40">
@@ -218,30 +218,30 @@
                       <span class="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />{{ statusLabel(detail.company.status) }}
                     </span>
                     <span v-if="detail.plan" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-neutral-950/25 border border-white/25 backdrop-blur">◆ {{ detail.plan.name }}</span>
-                    <span v-if="detail.quotas.over_quota" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-400 text-amber-950 border border-amber-300">Quotas dépassés</span>
+                    <span v-if="detail.quotas.over_quota" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-400 text-amber-950 border border-amber-300">{{ $t('adminPages.subscriptions.quotas_exceeded') }}</span>
                   </div>
                   <p class="mt-1 text-xs font-mono text-emerald-50/80 truncate">{{ detail.company.slug }} · #{{ detail.company.id }}</p>
                   <p class="text-[13px] text-emerald-50/90 mt-0.5 truncate">{{ detail.company.email || '—' }}</p>
                 </div>
-                <button @click="closeDetails" class="flex items-center justify-center w-9 h-9 rounded-2xl bg-white/15 border border-white/25 backdrop-blur hover:bg-white/30 active:scale-95 transition shrink-0" title="Fermer">
+                <button @click="closeDetails" class="flex items-center justify-center w-9 h-9 rounded-2xl bg-white/15 border border-white/25 backdrop-blur hover:bg-white/30 active:scale-95 transition shrink-0" :title="$t('common.close')">
                   <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
               <div class="relative grid grid-cols-2 sm:grid-cols-4 border-t border-white/15 divide-x divide-white/15 bg-emerald-950/15 backdrop-blur text-center">
                 <div class="px-3 py-3">
-                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">Utilisateurs</p>
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">{{ $t('adminPages.companies.users') }}</p>
                   <p class="text-lg font-black tabular-nums">{{ quotaOf('users')?.used ?? 0 }}</p>
                 </div>
                 <div class="px-3 py-3">
-                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">Produits</p>
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">{{ $t('nav.products') }}</p>
                   <p class="text-lg font-black tabular-nums">{{ quotaOf('products')?.used ?? 0 }}</p>
                 </div>
                 <div class="px-3 py-3">
-                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">Factures</p>
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">{{ $t('nav.invoices') }}</p>
                   <p class="text-lg font-black tabular-nums">{{ quotaOf('invoices')?.used ?? 0 }}</p>
                 </div>
                 <div class="px-3 py-3">
-                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">Gelés</p>
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-50/70">{{ $t('adminPages.companies.frozen') }}</p>
                   <p class="text-lg font-black tabular-nums">{{ detail.quotas.frozen_total }}</p>
                 </div>
               </div>
@@ -258,55 +258,55 @@
               <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <!-- Subscription state -->
                 <section class="lg:col-span-3 p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
-                  <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">État de l'abonnement</h4>
-                  <p class="text-xs font-medium text-text-tertiary">Plan, essai et période en cours</p>
+                  <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('adminPages.subscriptions.subscription_state') }}</h4>
+                  <p class="text-xs font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.state_description') }}</p>
 
                   <div class="mt-4 grid sm:grid-cols-2 gap-2.5 text-xs font-semibold">
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Plan actuel</p>
-                      <p class="mt-0.5 text-[13px] font-bold text-text-primary">{{ detail.plan?.name || 'Aucun' }}</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.subscriptions.current_plan') }}</p>
+                      <p class="mt-0.5 text-[13px] font-bold text-text-primary">{{ detail.plan?.name || $t('common.none') }}</p>
                     </div>
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Statut entreprise</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.subscriptions.company_status') }}</p>
                       <p class="mt-0.5 text-[13px] font-bold text-text-primary">{{ statusLabel(detail.company.status) }}</p>
                     </div>
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Début d'essai</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.subscriptions.trial_start') }}</p>
                       <p class="mt-0.5 text-[13px] font-bold text-text-primary tabular-nums">{{ formatDateOrDash(detail.company.trial_started_at) }}</p>
                     </div>
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Fin d'essai</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.companies.trial_end') }}</p>
                       <p class="mt-0.5 text-[13px] font-bold tabular-nums" :class="detail.company.trial_active ? 'text-amber-600 dark:text-amber-400' : 'text-text-primary'">
                         {{ formatDateOrDash(detail.company.trial_ends_at) }}
-                        <span v-if="detail.company.trial_active" class="ml-1 text-[10px] font-extrabold uppercase">({{ daysLeft(detail.company.trial_ends_at) }} j)</span>
+                        <span v-if="detail.company.trial_active" class="ml-1 text-[10px] font-extrabold uppercase">({{ $t('adminPages.subscriptions.days_short', { count: daysLeft(detail.company.trial_ends_at) }) }})</span>
                       </p>
                     </div>
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Début abonnement</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.subscriptions.subscription_start') }}</p>
                       <p class="mt-0.5 text-[13px] font-bold text-text-primary tabular-nums">{{ formatDateOrDash(detail.subscription?.starts_at) }}</p>
                     </div>
                     <div class="rounded-xl bg-surface-secondary/60 border border-border/50 px-3 py-2.5">
-                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">Fin abonnement</p>
+                      <p class="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">{{ $t('adminPages.companies.subscription_end') }}</p>
                       <p class="mt-0.5 text-[13px] font-bold text-text-primary tabular-nums">{{ formatDateOrDash(detail.subscription?.ends_at) }}</p>
                     </div>
                   </div>
 
                   <div v-if="detail.subscription?.notes" class="mt-3 rounded-xl bg-blue-500/[0.07] border border-blue-500/20 px-3 py-2 text-xs font-semibold text-text-secondary">
-                    <span class="font-extrabold text-blue-600 dark:text-blue-400">Note :</span> {{ detail.subscription.notes }}
+                    <span class="font-extrabold text-blue-600 dark:text-blue-400">{{ $t('common.note') }}:</span> {{ detail.subscription.notes }}
                   </div>
 
                   <!-- Quotas -->
                   <div class="mt-4 pt-4 border-t border-border">
-                    <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-text-tertiary mb-2">Quotas du plan</p>
+                    <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-text-tertiary mb-2">{{ $t('adminPages.subscriptions.plan_quotas') }}</p>
                     <div class="space-y-2">
                       <div v-for="item in detail.quotas.resources" :key="item.resource" class="flex items-center gap-2.5">
-                        <span class="w-24 shrink-0 text-xs font-bold text-text-secondary">{{ item.label }}</span>
+                        <span class="w-24 shrink-0 text-xs font-bold text-text-secondary">{{ quotaLabel(item) }}</span>
                         <div class="flex-1 h-2 rounded-full bg-surface-secondary border border-border/50 overflow-hidden">
                           <div class="h-full rounded-full" :class="item.over_quota ? 'bg-amber-500' : 'bg-emerald-500'" :style="{ width: quotaBarWidth(item) }"></div>
                         </div>
                         <span class="w-24 shrink-0 text-right text-[11px] font-extrabold tabular-nums" :class="item.over_quota ? 'text-amber-600 dark:text-amber-400' : 'text-text-primary'">
                           {{ item.used }}/{{ item.limit < 0 ? '∞' : item.limit }}
-                          <span v-if="item.frozen > 0" class="text-amber-600 dark:text-amber-400"> · {{ item.frozen }} gelé(s)</span>
+                          <span v-if="item.frozen > 0" class="text-amber-600 dark:text-amber-400"> · {{ $t('adminPages.companies.frozen_count', { count: item.frozen }) }}</span>
                         </span>
                       </div>
                     </div>
@@ -315,66 +315,66 @@
 
                 <!-- Actions -->
                 <section class="lg:col-span-2 p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
-                  <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Actions</h4>
-                  <p class="text-xs font-medium text-text-tertiary">Gestion manuelle centralisée</p>
+                  <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('common.actions') }}</h4>
+                  <p class="text-xs font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.manual_management') }}</p>
 
                   <div class="mt-4 space-y-4">
                     <!-- Assign -->
                     <div>
-                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">Attribuer un plan</label>
+                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">{{ $t('adminPages.subscriptions.assign_plan') }}</label>
                       <select v-model="forms.assign.plan_id" class="w-full px-3 py-2 text-sm font-semibold rounded-xl border border-border bg-surface-secondary/50 text-text-primary outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition cursor-pointer">
-                        <option value="">Choisir un plan…</option>
-                        <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }} — {{ plan.price_xof > 0 ? formatPrice(plan.price_xof, plan.currency) : 'Gratuit' }}</option>
+                        <option value="">{{ $t('adminPages.subscriptions.choose_plan') }}</option>
+                        <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }} — {{ plan.price_xof > 0 ? formatCurrency(plan.price_xof, plan.currency) : $t('adminPages.subscriptions.free') }}</option>
                       </select>
-                      <input v-model="forms.assign.ends_at" type="date" class="mt-1.5 w-full px-3 py-2 text-sm font-medium rounded-xl border border-border bg-surface-secondary/50 text-text-primary outline-none focus:border-emerald-500 transition" :title="'Fin optionnelle (sinon +1 mois)'" />
+                      <input v-model="forms.assign.ends_at" type="date" class="mt-1.5 w-full px-3 py-2 text-sm font-medium rounded-xl border border-border bg-surface-secondary/50 text-text-primary outline-none focus:border-emerald-500 transition" :title="$t('adminPages.subscriptions.optional_end_date')" />
                       <button @click="runAction('assign')" :disabled="actionLoading || !forms.assign.plan_id" class="mt-1.5 w-full px-3 py-2 text-xs font-extrabold text-white bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-md shadow-emerald-500/20 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 transition">
-                        {{ actionLoading === 'assign' ? 'Application…' : 'Appliquer le plan' }}
+                        {{ actionLoading === 'assign' ? $t('adminPages.subscriptions.applying') : $t('adminPages.subscriptions.apply_plan') }}
                       </button>
                     </div>
 
                     <!-- Renew -->
                     <div class="pt-3 border-t border-border/70">
-                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">Renouveler</label>
+                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">{{ $t('adminPages.subscriptions.renew') }}</label>
                       <div class="flex gap-1.5">
                         <select v-model.number="forms.renew.months" class="flex-1 min-w-0 px-3 py-2 text-sm font-semibold rounded-xl border border-border bg-surface-secondary/50 text-text-primary outline-none focus:border-emerald-500 transition cursor-pointer">
-                          <option :value="1">1 mois</option>
-                          <option :value="3">3 mois</option>
-                          <option :value="6">6 mois</option>
-                          <option :value="12">12 mois</option>
-                          <option :value="24">24 mois</option>
+                          <option :value="1">{{ $t('adminPages.subscriptions.month_count', { count: 1 }) }}</option>
+                          <option :value="3">{{ $t('adminPages.subscriptions.month_count', { count: 3 }) }}</option>
+                          <option :value="6">{{ $t('adminPages.subscriptions.month_count', { count: 6 }) }}</option>
+                          <option :value="12">{{ $t('adminPages.subscriptions.month_count', { count: 12 }) }}</option>
+                          <option :value="24">{{ $t('adminPages.subscriptions.month_count', { count: 24 }) }}</option>
                         </select>
                         <button @click="runAction('renew')" :disabled="actionLoading || !detail.plan || detail.plan.slug === 'free'" class="px-3 py-2 text-xs font-extrabold text-white bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md shadow-blue-500/20 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 transition shrink-0">
-                          {{ actionLoading === 'renew' ? '…' : 'Renouveler' }}
+                          {{ actionLoading === 'renew' ? '…' : $t('adminPages.subscriptions.renew') }}
                         </button>
                       </div>
-                      <p v-if="!detail.plan || detail.plan.slug === 'free'" class="mt-1 text-[10px] font-semibold text-text-tertiary">Attribuez d'abord un plan payant.</p>
+                      <p v-if="!detail.plan || detail.plan.slug === 'free'" class="mt-1 text-[10px] font-semibold text-text-tertiary">{{ $t('adminPages.subscriptions.assign_paid_plan_first') }}</p>
                     </div>
 
                     <!-- Trial -->
                     <div class="pt-3 border-t border-border/70">
-                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">Période d'essai</label>
+                      <label class="block text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary mb-1.5">{{ $t('adminPages.subscriptions.trial_period') }}</label>
                       <div class="flex gap-1.5">
                         <input v-model.number="forms.trial.days" type="number" min="1" max="365" class="w-20 px-2.5 py-2 text-sm font-semibold rounded-xl border border-border bg-surface-secondary/50 text-text-primary outline-none focus:border-emerald-500 transition" />
                         <button @click="runAction('extend')" :disabled="actionLoading || !forms.trial.days" class="flex-1 px-3 py-2 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/25 rounded-xl active:scale-[0.98] disabled:opacity-40 transition">
-                          {{ actionLoading === 'extend' ? '…' : 'Prolonger' }}
+                          {{ actionLoading === 'extend' ? '…' : $t('adminPages.subscriptions.extend') }}
                         </button>
                         <button @click="runAction('reset')" :disabled="actionLoading" class="flex-1 px-3 py-2 text-xs font-extrabold text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 rounded-xl active:scale-[0.98] disabled:opacity-40 transition">
-                          {{ actionLoading === 'reset' ? '…' : 'Réinitialiser' }}
+                          {{ actionLoading === 'reset' ? '…' : $t('adminPages.subscriptions.reset') }}
                         </button>
                       </div>
-                      <p class="mt-1 text-[10px] font-semibold text-text-tertiary">Réinitialiser redémarre un essai complet à partir d'aujourd'hui.</p>
+                      <p class="mt-1 text-[10px] font-semibold text-text-tertiary">{{ $t('adminPages.subscriptions.reset_trial_description') }}</p>
                     </div>
 
                     <!-- Suspend / sync -->
                     <div class="pt-3 border-t border-border/70 flex flex-wrap gap-1.5">
                       <button v-if="detail.company.status !== 'suspended'" @click="runAction('suspend')" :disabled="actionLoading" class="flex-1 px-3 py-2 text-xs font-extrabold text-rose-600 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/25 rounded-xl active:scale-[0.98] disabled:opacity-40 transition">
-                        {{ actionLoading === 'suspend' ? '…' : 'Suspendre' }}
+                        {{ actionLoading === 'suspend' ? '…' : $t('adminPages.subscriptions.suspend') }}
                       </button>
                       <button v-else @click="runAction('reactivate')" :disabled="actionLoading" class="flex-1 px-3 py-2 text-xs font-extrabold text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/25 rounded-xl active:scale-[0.98] disabled:opacity-40 transition">
-                        {{ actionLoading === 'reactivate' ? '…' : 'Réactiver' }}
+                        {{ actionLoading === 'reactivate' ? '…' : $t('adminPages.subscriptions.reactivate') }}
                       </button>
                       <button @click="runAction('sync')" :disabled="actionLoading" class="flex-1 px-3 py-2 text-xs font-extrabold text-text-secondary bg-surface-secondary hover:bg-surface-tertiary border border-border rounded-xl active:scale-[0.98] disabled:opacity-40 transition">
-                        {{ actionLoading === 'sync' ? '…' : 'Resynchroniser le gel' }}
+                        {{ actionLoading === 'sync' ? '…' : $t('adminPages.subscriptions.sync_frozen') }}
                       </button>
                     </div>
                   </div>
@@ -385,8 +385,8 @@
               <section v-if="hasFrozenRecords" class="p-5 rounded-[1.25rem] bg-surface border border-amber-500/25 shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div>
-                    <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Données gelées</h4>
-                    <p class="text-xs font-medium text-text-tertiary">Conservées en base, désactivées jusqu'à un upgrade</p>
+                    <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('adminPages.subscriptions.frozen_data') }}</h4>
+                    <p class="text-xs font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.frozen_data_description') }}</p>
                   </div>
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-extrabold tabular-nums bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">{{ detail.quotas.frozen_total }}</span>
                 </div>
@@ -399,7 +399,7 @@
                         <span class="font-mono text-[10px] text-text-tertiary truncate">{{ item.reference }}</span>
                       </li>
                     </ul>
-                    <p v-else class="text-[11px] font-medium text-text-tertiary">Aucun élément.</p>
+                    <p v-else class="text-[11px] font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.no_items') }}</p>
                   </div>
                 </div>
               </section>
@@ -408,18 +408,18 @@
               <section class="p-5 rounded-[1.25rem] bg-surface border border-border/70 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                   <div>
-                    <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">Historique des abonnements</h4>
-                    <p class="text-xs font-medium text-text-tertiary">Dernières actions Super Admin et système</p>
+                    <h4 class="text-[15px] font-extrabold tracking-tight text-text-primary">{{ $t('adminPages.subscriptions.history') }}</h4>
+                    <p class="text-xs font-medium text-text-tertiary">{{ $t('adminPages.subscriptions.history_description') }}</p>
                   </div>
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-extrabold tabular-nums bg-surface-secondary border border-border text-text-secondary">{{ detail.history?.length || 0 }}</span>
                 </div>
-                <div v-if="!detail.history || detail.history.length === 0" class="py-5 text-center text-sm font-bold text-text-tertiary">Aucune action enregistrée.</div>
+                <div v-if="!detail.history || detail.history.length === 0" class="py-5 text-center text-sm font-bold text-text-tertiary">{{ $t('adminPages.subscriptions.no_history') }}</div>
                 <ol v-else class="relative ml-2 space-y-1 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
                   <li v-for="entry in detail.history" :key="entry.id" class="relative ml-5 pl-4 pb-4 border-l-2 border-border/70 last:pb-0">
                     <span class="absolute -left-[7px] top-1 w-3 h-3 rounded-full border-[2.5px] border-surface shadow" :class="eventDotClass(entry.event)"></span>
                     <p class="text-[13px] font-semibold text-text-primary leading-snug">{{ entry.description }}</p>
                     <p class="text-[11px] font-medium text-text-tertiary mt-1 flex items-center gap-1.5 flex-wrap">
-                      {{ formatDateTime(entry.created_at) }} · {{ entry.user ? entry.user.name : 'Système' }}
+                      {{ dateTime(entry.created_at) }} · {{ entry.user ? entry.user.name : $t('adminPages.activity.system') }}
                       <span v-if="entry.event" class="px-2 py-px rounded-full text-[10px] font-extrabold uppercase tracking-wider border bg-surface-secondary border-border text-text-tertiary">{{ entry.event }}</span>
                     </p>
                   </li>
@@ -428,7 +428,7 @@
             </div>
 
             <div class="px-4 sm:px-6 py-4 border-t border-border/70 bg-surface/90 backdrop-blur flex justify-end gap-2.5 shrink-0">
-              <button @click="closeDetails" class="px-5 py-2.5 text-sm font-bold text-text-secondary border border-border hover:bg-surface-tertiary rounded-2xl transition active:scale-[0.98]">Fermer</button>
+              <button @click="closeDetails" class="px-5 py-2.5 text-sm font-bold text-text-secondary border border-border hover:bg-surface-tertiary rounded-2xl transition active:scale-[0.98]">{{ $t('common.close') }}</button>
             </div>
           </div>
         </Transition>
@@ -439,9 +439,12 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import SuperAdminLayout from './SuperAdminLayout.vue'
 import { formatPrice, formatDateShort, formatDateTime } from '../../utils/format'
+
+const { t, locale } = useI18n()
 
 const companies = ref([])
 const plans = ref([])
@@ -460,11 +463,21 @@ const forms = reactive({
   trial: { days: 14 },
 })
 
-const STATUS_LABELS = { active: 'Actif', trial: 'Essai', suspended: 'Suspendu', disabled: 'Désactivé' }
-const SUBSCRIPTION_LABELS = { active: 'Actif', suspended: 'Suspendu', expired: 'Expiré', canceled: 'Annulé' }
+const STATUS_LABELS = {
+  active: 'adminPages.companies.statuses.active',
+  trial: 'adminPages.companies.statuses.trial',
+  suspended: 'adminPages.companies.statuses.suspended',
+  disabled: 'adminPages.companies.statuses.disabled',
+}
+const SUBSCRIPTION_LABELS = {
+  active: 'adminPages.companies.subscription_statuses.active',
+  suspended: 'adminPages.companies.subscription_statuses.suspended',
+  expired: 'adminPages.companies.subscription_statuses.expired',
+  canceled: 'adminPages.companies.subscription_statuses.canceled',
+}
 
 function statusLabel(status) {
-  return STATUS_LABELS[status] || status || '—'
+  return STATUS_LABELS[status] ? t(STATUS_LABELS[status]) : status || '—'
 }
 
 function statusClass(status) {
@@ -478,7 +491,7 @@ function statusClass(status) {
 }
 
 function subscriptionLabel(status) {
-  return SUBSCRIPTION_LABELS[status] || status || '—'
+  return SUBSCRIPTION_LABELS[status] ? t(SUBSCRIPTION_LABELS[status]) : status || '—'
 }
 
 function subscriptionClass(status) {
@@ -498,7 +511,30 @@ function daysLeft(value) {
 }
 
 function formatDateOrDash(value) {
-  return value ? formatDateShort(value) : '—'
+  return value ? formatDateShort(value, locale.value) : '—'
+}
+
+function dateShort(value) {
+  return formatDateShort(value, locale.value)
+}
+
+function dateTime(value) {
+  return formatDateTime(value, locale.value)
+}
+
+function formatCurrency(value, currency = 'XOF') {
+  return formatPrice(value, currency, locale.value)
+}
+
+function quotaLabel(item) {
+  const keys = {
+    users: 'adminPages.companies.users',
+    products: 'nav.products',
+    invoices: 'nav.invoices',
+    warehouses: 'nav.warehouses',
+    customers: 'nav.customers',
+  }
+  return keys[item.resource] ? t(keys[item.resource]) : item.label
 }
 
 function quotaOf(resource) {
@@ -514,10 +550,10 @@ function quotaBarWidth(item) {
 const frozenGroups = computed(() => {
   const records = detail.value?.frozen_records || {}
   return [
-    { key: 'products', label: 'Produits', items: records.products || [] },
-    { key: 'invoices', label: 'Factures', items: records.invoices || [] },
-    { key: 'warehouses', label: 'Entrepôts', items: records.warehouses || [] },
-    { key: 'users', label: 'Utilisateurs', items: records.users || [] },
+    { key: 'products', label: t('nav.products'), items: records.products || [] },
+    { key: 'invoices', label: t('nav.invoices'), items: records.invoices || [] },
+    { key: 'warehouses', label: t('nav.warehouses'), items: records.warehouses || [] },
+    { key: 'users', label: t('adminPages.companies.users'), items: records.users || [] },
   ]
 })
 
@@ -637,21 +673,21 @@ async function runAction(action) {
     }
 
     notice.type = 'success'
-    notice.message = response?.data?.message || 'Action effectuée.'
+    notice.message = response?.data?.message || t('adminPages.subscriptions.action_done')
     await reloadDetails()
     await Promise.all([fetchCompanies(pagination.value?.current_page || 1), fetchOverQuota(), fetchPlans()])
   } catch (err) {
     notice.type = 'error'
     notice.message = err.response?.data?.message
       || Object.values(err.response?.data?.errors || {}).flat()?.[0]
-      || 'Erreur lors de l’action.'
+      || t('adminPages.subscriptions.action_error')
   } finally {
     actionLoading.value = ''
   }
 }
 
 async function quickSuspend(company) {
-  if (!confirm(`Suspendre l'entreprise "${company.name}" ?\nTous ses utilisateurs seront bloqués immédiatement.`)) return
+  if (!confirm(t('adminPages.subscriptions.confirm_suspend', { name: company.name }))) return
   try {
     await axios.post(`/admin/subscriptions/${company.id}/suspend`)
     await refreshAll()

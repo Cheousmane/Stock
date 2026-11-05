@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Invoice;
+use App\Support\Money;
 use App\Support\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -51,5 +53,62 @@ class InvoiceRequest extends FormRequest
         ];
 
         return $rules;
+    }
+
+    public function after(): array
+    {
+        return [
+            function ($validator): void {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
+
+                $invoice = $this->route('invoice');
+                $invoice = $invoice instanceof Invoice ? $invoice : null;
+
+                if ($this->exists('items')) {
+                    $subtotal = 0;
+                    $tax = 0;
+
+                    foreach ($this->input('items', []) as $item) {
+                        $itemSubtotal = Money::multiply(
+                            (int) ($item['unit_price_xof'] ?? 0),
+                            (int) ($item['quantity'] ?? 1),
+                        );
+                        $subtotal = Money::add($subtotal, $itemSubtotal);
+                        $tax = Money::add(
+                            $tax,
+                            Money::percent($itemSubtotal, (float) ($item['tax_rate'] ?? 0)),
+                        );
+                    }
+                } elseif ($invoice !== null) {
+                    $subtotal = (int) $invoice->subtotal_xof;
+                    $tax = (int) $invoice->tax_xof;
+                } else {
+                    return;
+                }
+
+                $grossTotal = Money::add($subtotal, $tax);
+                $discount = $this->exists('discount_xof')
+                    ? (int) ($this->input('discount_xof') ?? 0)
+                    : (int) ($invoice?->discount_xof ?? 0);
+
+                if ($discount > $grossTotal) {
+                    $validator->errors()->add(
+                        'discount_xof',
+                        'La remise ne peut pas dépasser le montant avant remise.',
+                    );
+
+                    return;
+                }
+
+                if ($invoice !== null && $grossTotal - $discount < (int) $invoice->paid_xof) {
+                    $validator->errors()->add(
+                        'discount_xof',
+                        'Le total après remise ne peut pas être inférieur aux paiements déjà enregistrés.',
+                    );
+                }
+            },
+        ];
     }
 }

@@ -91,6 +91,37 @@ describe('Payment API', function () {
         ]);
     });
 
+    it('rejects a payment greater than the remaining invoice balance', function () {
+        [$company, $user] = paymentAuthUser();
+        $customer = Customer::factory()->create(['company_id' => $company->id]);
+        $invoice = Invoice::factory()->create([
+            'company_id' => $company->id,
+            'customer_id' => $customer->id,
+            'total_xof' => 10000,
+            'paid_xof' => 3000,
+            'balance_due_xof' => 7000,
+        ]);
+
+        $response = $this->withHeaders([
+            'X-Tenant-Slug' => 'acme',
+            'Authorization' => 'Bearer ' . $user->createToken('auth_token')->plainTextToken,
+        ])->postJson('/api/v1/payments', [
+            'invoice_id' => $invoice->id,
+            'amount_xof' => 7001,
+            'method' => 'cash',
+            'payment_date' => '2026-05-22',
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('amount_xof');
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'paid_xof' => 3000,
+            'balance_due_xof' => 7000,
+        ]);
+    });
+
     it('lists payments', function () {
         [$company, $user, $token] = paymentAuthUser();
         $customer = Customer::factory()->create(['company_id' => $company->id]);

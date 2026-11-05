@@ -1,9 +1,9 @@
 <template>
   <AdminLayout>
     <div class="space-y-4">
-      <BasePageHeader eyebrow="Système" title="Paramètres" subtitle="Configuration de l'entreprise, rôles et préférences">
+      <BasePageHeader :eyebrow="$t('settings.system')" :title="$t('settings.title')" :subtitle="$t('settings.page_description')">
         <template #actions>
-          <BaseButton variant="ghost" size="sm" @click="fetchData()" title="Rafraîchir">
+          <BaseButton variant="ghost" size="sm" @click="fetchData()" :title="$t('common.refresh')">
             <ArrowPathIcon class="w-4 h-4" />
           </BaseButton>
         </template>
@@ -15,22 +15,22 @@
 
       <template v-else>
         <!-- Company Info -->
-        <BaseCard title="Entreprise" padding="lg">
+        <BaseCard :title="$t('settings.company')" padding="lg">
           <form @submit.prevent="submit" class="space-y-4">
             <div>
-              <label class="pro-form-label">Logo</label>
+              <label class="pro-form-label">{{ $t('settings.logo') }}</label>
               <div class="flex items-center gap-4">
                 <div v-if="logoPreview || logoUrl" class="flex-shrink-0 w-16 h-16 rounded-xl border border-border/70 overflow-hidden bg-surface-tertiary flex items-center justify-center">
-                  <img :src="logoPreview || logoUrl" alt="Logo" class="w-full h-full object-contain" />
+                  <img :src="logoPreview || logoUrl" :alt="$t('settings.logo')" class="w-full h-full object-contain" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <input ref="logoInput" type="file" accept="image/*" @change="onLogoChange" class="pro-form-file" />
                   <div class="flex gap-2 mt-2">
                     <BaseButton v-if="selectedLogo" variant="primary" size="xs" type="button" @click="uploadLogo" :loading="uploadingLogo">
-                      {{ uploadingLogo ? 'Upload...' : 'Uploader le logo' }}
+                      {{ uploadingLogo ? $t('settings.uploading') : $t('settings.upload_logo') }}
                     </BaseButton>
                     <BaseButton v-if="logoUrl && !selectedLogo" variant="danger-ghost" size="xs" type="button" @click="deleteLogo" :loading="deletingLogo">
-                      {{ deletingLogo ? 'Suppression...' : 'Supprimer le logo' }}
+                      {{ deletingLogo ? $t('common.deleting') : $t('settings.delete_logo') }}
                     </BaseButton>
                   </div>
                 </div>
@@ -49,10 +49,10 @@
 
             <BaseSelect v-model="form.industry" :label="$t('auth.industry')" :options="[
               { value: '', label: $t('settings.not_defined') },
-              ...industryOptions.map(s => ({ value: s, label: s })),
+              ...industryOptions.map((s, index) => ({ value: s, label: $t(`auth.industry_options.${index}`) })),
             ]" />
             <BaseInput
-              v-if="form.industry === 'Autre'"
+              v-if="form.industry === industryOptions[industryOptions.length - 1]"
               v-model="form.otherIndustry"
               :label="$t('settings.specify_industry')"
               :placeholder="$t('settings.specify_industry') + '...'"
@@ -83,8 +83,8 @@
           <form @submit.prevent="submit" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseSelect v-model="form.locale" :label="$t('settings.doc_language')" :options="[
-                { value: 'fr', label: 'Français' },
-                { value: 'en', label: 'English' },
+                { value: 'fr', label: $t('language.fr') },
+                { value: 'en', label: $t('language.en') },
               ]" />
               <div>
                 <label class="pro-form-label">{{ $t('settings.accent_color') }}</label>
@@ -99,9 +99,9 @@
             <div class="pt-3 border-t border-border">
               <div class="pro-section-title mb-2">{{ $t('settings.legal_ids') }}</div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <BaseInput v-model="form.legal_rc" label="RC (Registre de commerce)" />
-                <BaseInput v-model="form.legal_ifu" label="IFU / NIF" />
-                <BaseInput v-model="form.legal_rccm" label="RCCM" />
+                <BaseInput v-model="form.legal_rc" :label="$t('settings.legal_rc')" />
+                <BaseInput v-model="form.legal_ifu" :label="$t('settings.legal_ifu')" />
+                <BaseInput v-model="form.legal_rccm" :label="$t('settings.legal_rccm')" />
               </div>
             </div>
             <div class="pt-3 border-t border-border">
@@ -135,7 +135,7 @@
               { value: '', label: $t('common.none') },
             ]" />
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BaseInput v-model="mailForm.mail_from_address" :label="$t('settings.from_address')" placeholder="noreply@example.com" />
+              <BaseInput v-model="mailForm.mail_from_address" :label="$t('settings.from_address')" :placeholder="$t('settings.from_address_placeholder')" />
               <BaseInput v-model="mailForm.mail_from_name" :label="$t('settings.from_name')" :placeholder="$t('settings.from_name_placeholder')" />
             </div>
             <div class="flex flex-wrap gap-3 pt-4 border-t border-border">
@@ -177,7 +177,7 @@
               <ul class="space-y-1">
                 <li v-for="feature in companyPlan.features" :key="feature" class="flex items-center gap-2 text-text-secondary">
                   <CheckIcon class="w-4 h-4 text-emerald-500 shrink-0" />
-                  {{ feature }}
+                  {{ planFeatureLabel(feature) }}
                 </li>
               </ul>
             </div>
@@ -210,9 +210,11 @@ import BasePageHeader from '../../Components/ui/BasePageHeader.vue';
 import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowPathIcon, CreditCardIcon, CheckCircleIcon, CheckIcon } from '@heroicons/vue/24/outline';
 import { formatPrice as formatPlanPrice, industryOptions } from '../../utils/format';
+import { translatePlanFeature } from '../../utils/planTranslations';
 
 const showToast = inject('showToast');
 const { t } = useI18n();
+const planFeatureLabel = (feature) => translatePlanFeature(feature, t);
 const loading = ref(true);
 const submitting = ref(false);
 const logoInput = ref(null);

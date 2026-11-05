@@ -98,7 +98,7 @@ class CreditNoteController extends Controller
         $this->authorize('update', $creditNote);
 
         $request->validate([
-            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'warehouse_id' => ['nullable', Rule::exists('warehouses', 'id')->where('company_id', TenantContext::getCompanyId())],
         ]);
 
         try {

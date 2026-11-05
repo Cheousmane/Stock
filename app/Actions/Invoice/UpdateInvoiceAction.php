@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace App\Actions\Invoice;
 
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Services\ProfitService;
 use App\Support\Money;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UpdateInvoiceAction
 {
     public function execute(Invoice $invoice, array $data): Invoice
     {
         return DB::transaction(function () use ($invoice, $data) {
+            $invoice = Invoice::whereKey($invoice->getKey())->lockForUpdate()->firstOrFail();
             $invoice->update($data);
 
-            if (isset($data['items'])) {
+            $itemsChanged = isset($data['items']);
+            if ($itemsChanged) {
                 $invoice->items()->delete();
 
                 $companyId = TenantContext::getCompanyId();
@@ -51,17 +53,27 @@ class UpdateInvoiceAction
 
                     app(ProfitService::class)->calculateItemProfit($itemRow);
                 }
+            } else {
+                $subtotal = (int) $invoice->subtotal_xof;
+                $totalTax = (int) $invoice->tax_xof;
+            }
 
-                $discount = $data['discount_xof'] ?? $invoice->discount_xof ?? 0;
-                $total = Money::subtract(Money::add($subtotal, $totalTax), $discount);
+            $discount = (int) ($data['discount_xof'] ?? $invoice->discount_xof ?? 0);
+            $total = Money::subtract(Money::add($subtotal, $totalTax), $discount);
 
-                $invoice->update([
-                    'subtotal_xof' => $subtotal,
-                    'tax_xof' => $totalTax,
-                    'total_xof' => $total,
-                    'balance_due_xof' => Money::subtract($total, $invoice->paid_xof ?? 0),
+            if ($total < (int) $invoice->paid_xof) {
+                throw ValidationException::withMessages([
+                    'discount_xof' => ['Le total après remise ne peut pas être inférieur aux paiements déjà enregistrés.'],
                 ]);
             }
+
+            $invoice->update([
+                'subtotal_xof' => $subtotal,
+                'tax_xof' => $totalTax,
+                'discount_xof' => $discount,
+                'total_xof' => $total,
+                'balance_due_xof' => Money::subtract($total, $invoice->paid_xof ?? 0),
+            ]);
 
             return $invoice->fresh();
         });

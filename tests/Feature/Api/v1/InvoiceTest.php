@@ -96,6 +96,55 @@ describe('Invoice', function () {
         $this->assertDatabaseHas('invoice_items', ['company_id' => $company->id]);
     });
 
+    it('rejects a discount larger than the invoice amount before discount', function () {
+        [$company, , $token] = invoiceAuthUser();
+        $customer = Customer::factory()->create(['company_id' => $company->id]);
+
+        $response = $this->withHeaders(invoiceHeaders('acme', $token))
+            ->postJson('/api/v1/invoices', [
+                'customer_id' => $customer->id,
+                'issue_date' => '2026-05-21',
+                'due_date' => '2026-06-21',
+                'discount_xof' => 1001,
+                'items' => [[
+                    'description' => 'Single item',
+                    'quantity' => 1,
+                    'unit_price_xof' => 1000,
+                    'tax_rate' => 0,
+                ]],
+            ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('discount_xof');
+        $this->assertDatabaseCount('invoices', 0);
+    });
+
+    it('recalculates invoice totals when only the discount changes', function () {
+        [$company, , $token] = invoiceAuthUser();
+        $customer = Customer::factory()->create(['company_id' => $company->id]);
+        $invoice = Invoice::factory()->create([
+            'company_id' => $company->id,
+            'customer_id' => $customer->id,
+            'subtotal_xof' => 10000,
+            'tax_xof' => 1800,
+            'discount_xof' => 0,
+            'total_xof' => 11800,
+            'paid_xof' => 0,
+            'balance_due_xof' => 11800,
+        ]);
+
+        $response = $this->withHeaders(invoiceHeaders('acme', $token))
+            ->patchJson('/api/v1/invoices/'.$invoice->id, ['discount_xof' => 1800]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'discount_xof' => 1800,
+            'total_xof' => 10000,
+            'balance_due_xof' => 10000,
+        ]);
+    });
+
     it('shows an invoice with items', function () {
         [$company, $user, $token] = invoiceAuthUser();
         $customer = Customer::factory()->create(['company_id' => $company->id]);

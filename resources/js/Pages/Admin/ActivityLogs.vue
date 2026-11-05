@@ -3,33 +3,33 @@
     <div class="space-y-5 pb-12">
       <!-- Header -->
       <div>
-        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1">Audit · traçabilité globale</p>
-        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">Journal d'activité</h2>
-        <p class="text-sm text-text-tertiary mt-1 font-medium">Toutes les actions utilisateurs sur l'ensemble des locataires, en temps réel.</p>
+        <p class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1">{{ $t('adminPages.activity.eyebrow') }}</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-text-primary">{{ $t('admin.activity') }}</h2>
+        <p class="text-sm text-text-tertiary mt-1 font-medium">{{ $t('adminPages.activity.description') }}</p>
       </div>
 
       <!-- Filtres -->
       <div class="pro-filterbar">
         <label class="flex items-center gap-2.5 flex-1 min-w-0 px-3.5 py-2.5 rounded-2xl bg-surface-secondary/70 border border-border/60 focus-within:border-emerald-500/60 focus-within:ring-4 focus-within:ring-emerald-500/10 transition">
           <svg class="w-4 h-4 text-text-tertiary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-          <input v-model="filters.search" placeholder="Rechercher (email, action, modèle)…" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary outline-none" @input="debouncedSearch" />
+          <input v-model="filters.search" :placeholder="$t('adminPages.activity.search')" class="w-full bg-transparent text-sm font-semibold text-text-primary placeholder:text-text-tertiary outline-none" @input="debouncedSearch" />
         </label>
         <div class="flex flex-wrap items-center gap-2">
           <select v-model="filters.event" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer" @change="fetchLogs">
-            <option value="">Tous les événements</option>
-            <option value="created">Créations</option>
-            <option value="updated">Modifications</option>
-            <option value="deleted">Suppressions</option>
+            <option value="">{{ $t('adminPages.activity.all_events') }}</option>
+            <option value="created">{{ $t('adminPages.activity.created') }}</option>
+            <option value="updated">{{ $t('adminPages.activity.updated') }}</option>
+            <option value="deleted">{{ $t('adminPages.activity.deleted') }}</option>
           </select>
           <select v-model="filters.company_id" class="px-3.5 py-2.5 text-sm font-bold rounded-2xl border border-border bg-surface text-text-primary focus:border-emerald-500 cursor-pointer max-w-56" @change="fetchLogs">
-            <option value="">Toutes les entreprises</option>
+            <option value="">{{ $t('adminPages.activity.all_companies') }}</option>
             <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
           <button @click="fetchLogs" class="px-4 py-2.5 text-sm font-extrabold rounded-2xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/15 border border-emerald-500/20 transition active:scale-95">
-            Rafraîchir
+            {{ $t('common.refresh') }}
           </button>
           <button @click="exportCsv" :disabled="exporting" class="px-4 py-2.5 text-sm font-extrabold rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 transition active:scale-95 disabled:opacity-50">
-            {{ exporting ? 'Export…' : 'Exporter CSV' }}
+            {{ exporting ? $t('common.exporting') : $t('adminPages.activity.export_csv') }}
           </button>
         </div>
       </div>
@@ -38,18 +38,18 @@
       <div class="rounded-2xl bg-surface/80 backdrop-blur-xl border border-border/50 shadow-sm overflow-hidden">
         <div v-if="loading" class="p-12 flex flex-col items-center justify-center space-y-3">
           <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-sm font-medium text-text-tertiary">Chargement des interférences...</p>
+          <p class="text-sm font-medium text-text-tertiary">{{ $t('common.loading') }}</p>
         </div>
         <div v-else class="overflow-x-auto">
         <table class="w-full min-w-[860px]">
           <thead>
             <tr class="border-b border-border/50 text-left text-[11px] font-bold text-text-tertiary uppercase tracking-wider bg-surface-secondary/30">
-              <th class="px-5 py-4">Date</th>
-              <th class="px-5 py-4">Événement</th>
-              <th class="px-5 py-4">Utilisateur</th>
-              <th class="px-5 py-4">Entreprise</th>
-              <th class="px-5 py-4">Description (Sujet)</th>
-              <th class="px-5 py-4">Détails techniques</th>
+              <th class="px-5 py-4">{{ $t('common.date') }}</th>
+              <th class="px-5 py-4">{{ $t('adminPages.activity.event') }}</th>
+              <th class="px-5 py-4">{{ $t('adminPages.activity.user') }}</th>
+              <th class="px-5 py-4">{{ $t('adminPages.users.company') }}</th>
+              <th class="px-5 py-4">{{ $t('adminPages.activity.description_subject') }}</th>
+              <th class="px-5 py-4">{{ $t('adminPages.activity.technical_details') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border/30">
@@ -60,7 +60,7 @@
               </td>
               <td class="px-5 py-4">
                 <span class="inline-flex px-2.5 py-1 text-xs font-bold rounded-lg uppercase tracking-wide border" :class="eventBadgeClass(log.event)">
-                  {{ log.event || log.description }}
+                  {{ eventLabel(log.event, log.description) }}
                 </span>
               </td>
               <td class="px-5 py-4">
@@ -68,7 +68,7 @@
                   <p class="text-sm font-bold text-text-primary">{{ log.causer.name }}</p>
                   <p class="text-[11px] text-text-tertiary">{{ log.causer.email }}</p>
                 </div>
-                <div v-else class="text-sm text-text-tertiary italic">Système</div>
+                <div v-else class="text-sm text-text-tertiary italic">{{ $t('adminPages.activity.system') }}</div>
               </td>
               <td class="px-5 py-4">
                 <p v-if="log.causer?.company?.name" class="text-sm font-medium text-text-secondary">{{ log.causer.company.name }}</p>
@@ -81,7 +81,7 @@
                 </p>
               </td>
               <td class="px-5 py-4 text-xs font-mono text-text-tertiary">
-                <button @click="showDetails(log)" class="text-emerald-500 hover:text-emerald-600 font-sans font-medium text-sm underline decoration-emerald-500/30 underline-offset-4">Voir payload</button>
+                <button @click="showDetails(log)" class="text-emerald-500 hover:text-emerald-600 font-sans font-medium text-sm underline decoration-emerald-500/30 underline-offset-4">{{ $t('adminPages.activity.view_payload') }}</button>
               </td>
             </tr>
           </tbody>
@@ -90,27 +90,27 @@
 
         <div v-if="!loading && logs.length === 0" class="p-12 flex flex-col items-center justify-center text-center">
           <div class="w-16 h-16 bg-surface-tertiary rounded-2xl flex items-center justify-center mb-4 text-2xl">🕵️‍♂️</div>
-          <p class="text-base font-bold text-text-primary">Aucune interférence trouvée</p>
-          <p class="text-sm text-text-tertiary mt-1">Personne n'a rien touché récemment.</p>
+          <p class="text-base font-bold text-text-primary">{{ $t('adminPages.activity.empty_title') }}</p>
+          <p class="text-sm text-text-tertiary mt-1">{{ $t('adminPages.activity.empty_description') }}</p>
         </div>
 
         <!-- Pagination -->
         <div v-if="pagination && pagination.total > 0" class="flex items-center justify-between px-5 py-4 border-t border-border/50 bg-surface-secondary/20">
-          <p class="text-xs font-medium text-text-tertiary">Affichage de {{ pagination.from }} à {{ pagination.to }} sur {{ pagination.total }}</p>
+          <p class="text-xs font-medium text-text-tertiary">{{ $t('common.pagination_summary', { from: pagination.from, to: pagination.to, total: pagination.total }) }}</p>
           <div class="flex items-center gap-2">
-            <button :disabled="!pagination.prev_page_url" @click="goToPage(pagination.current_page - 1)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border/50 hover:bg-surface-tertiary disabled:opacity-30">&larr; Précédent</button>
+            <button :disabled="!pagination.prev_page_url" @click="goToPage(pagination.current_page - 1)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border/50 hover:bg-surface-tertiary disabled:opacity-30">&larr; {{ $t('common.previous') }}</button>
             <span class="px-2 text-xs font-bold text-text-secondary">{{ pagination.current_page }} / {{ pagination.last_page }}</span>
-            <button :disabled="!pagination.next_page_url" @click="goToPage(pagination.current_page + 1)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border/50 hover:bg-surface-tertiary disabled:opacity-30">Suivant &rarr;</button>
+            <button :disabled="!pagination.next_page_url" @click="goToPage(pagination.current_page + 1)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border/50 hover:bg-surface-tertiary disabled:opacity-30">{{ $t('common.next') }} &rarr;</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal Détails -->
+    <!-- Details modal -->
     <div v-if="selectedLog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="selectedLog = null">
       <div class="bg-surface w-full max-w-3xl rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
         <div class="flex items-center justify-between p-5 border-b border-border">
-          <h3 class="text-lg font-bold text-text-primary">Détails de l'interférence</h3>
+          <h3 class="text-lg font-bold text-text-primary">{{ $t('adminPages.activity.details_title') }}</h3>
           <button @click="selectedLog = null" class="text-text-tertiary hover:text-text-primary">&times;</button>
         </div>
         <div class="p-5 overflow-y-auto flex-1 bg-surface-secondary/30">
@@ -123,6 +123,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import SuperAdminLayout from './SuperAdminLayout.vue'
 
@@ -133,6 +134,7 @@ const filters = reactive({ search: '', event: '', company_id: '' })
 const selectedLog = ref(null)
 const companies = ref([])
 const exporting = ref(false)
+const { t, locale } = useI18n()
 
 let debounceTimer = null
 function debouncedSearch() {
@@ -170,19 +172,25 @@ function exportCsv() {
 
 function formatDate(date) {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(date).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function timeAgo(date) {
   if (!date) return ''
   const diff = Date.now() - new Date(date).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'à l\'instant'
-  if (mins < 60) return `${mins} min`
+  if (mins < 1) return t('adminPages.activity.just_now')
+  if (mins < 60) return t('adminPages.activity.minutes_ago', { count: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h`
+  if (hours < 24) return t('adminPages.activity.hours_ago', { count: hours })
   const days = Math.floor(hours / 24)
-  return `${days}j`
+  return t('adminPages.activity.days_ago', { count: days })
+}
+
+function eventLabel(event, description) {
+  return ['created', 'updated', 'deleted'].includes(event)
+    ? t(`adminPages.activity.${event}`)
+    : description || event || ''
 }
 
 function eventBadgeClass(event) {

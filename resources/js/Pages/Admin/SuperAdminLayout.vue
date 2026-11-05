@@ -126,7 +126,7 @@
         >
           <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shrink-0 shadow-md shadow-emerald-500/20">{{ userInitial }}</span>
           <div class="min-w-0 flex-1 leading-tight" :class="sidebarCollapsed ? 'lg:hidden' : ''">
-            <p class="text-[13px] font-bold text-sidebar-text truncate">{{ userName || 'Administrateur' }}</p>
+            <p class="text-[13px] font-bold text-sidebar-text truncate">{{ userName || t('header.administrator') }}</p>
             <p class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4 4 0 00-4 4v2H5a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-1V5a4 4 0 00-4-4zm-2 6V5a2 2 0 114 0v2H8z" clip-rule="evenodd"/></svg>
               {{ $t('admin.super_admin') }}
@@ -213,6 +213,7 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />               {{ $t('admin.live') }}
             </span>
 
+            <LanguageSwitcher />
             <ThemeToggle />
 
             <!-- Notifications -->
@@ -226,7 +227,7 @@
               <button @click="menuOpen = !menuOpen" class="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-border bg-surface shadow-sm hover:border-emerald-400/40 hover:shadow-md active:scale-[0.98] transition-all">
                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shadow">{{ userInitial }}</span>
                 <span class="hidden sm:block text-left leading-tight">
-                  <span class="block text-[13px] font-bold text-text-primary max-w-[120px] truncate">{{ userName || 'Admin' }}</span>
+                  <span class="block text-[13px] font-bold text-text-primary max-w-[120px] truncate">{{ userName || t('header.administrator') }}</span>
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">{{ $t('admin.super_admin') }}</span>
                 </span>
                 <svg class="w-4 h-4 text-text-tertiary transition-transform" :class="{ 'rotate-180': menuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
@@ -284,11 +285,12 @@ import {
 } from '@heroicons/vue/24/outline'
 import { initAnalytics, setSuperAdminUser } from '@/composables/useAnalytics'
 import ThemeToggle from '@/Components/ThemeToggle.vue'
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue'
 import AppLogo from '@/Components/AppLogo.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const userName = ref('')
 const userEmail = ref('')
 const user = ref(null)
@@ -305,7 +307,7 @@ const searchInput = ref(null)
 const searchRef = ref(null)
 const searchJustOpened = ref(false)
 const time = ref('')
-const today = ref(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
+const today = computed(() => new Date().toLocaleDateString(locale.value, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
 
 watch(sidebarCollapsed, (v) => localStorage.setItem('superAdminSidebarCollapsed', v))
 watch(() => route.fullPath, () => {
@@ -397,8 +399,9 @@ function isActive(to) {
 
 
 function tick() {
-  time.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  time.value = new Date().toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
 }
+watch(locale, tick)
 
 function onClickOutside(e) {
   if (menuRef.value && !menuRef.value.contains(e.target)) menuOpen.value = false

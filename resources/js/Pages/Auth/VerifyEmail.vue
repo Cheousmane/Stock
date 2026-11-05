@@ -10,12 +10,12 @@
           <AppLogo :size="48" />
           <div>
             <p class="text-xl font-bold text-white">SIDIBE CORPORATE</p>
-            <p class="text-sm text-white/50">Facturation & Stock</p>
+            <p class="text-sm text-white/50">{{ $t('auth.brand_subtitle') }}</p>
           </div>
         </router-link>
-        <h2 class="text-3xl font-bold text-white leading-tight opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.4s_forwards]">Vérifiez votre adresse<br>e-mail</h2>
+        <h2 class="text-3xl font-bold text-white leading-tight opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.4s_forwards]">{{ $t('auth.verify_email_heading') }}</h2>
         <p class="mt-3 text-white/60 leading-relaxed opacity-0 animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)_0.6s_forwards]">
-          Nous venons de vous envoyer un code de confirmation pour sécuriser la création de votre compte.
+          {{ $t('auth.verify_email_description') }}
         </p>
       </div>
     </div>
@@ -65,7 +65,7 @@
                 type="email"
                 required
                 :disabled="!!prefilledEmail"
-                placeholder="vous@exemple.com"
+                :placeholder="$t('auth.email_placeholder')"
                 class="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300 disabled:opacity-60"
               />
             </div>

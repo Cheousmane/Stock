@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PosController extends Controller
 {
@@ -258,45 +259,55 @@ class PosController extends Controller
     {
         $this->authorize('update', $session);
 
-        if ($session->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized');
-        }
-
         $request->validate([
             'closing_cash_xof' => 'required|integer|min:0',
             'notes' => 'nullable|string',
         ]);
 
-        $closingCash = $request->integer('closing_cash_xof');
+        [$session, $summary] = DB::transaction(function () use ($request, $session) {
+            $session = PosSession::where('company_id', TenantContext::getCompanyId())
+                ->whereKey($session->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $cashSales = $session->sales()
-            ->where('payment_method', 'cash')
-            ->where('status', 'completed')
-            ->get();
+            if ($session->user_id !== $request->user()->id) {
+                abort(403, 'Unauthorized');
+            }
 
-        $cashCollected = $cashSales->sum(fn ($sale) => $sale->amount_paid_xof - $sale->change_returned_xof);
-        $expectedClosingCash = $session->opening_cash_xof + $cashCollected;
-        $cashDifference = $closingCash - $expectedClosingCash;
+            if ($session->status !== 'open') {
+                throw ValidationException::withMessages([
+                    'session' => ['La session de caisse est déjà fermée.'],
+                ]);
+            }
 
-        $session->update([
-            'status' => 'closed',
-            'closing_cash_xof' => $closingCash,
-            'expected_closing_cash_xof' => $expectedClosingCash,
-            'cash_difference_xof' => $cashDifference,
-            'closed_at' => now(),
-            'notes' => $request->input('notes'),
-        ]);
+            $sales = $session->sales()->get();
+            $cashSales = $sales->where('payment_method', 'cash')->where('status', 'completed');
+            $cashCollected = $cashSales->sum(
+                fn ($sale) => $sale->amount_paid_xof - $sale->change_returned_xof,
+            );
+            $expectedClosingCash = $session->opening_cash_xof + $cashCollected;
+            $cashDifference = $request->integer('closing_cash_xof') - $expectedClosingCash;
 
-        $summary = [
-            'sales_count' => $session->sales()->count(),
-            'total_xof' => (int) $session->sales()->sum('total_xof'),
-            'cash_total_xof' => (int) $session->sales()->where('payment_method', 'cash')->sum('total_xof'),
-            'card_total_xof' => (int) $session->sales()->where('payment_method', 'card')->sum('total_xof'),
-            'mobile_money_total_xof' => (int) $session->sales()->where('payment_method', 'mobile_money')->sum('total_xof'),
-            'opening_cash_xof' => $session->opening_cash_xof,
-            'expected_closing_cash_xof' => $expectedClosingCash,
-            'cash_difference_xof' => $cashDifference,
-        ];
+            $session->update([
+                'status' => 'closed',
+                'closing_cash_xof' => $request->integer('closing_cash_xof'),
+                'expected_closing_cash_xof' => $expectedClosingCash,
+                'cash_difference_xof' => $cashDifference,
+                'closed_at' => now(),
+                'notes' => $request->input('notes'),
+            ]);
+
+            return [$session->fresh(), [
+                'sales_count' => $sales->count(),
+                'total_xof' => (int) $sales->sum('total_xof'),
+                'cash_total_xof' => (int) $sales->where('payment_method', 'cash')->sum('total_xof'),
+                'card_total_xof' => (int) $sales->where('payment_method', 'card')->sum('total_xof'),
+                'mobile_money_total_xof' => (int) $sales->where('payment_method', 'mobile_money')->sum('total_xof'),
+                'opening_cash_xof' => $session->opening_cash_xof,
+                'expected_closing_cash_xof' => $expectedClosingCash,
+                'cash_difference_xof' => $cashDifference,
+            ]];
+        });
 
         return response()->json([
             'data' => $session,
@@ -325,7 +336,7 @@ class PosController extends Controller
     {
         $this->authorize('create', PosSale::class);
 
-        $request->validate([
+        $validated = $request->validate([
             'pos_session_id' => ['required', Rule::exists('pos_sessions', 'id')->where('company_id', TenantContext::getCompanyId())],
             'customer_id' => ['nullable', Rule::exists('customers', 'id')->where('company_id', TenantContext::getCompanyId())],
             'payment_method' => ['required', 'in:cash,card,mobile_money'],
@@ -338,99 +349,109 @@ class PosController extends Controller
         ]);
 
         $user = $request->user();
-        $companyId = $user->company_id;
+        $companyId = TenantContext::getCompanyId();
+        $items = $validated['items'];
+        $total = array_sum(array_map(
+            fn (array $item): int => $item['quantity'] * $item['unit_price_xof'],
+            $items,
+        ));
 
-        $session = PosSession::findOrFail($request->input('pos_session_id'));
-        if ($session->company_id !== $companyId) {
-            abort(403, 'Session de caisse invalide pour cette entreprise.');
-        }
-        if ($session->status !== 'open') {
-            return response()->json(['message' => 'Session is not open'], 400);
-        }
-
-        $items = $request->input('items');
-
-        if ($request->filled('customer_id')) {
-            $customerExists = Customer::where('company_id', $companyId)
-                ->where('id', $request->input('customer_id'))
-                ->exists();
-
-            if (! $customerExists) {
-                abort(403, 'Client invalide pour cette entreprise.');
-            }
-        }
-
-        $warehouse = Warehouse::where('company_id', $companyId)->first();
-        if (! $warehouse) {
-            $warehouse = Warehouse::create([
-                'company_id' => $companyId,
-                'name' => 'Entrepôt principal',
-                'code' => 'PRINCIPAL',
-                'is_active' => true,
+        if ($validated['amount_paid_xof'] < $total) {
+            throw ValidationException::withMessages([
+                'amount_paid_xof' => ['Le montant payé doit couvrir le total de la vente.'],
             ]);
         }
 
-        $productIds = collect($items)->pluck('product_id')->unique()->all();
-        $products = Product::where('company_id', $companyId)->whereIn('id', $productIds)->get()->keyBy('id');
-
-        $stockErrors = [];
         foreach ($items as $item) {
-            $product = $products->get($item['product_id']);
-            if (! $product) {
-                continue;
-            }
-
-            $stock = WarehouseStock::where('warehouse_id', $warehouse->id)
-                ->where('product_id', $product->id)
-                ->first();
-
-            $availableQty = $stock ? $stock->quantity : 0;
-
-            if ($item['quantity'] > $availableQty) {
-                $stockErrors[] = $product->name.' (demandé: '.$item['quantity'].', disponible: '.$availableQty.')';
+            if (isset($item['product_variant_id']) && ! DB::table('product_variants')
+                ->where('id', $item['product_variant_id'])
+                ->where('product_id', $item['product_id'])
+                ->where('company_id', $companyId)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'items' => ['Chaque variante doit appartenir au produit correspondant.'],
+                ]);
             }
         }
 
-        if (! empty($stockErrors)) {
-            return response()->json([
-                'message' => 'Stock insuffisant pour les produits suivants :',
-                'errors' => ['stock' => $stockErrors],
-            ], 422);
-        }
+        $sale = DB::transaction(function () use ($validated, $user, $companyId, $items, $total) {
+            $session = PosSession::where('company_id', $companyId)
+                ->whereKey($validated['pos_session_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        DB::beginTransaction();
-        try {
-            $subtotal = 0;
-            foreach ($items as $item) {
-                $subtotal += ($item['quantity'] * $item['unit_price_xof']);
+            if ($session->user_id !== $user->id) {
+                abort(403, 'Cette session de caisse appartient à un autre utilisateur.');
             }
 
-            $total = $subtotal;
-            $change = max(0, $request->input('amount_paid_xof') - $total);
+            if ($session->status !== 'open') {
+                throw ValidationException::withMessages([
+                    'pos_session_id' => ['La session de caisse est fermée.'],
+                ]);
+            }
+
+            $warehouse = Warehouse::where('company_id', $companyId)->first();
+            if (! $warehouse) {
+                $warehouse = Warehouse::create([
+                    'company_id' => $companyId,
+                    'name' => 'Entrepôt principal',
+                    'code' => 'PRINCIPAL',
+                    'is_active' => true,
+                ]);
+            }
+
+            $productIds = collect($items)->pluck('product_id')->unique()->values();
+            $products = Product::where('company_id', $companyId)
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
+            $requiredQuantities = collect($items)
+                ->groupBy('product_id')
+                ->map(fn ($productItems): int => $productItems->sum('quantity'));
+
+            $stocks = WarehouseStock::where('company_id', $companyId)
+                ->where('warehouse_id', $warehouse->id)
+                ->whereIn('product_id', $productIds)
+                ->orderBy('product_id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('product_id');
+
+            $stockErrors = [];
+            foreach ($requiredQuantities as $productId => $quantity) {
+                $product = $products->get($productId);
+                $available = (int) ($stocks->get($productId)?->quantity ?? 0);
+
+                if ($quantity > $available) {
+                    $stockErrors[] = $product->name.' (demandé: '.$quantity.', disponible: '.$available.')';
+                }
+            }
+
+            if ($stockErrors !== []) {
+                throw ValidationException::withMessages([
+                    'stock' => ['Stock insuffisant : '.implode(', ', $stockErrors)],
+                ]);
+            }
 
             $receiptNumber = 'POS-'.date('Ymd').'-'.strtoupper(Str::random(6));
-
             $sale = PosSale::create([
                 'company_id' => $companyId,
                 'pos_session_id' => $session->id,
                 'user_id' => $user->id,
-                'customer_id' => $request->input('customer_id'),
+                'customer_id' => $validated['customer_id'] ?? null,
                 'receipt_number' => $receiptNumber,
-                'subtotal_xof' => $subtotal,
+                'subtotal_xof' => $total,
                 'tax_xof' => 0,
                 'discount_xof' => 0,
                 'total_xof' => $total,
-                'payment_method' => $request->input('payment_method'),
-                'amount_paid_xof' => $request->input('amount_paid_xof'),
-                'change_returned_xof' => $change,
+                'payment_method' => $validated['payment_method'],
+                'amount_paid_xof' => $validated['amount_paid_xof'],
+                'change_returned_xof' => $validated['amount_paid_xof'] - $total,
                 'status' => 'completed',
             ]);
 
             foreach ($items as $item) {
                 $product = $products->get($item['product_id']);
-                if (! $product) {
-                    continue;
-                }
 
                 PosSaleItem::create([
                     'pos_sale_id' => $sale->id,
@@ -441,25 +462,22 @@ class PosController extends Controller
                     'unit_price_xof' => $item['unit_price_xof'],
                     'subtotal_xof' => $item['quantity'] * $item['unit_price_xof'],
                 ]);
+            }
 
-                $stock = WarehouseStock::firstOrCreate([
-                    'warehouse_id' => $warehouse->id,
-                    'product_id' => $product->id,
-                ], ['quantity' => 0, 'available_quantity' => 0]);
-
-                $beforeQty = $stock->quantity;
-                $stock->quantity -= $item['quantity'];
-                $stock->available_quantity = max(0, $stock->available_quantity - $item['quantity']);
+            foreach ($requiredQuantities as $productId => $quantity) {
+                $stock = $stocks->get($productId);
+                $beforeQuantity = (int) $stock->quantity;
+                $stock->quantity = $beforeQuantity - $quantity;
+                $stock->available_quantity = max(0, (int) $stock->available_quantity - $quantity);
                 $stock->save();
-                $stock->refresh();
 
                 StockMovement::create([
                     'company_id' => $companyId,
                     'warehouse_id' => $warehouse->id,
-                    'product_id' => $product->id,
+                    'product_id' => $productId,
                     'type' => 'out',
-                    'quantity' => $item['quantity'],
-                    'before_quantity' => $beforeQty,
+                    'quantity' => $quantity,
+                    'before_quantity' => $beforeQuantity,
                     'after_quantity' => $stock->quantity,
                     'reason' => 'Vente POS '.$receiptNumber,
                     'reference_type' => PosSale::class,
@@ -468,15 +486,10 @@ class PosController extends Controller
                 ]);
             }
 
-            DB::commit();
+            return $sale;
+        });
 
-            return response()->json(['data' => $sale->load(['items', 'customer', 'session'])]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Erreur lors de la vente: '.$e->getMessage()], 500);
-        }
+        return response()->json(['data' => $sale->load(['items', 'customer', 'session'])]);
     }
 
     public function sessions(Request $request)

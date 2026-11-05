@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Sales;
 
 use App\Models\CreditNote;
-use App\Models\Customer;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WarehouseStock;
@@ -17,25 +16,30 @@ class ValidateCreditNoteAction
 {
     public function execute(CreditNote $creditNote, ?int $warehouseIdForRestock = null): CreditNote
     {
-        if ($creditNote->status !== 'draft') {
-            throw new Exception("Only draft credit notes can be validated.");
-        }
+        return DB::transaction(function () use ($creditNote, $warehouseIdForRestock) {
+            $creditNote = CreditNote::whereKey($creditNote->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $validated = null;
+            if ($creditNote->status !== 'draft') {
+                throw new Exception("Only draft credit notes can be validated.");
+            }
 
-        DB::transaction(function () use ($creditNote, $warehouseIdForRestock, &$validated) {
             $companyId = TenantContext::getCompanyId();
 
             // Credit the customer's balance
-            $customer = $creditNote->customer;
+            $customer = $creditNote->customer()->lockForUpdate()->firstOrFail();
             $customer->balance_xof -= $creditNote->total_xof;
             $customer->save();
 
             // Restock items if a warehouse is provided
             if ($warehouseIdForRestock) {
+                $warehouse = Warehouse::where('company_id', $companyId)
+                    ->whereKey($warehouseIdForRestock)
+                    ->firstOrFail();
                 $restockedLines = 0;
 
-                foreach ($creditNote->items as $item) {
+                foreach ($creditNote->items()->get() as $item) {
                     if (!$item->product_id) {
                         continue;
                     }
@@ -52,6 +56,9 @@ class ValidateCreditNoteAction
                             'available_quantity' => 0,
                         ]
                     );
+                    $stock = WarehouseStock::whereKey($stock->getKey())
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
                     $beforeQuantity = $stock->quantity;
                     $afterQuantity = $beforeQuantity + $item->quantity;
@@ -82,18 +89,15 @@ class ValidateCreditNoteAction
 
                 $metadata = $creditNote->metadata ?? [];
                 $metadata['restock_warehouse_id'] = $warehouseIdForRestock;
-                $metadata['restock_warehouse_name'] = Warehouse::find($warehouseIdForRestock)?->name;
+                $metadata['restock_warehouse_name'] = $warehouse->name;
                 $metadata['restocked_lines'] = $restockedLines;
                 $metadata['restocked_at'] = now()->toDateTimeString();
                 $creditNote->update(['metadata' => $metadata]);
             }
 
             $creditNote->update(['status' => 'validated']);
-            $validated = $creditNote->fresh();
+
+            return $creditNote->fresh();
         });
-
-        return $validated;
-
-        return $creditNote;
     }
 }

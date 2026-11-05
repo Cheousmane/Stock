@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Support\Money;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CreatePaymentAction
 {
@@ -20,10 +21,18 @@ class CreatePaymentAction
     {
         return DB::transaction(function () use ($dto) {
             $companyId = TenantContext::getCompanyId();
+            $invoice = Invoice::whereKey($dto->invoice_id)->lockForUpdate()->firstOrFail();
+            $remaining = max(0, (int) $invoice->total_xof - (int) $invoice->paid_xof);
+
+            if ($dto->amount_xof > $remaining) {
+                throw ValidationException::withMessages([
+                    'amount_xof' => ['Le paiement dépasse le solde restant de la facture.'],
+                ]);
+            }
 
             $payment = Payment::create([
                 'company_id' => $companyId,
-                'invoice_id' => $dto->invoice_id,
+                'invoice_id' => $invoice->id,
                 'method' => $dto->method ?? 'cash',
                 'reference' => $dto->reference,
                 'amount_xof' => $dto->amount_xof,
@@ -33,8 +42,6 @@ class CreatePaymentAction
                 'metadata' => $dto->metadata,
                 'created_by' => $dto->created_by,
             ]);
-
-            $invoice = Invoice::findOrFail($dto->invoice_id);
 
             $newPaid = Money::add($invoice->paid_xof, $dto->amount_xof);
             $newBalance = Money::subtract($invoice->total_xof, $newPaid);
@@ -52,7 +59,7 @@ class CreatePaymentAction
                     : ($newPaid > 0 ? InvoiceStatus::Partial : $invoice->status),
             ]);
 
-            $customer = $invoice->customer;
+            $customer = $invoice->customer()->lockForUpdate()->first();
             if ($customer) {
                 $newCustomerBalance = Money::subtract($customer->balance_xof, $dto->amount_xof);
                 if ($newCustomerBalance < 0) {

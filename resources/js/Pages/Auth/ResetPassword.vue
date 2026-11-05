@@ -1,33 +1,33 @@
 <template>
-  <!-- Page de réinitialisation du mot de passe avec token -->
+  <!-- Password reset page -->
   <div class="flex min-h-screen min-h-dvh">
-    <!-- Panneau gauche - Marque et présentation -->
+    <!-- Branding panel -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div class="absolute bottom-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
       <div class="relative flex flex-col justify-center px-16 max-w-lg mx-auto">
-        <!-- Logo et nom de l'entreprise -->
+        <!-- Brand -->
         <router-link to="/" class="flex items-center gap-3 mb-8 group">
           <AppLogo :size="48" />
           <div>
             <p class="text-xl font-bold text-white">SIDIBE CORPORATE</p>
-            <p class="text-sm text-white/50">Facturation & Stock</p>
+            <p class="text-sm text-white/50">{{ $t('auth.brand_subtitle') }}</p>
           </div>
         </router-link>
-        <h2 class="text-3xl font-bold text-white leading-tight">Nouveau mot de passe</h2>
+        <h2 class="text-3xl font-bold text-white leading-tight">{{ $t('auth.new_password') }}</h2>
         <p class="mt-3 text-white/60 leading-relaxed">
-          Choisissez un mot de passe sécurisé pour votre compte.
+          {{ $t('auth.choose_secure_password') }}
         </p>
       </div>
     </div>
 
-    <!-- Panneau droit - Formulaire de réinitialisation -->
+    <!-- Password reset form -->
     <div class="relative flex-1 flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--color-surface-secondary)]">
       <div class="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
       <div class="w-full max-w-sm">
-        <!-- Logo mobile (caché sur desktop) -->
+        <!-- Mobile logo -->
         <div class="text-center mb-8 lg:hidden">
           <router-link to="/" class="inline-flex items-center justify-center gap-3 mb-4 hover:opacity-80 transition-opacity">
             <AppLogo :size="40" />
@@ -37,27 +37,27 @@
 
         <!-- Carte formulaire -->
         <div class="p-6 sm:p-8 rounded-xl bg-[var(--color-surface)] shadow-[var(--shadow-modal)] dark:border dark:border-[var(--color-border)]">
-          <!-- En-tête -->
+          <!-- Header -->
           <div class="text-center mb-7">
-            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Réinitialiser le mot de passe</h1>
-            <p class="text-sm text-[var(--color-text-tertiary)] mt-1.5">Choisissez un nouveau mot de passe</p>
+            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $t('auth.reset_password') }}</h1>
+            <p class="text-sm text-[var(--color-text-tertiary)] mt-1.5">{{ $t('auth.choose_new_password') }}</p>
           </div>
 
-          <!-- Message de succès -->
+          <!-- Success message -->
           <div v-if="success" class="flex items-center gap-2.5 p-3.5 mb-6 text-sm text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/50 rounded-xl border border-emerald-100 dark:border-emerald-900/70">
             {{ success }}
           </div>
 
-          <!-- Message d'erreur -->
+          <!-- Error message -->
           <div v-if="error" class="flex items-center gap-2.5 p-3.5 mb-6 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-xl border border-red-100 dark:border-red-900/70">
             <span class="text-red-500 shrink-0"><ExclamationTriangleIcon class="w-4 h-4" /></span>
             {{ error }}
           </div>
 
           <form @submit.prevent="submit" class="space-y-5">
-            <!-- Nouveau mot de passe avec toggle visibilité -->
+            <!-- New password -->
             <div>
-              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Nouveau mot de passe <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.new_password') }} <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input
                   v-model="password"
@@ -79,9 +79,9 @@
                 </button>
               </div>
             </div>
-            <!-- Confirmation du mot de passe -->
+            <!-- Password confirmation -->
             <div>
-              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Confirmer le mot de passe <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">{{ $t('auth.confirm_password') }} <span class="text-red-500">*</span></label>
               <input
                 v-model="passwordConfirmation"
                 type="password"
@@ -91,7 +91,7 @@
                 class="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 hover:border-gray-300"
               />
             </div>
-            <!-- Bouton de soumission -->
+            <!-- Submit -->
             <button
               type="submit"
               :disabled="loading"
@@ -99,16 +99,16 @@
             >
               <span v-if="loading" class="flex items-center justify-center gap-2">
                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                Réinitialisation en cours...
+                {{ $t('auth.resetting_password') }}
               </span>
-              <span v-else>Réinitialiser le mot de passe</span>
+              <span v-else>{{ $t('auth.reset_password') }}</span>
             </button>
           </form>
         </div>
 
-        <!-- Lien retour vers la connexion -->
+        <!-- Back to login -->
         <p class="mt-8 text-sm text-center text-[var(--color-text-tertiary)]">
-          <router-link :to="{ name: 'Login' }" class="font-semibold text-[var(--color-primary-500)] hover:text-emerald-700 transition-colors">Retour à la connexion</router-link>
+          <router-link :to="{ name: 'Login' }" class="font-semibold text-[var(--color-primary-500)] hover:text-emerald-700 transition-colors">{{ $t('auth.back_to_login') }}</router-link>
         </p>
       </div>
     </div>
@@ -117,6 +117,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
@@ -126,6 +127,7 @@ import ThemeToggle from '../../Components/ThemeToggle.vue';
 // Récupération du token et email depuis l'URL (query params)
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 // État du formulaire
 const password = ref('');
@@ -139,7 +141,7 @@ const success = ref('');
 async function submit() {
   // Validation côté client : vérifie que les deux mots de passe correspondent
   if (password.value !== passwordConfirmation.value) {
-    error.value = 'Les mots de passe ne correspondent pas.';
+    error.value = t('auth.passwords_mismatch');
     return;
   }
 
@@ -157,7 +159,7 @@ async function submit() {
     // Redirige vers la page de connexion après 2 secondes
     setTimeout(() => router.push({ name: 'Login' }), 2000);
   } catch (err) {
-    error.value = err.response?.data?.message || 'Une erreur est survenue. Veuillez réessayer.';
+    error.value = err.response?.data?.message || t('auth.generic_error');
   } finally {
     loading.value = false;
   }

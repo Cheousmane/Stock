@@ -10,7 +10,7 @@
           <AppLogo :size="40" />
           <div>
             <p class="auth-logo-name">SIDIBE CORPORATE</p>
-            <p class="auth-logo-sub">Facturation &amp; Stock</p>
+            <p class="auth-logo-sub">{{ $t('auth.brand_subtitle') }}</p>
           </div>
         </router-link>
 
@@ -21,16 +21,16 @@
           </svg>
         </div>
 
-        <h2 class="auth-left-title">Mot de passe<br><span>oublié ?</span></h2>
-        <p class="auth-left-desc">Pas de panique ! Saisissez votre adresse email et nous vous envoyons un lien pour réinitialiser votre mot de passe.</p>
+        <h2 class="auth-left-title">{{ $t('auth.forgot_welcome_title') }}</h2>
+        <p class="auth-left-desc">{{ $t('auth.forgot_welcome_description') }}</p>
 
         <div class="how-works">
-          <p class="how-title">Comment ça marche :</p>
+          <p class="how-title">{{ $t('auth.how_it_works') }}</p>
           <ol class="how-steps">
-            <li>Entrez votre adresse email</li>
-            <li>Vérifiez votre boîte de réception</li>
-            <li>Cliquez sur le lien reçu</li>
-            <li>Définissez un nouveau mot de passe</li>
+            <li>{{ $t('auth.forgot_step_email') }}</li>
+            <li>{{ $t('auth.forgot_step_inbox') }}</li>
+            <li>{{ $t('auth.forgot_step_link') }}</li>
+            <li>{{ $t('auth.forgot_step_password') }}</li>
           </ol>
         </div>
       </div>
@@ -57,11 +57,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
               </svg>
             </div>
-            <h2 class="success-title">Email envoyé !</h2>
+            <h2 class="success-title">{{ $t('auth.email_sent') }}</h2>
             <p class="success-msg">{{ success }}</p>
-            <p class="success-hint">Vérifiez aussi vos spams si vous ne voyez pas l'email.</p>
+            <p class="success-hint">{{ $t('auth.check_spam') }}</p>
             <router-link :to="{ name: 'Login' }" class="auth-submit-btn" style="text-decoration:none;display:flex;margin-top:8px">
-              <span class="btn-inner">Retour à la connexion</span>
+              <span class="btn-inner">{{ $t('auth.back_to_login') }}</span>
             </router-link>
           </div>
 
@@ -71,8 +71,8 @@
               <div class="forgot-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
               </div>
-              <h1 class="auth-card-title">Réinitialiser</h1>
-              <p class="auth-card-sub">Entrez votre email pour recevoir le lien</p>
+              <h1 class="auth-card-title">{{ $t('auth.reset_password') }}</h1>
+              <p class="auth-card-sub">{{ $t('auth.enter_email_for_reset') }}</p>
             </div>
 
             <transition name="slide-down">
@@ -84,7 +84,7 @@
 
             <form @submit.prevent="submit" class="auth-form">
               <div class="field-group">
-                <label class="field-label">Adresse email <span class="field-req">*</span></label>
+                <label class="field-label">{{ $t('auth.email') }} <span class="field-req">*</span></label>
                 <div class="field-wrap" :class="{ 'field-focused': focused === 'email' }">
                   <div class="field-icon">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/><path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/></svg>
@@ -92,7 +92,7 @@
                   <input
                     v-model="email"
                     type="email" required autocomplete="email"
-                    placeholder="vous@exemple.com"
+                    :placeholder="$t('auth.email_placeholder')"
                     class="field-input"
                     @focus="focused = 'email'"
                     @blur="focused = ''"
@@ -103,11 +103,11 @@
               <button type="submit" :disabled="loading || !email" class="auth-submit-btn">
                 <span v-if="loading" class="btn-loader">
                   <svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" opacity="0.3"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15" stroke-linecap="round"/></svg>
-                  Envoi en cours...
+                  {{ $t('auth.sending_reset_link') }}
                 </span>
                 <span v-else class="btn-inner">
                   <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z"/></svg>
-                  Envoyer le lien
+                  {{ $t('auth.send_reset_link') }}
                 </span>
               </button>
             </form>
@@ -117,7 +117,7 @@
         <p class="auth-switch-text">
           <router-link :to="{ name: 'Login' }" class="auth-switch-link">
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/></svg>
-            Retour à la connexion
+            {{ $t('auth.back_to_login') }}
           </router-link>
         </p>
       </div>
@@ -125,7 +125,7 @@
       <div class="auth-footer">
         <span>© 2026 SIDIBE CORPORATE</span>
         <span class="auth-footer-sep">·</span>
-        <a href="#">Aide</a>
+        <a href="#">{{ $t('auth.help') }}</a>
       </div>
     </div>
   </div>
@@ -133,10 +133,12 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import AppLogo from '../../Components/AppLogo.vue';
 import ThemeToggle from '../../Components/ThemeToggle.vue';
 
+const { t } = useI18n();
 const email = ref('');
 const loading = ref(false);
 const error = ref('');
@@ -149,9 +151,9 @@ async function submit() {
   success.value = '';
   try {
     const { data } = await axios.post('/auth/forgot-password', { email: email.value });
-    success.value = data.message || 'Un lien de réinitialisation a été envoyé à votre adresse email.';
+    success.value = data.message || t('auth.reset_link_sent');
   } catch (err) {
-    error.value = err.response?.data?.message || 'Une erreur est survenue. Veuillez réessayer.';
+    error.value = err.response?.data?.message || t('auth.generic_error');
   } finally {
     loading.value = false;
   }

@@ -91,7 +91,7 @@
               <ul class="grid sm:grid-cols-2 gap-2">
                 <li v-for="feature in snapshot.plan.features" :key="feature" class="flex items-start gap-2 text-sm text-text-secondary">
                   <CheckIcon class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  {{ feature }}
+                  {{ planFeatureLabel(feature) }}
                 </li>
               </ul>
             </div>
@@ -218,7 +218,7 @@
 
               <div class="text-center mb-4">
                 <h3 class="text-base font-extrabold text-text-primary">{{ plan.name }}</h3>
-                <p class="text-xs font-medium text-text-tertiary mt-1 min-h-8">{{ plan.description }}</p>
+                <p class="text-xs font-medium text-text-tertiary mt-1 min-h-8">{{ planDescriptionLabel(plan.description) }}</p>
               </div>
 
               <div class="text-center mb-4">
@@ -231,7 +231,7 @@
               <ul class="space-y-2 mb-4 min-h-[96px]">
                 <li v-for="feature in plan.features" :key="feature" class="flex items-start gap-2 text-sm text-text-secondary">
                   <CheckIcon class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  {{ feature }}
+                  {{ planFeatureLabel(feature) }}
                 </li>
               </ul>
 
@@ -267,8 +267,12 @@ import {
   InformationCircleIcon, LockClosedIcon, ShieldCheckIcon, SparklesIcon,
 } from '@heroicons/vue/24/outline'
 import { formatPrice, formatDate } from '../../utils/format'
+import { translatePlanDescription, translatePlanFeature } from '../../utils/planTranslations'
 
 const { t } = useI18n()
+
+const planFeatureLabel = (feature) => translatePlanFeature(feature, t)
+const planDescriptionLabel = (description) => translatePlanDescription(description, t)
 
 const loading = ref(true)
 const error = ref(null)

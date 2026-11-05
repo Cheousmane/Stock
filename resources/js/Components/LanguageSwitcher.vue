@@ -10,7 +10,7 @@
 
     <Transition name="pop">
     <div v-if="open"
-      class="absolute right-0 z-50 mt-2 w-68 bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/[0.08] overflow-hidden">
+      class="fixed right-2 top-[72px] z-50 mt-2 w-[min(17rem,calc(100vw-1rem))] bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/[0.08] overflow-hidden sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-68">
       <div class="p-2 border-b border-border/60">
         <div class="relative">
           <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />

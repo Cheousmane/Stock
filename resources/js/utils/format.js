@@ -1,5 +1,5 @@
-export function formatPrice(amount, currency = 'XOF') {
-  return new Intl.NumberFormat('fr-FR', {
+export function formatPrice(amount, currency = 'XOF', locale = 'fr-FR') {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
@@ -7,27 +7,27 @@ export function formatPrice(amount, currency = 'XOF') {
   }).format(amount)
 }
 
-export function formatDate(dateString) {
+export function formatDate(dateString, locale = 'fr-FR') {
   if (!dateString) return '—'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   })
 }
 
-export function formatDateShort(dateString) {
+export function formatDateShort(dateString, locale = 'fr-FR') {
   if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   })
 }
 
-export function formatDateTime(dateString) {
+export function formatDateTime(dateString, locale = 'fr-FR') {
   if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
