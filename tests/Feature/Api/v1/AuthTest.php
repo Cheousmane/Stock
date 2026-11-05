@@ -10,6 +10,8 @@ use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\HttpFoundation\Response;
 
 uses(RefreshDatabase::class);
@@ -94,6 +96,36 @@ describe('Auth', function () {
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJsonPath('user.email', 'john@acme.com');
+    });
+
+    it('automatically verifies users created by a company admin', function () {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme']);
+        $admin = User::factory()->create(['company_id' => $company->id]);
+        app(PermissionRegistrar::class)->setPermissionsTeamId($company->id);
+        $adminRole = Role::create([
+            'name' => 'admin',
+            'guard_name' => 'web',
+            'company_id' => $company->id,
+        ]);
+        $admin->assignRole($adminRole);
+        $token = $admin->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'X-Tenant-Slug' => 'acme',
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/v1/users', [
+            'name' => 'Jane Doe',
+            'email' => 'jane@acme.com',
+            'password' => 'Test@12345',
+            'password_confirmation' => 'Test@12345',
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $this->assertDatabaseHas('users', [
+            'email' => 'jane@acme.com',
+            'company_id' => $company->id,
+        ]);
+        expect(User::where('email', 'jane@acme.com')->first()->email_verified_at)->not->toBeNull();
     });
 
     it('can logout and revoke token', function () {

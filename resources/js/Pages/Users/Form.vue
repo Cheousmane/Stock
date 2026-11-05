@@ -124,7 +124,10 @@ async function submit() {
     } else {
       await axios.post('/users', payload);
     }
-    showToast(isEdit.value ? $t('page.users.updated') : $t('page.users.created'), 'success');
+    showToast(
+      isEdit.value ? $t('page.users.updated') : $t('page.users.created', { name: form.name }),
+      'success'
+    );
     router.push({ name: 'Users' });
   } catch (err) {
     if (err.response?.status === 422) {

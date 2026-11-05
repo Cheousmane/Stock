@@ -58,6 +58,7 @@ class UserController extends Controller
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
         ]);
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         if ($request->filled('role')) {
             app(PermissionRegistrar::class)->setPermissionsTeamId($user->company_id);
