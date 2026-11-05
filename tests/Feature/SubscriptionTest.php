@@ -116,4 +116,51 @@ describe('Subscription API', function () {
         expect($target['quotas']['over_quota'])->toBeTrue();
     });
 
+    it('allows the super admin to update a plan price', function () {
+        $plan = Plan::factory()->create(['price_xof' => 15000]);
+        [$adminCompany, $adminUser, $adminToken] = superAdminAuthUser();
+
+        $response = $this->withHeaders([
+            'X-Tenant-Slug' => $adminCompany->slug,
+            'Authorization' => 'Bearer ' . $adminToken,
+        ])->putJson("/api/v1/admin/subscriptions/plans/{$plan->id}", [
+            'price_xof' => 25000,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.price_xof', 25000);
+        expect($plan->fresh()->price_xof)->toBe(25000);
+    });
+
+    it('rejects invalid plan prices', function () {
+        $plan = Plan::factory()->create(['price_xof' => 15000]);
+        [$adminCompany, $adminUser, $adminToken] = superAdminAuthUser();
+
+        $response = $this->withHeaders([
+            'X-Tenant-Slug' => $adminCompany->slug,
+            'Authorization' => 'Bearer ' . $adminToken,
+        ])->putJson("/api/v1/admin/subscriptions/plans/{$plan->id}", [
+            'price_xof' => -1,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('price_xof');
+        expect($plan->fresh()->price_xof)->toBe(15000);
+    });
+
+    it('forbids regular admins from updating plan prices', function () {
+        $plan = Plan::factory()->create(['price_xof' => 15000]);
+        [$company, $user, $token] = subAuthUser();
+
+        $response = $this->withHeaders([
+            'X-Tenant-Slug' => $company->slug,
+            'Authorization' => 'Bearer ' . $token,
+        ])->putJson("/api/v1/admin/subscriptions/plans/{$plan->id}", [
+            'price_xof' => 25000,
+        ]);
+
+        $response->assertForbidden();
+        expect($plan->fresh()->price_xof)->toBe(15000);
+    });
+
 });

@@ -52,7 +52,7 @@ Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->name(
 Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->name('auth.resend-verification')->middleware('throttle:3,5');
 
     // Login detects tenant from user email (no tenant middleware required)
-    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:10,60');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')->middleware('throttle:10,15');
 
     // Google OAuth (ID token verified server-side, creates tenant or links account)
     Route::post('/auth/google/profile', [AuthController::class, 'googleProfile'])->name('auth.google.profile')->middleware('throttle:10,10');
@@ -282,6 +282,7 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         // Gestion centralisée des abonnements
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('/subscriptions/plans', [AdminSubscriptionController::class, 'plans'])->name('subscriptions.plans');
+        Route::put('/subscriptions/plans/{plan}', [AdminSubscriptionController::class, 'updatePlan'])->name('subscriptions.plans.update');
         Route::get('/subscriptions/over-quota', [AdminSubscriptionController::class, 'overQuota'])->name('subscriptions.over-quota');
         Route::get('/subscriptions/{company}', [AdminSubscriptionController::class, 'show'])->name('subscriptions.show');
         Route::post('/subscriptions/{company}/assign', [AdminSubscriptionController::class, 'assign'])->name('subscriptions.assign');

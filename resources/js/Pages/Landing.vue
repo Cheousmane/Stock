@@ -376,7 +376,12 @@
           <button @click="billingCycle = 'annual'" :class="{ active: billingCycle === 'annual' }">Annuel <span class="save-badge">-2 mois</span></button>
         </div>
 
-        <div class="pricing-grid">
+        <p v-if="pricingPlansLoading" class="section-sub">Chargement des tarifs…</p>
+        <div v-else-if="pricingError" class="section-sub" role="alert">
+          {{ pricingError }}
+          <button type="button" class="nav-link" @click="fetchPricingPlans">Réessayer</button>
+        </div>
+        <div v-else class="pricing-grid">
           <div
             v-for="plan in displayPlans"
             :key="plan.slug"
@@ -493,6 +498,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import axios from 'axios';
 import AppLogo from '../Components/AppLogo.vue';
 import ThemeToggle from '../Components/ThemeToggle.vue';
 import { useTheme } from '../composables/useTheme';
@@ -576,7 +582,6 @@ const pricingPlans = [
   {
     slug: 'free',
     name: 'Free',
-    price: 0,
     priceLabel: 'Gratuit',
     desc: 'Pour les petites entreprises qui démarrent.',
     features: ['Facturation de base', 'Gestion des produits', 'Gestion des clients'],
@@ -586,8 +591,7 @@ const pricingPlans = [
   {
     slug: 'starter',
     name: 'Simple',
-    price: 15000,
-    priceLabel: '15 000',
+    priceLabel: '',
     desc: 'Pour les entreprises en croissance.',
     features: ['Tout le plan Free', 'Jusqu\'à 10 utilisateurs', 'Transferts de stock', 'Bons de livraison', 'Devis'],
     quotas: '10 utilisateurs · 100 produits · 50 factures · 2 entrepôts',
@@ -596,8 +600,7 @@ const pricingPlans = [
   {
     slug: 'pro',
     name: 'Pro',
-    price: 35000,
-    priceLabel: '35 000',
+    priceLabel: '',
     desc: 'Pour les entreprises établies à fort volume.',
     features: ['Tout le plan Simple', 'Jusqu\'à 20 utilisateurs', 'Produits illimités', 'Factures illimitées', 'Multi-entrepôts'],
     quotas: '20 utilisateurs · produits et factures illimités · 5 entrepôts',
@@ -606,8 +609,7 @@ const pricingPlans = [
   {
     slug: 'enterprise',
     name: 'Enterprise',
-    price: 100000,
-    priceLabel: '100 000',
+    priceLabel: '',
     desc: 'Pour les grandes organisations.',
     features: ['Tout le plan Pro', 'Utilisateurs illimités', 'Produits et factures illimités', 'Entrepôts illimités', 'Support prioritaire'],
     quotas: 'Utilisateurs, produits, factures et entrepôts illimités',
@@ -616,17 +618,50 @@ const pricingPlans = [
 ];
 
 const billingCycle = ref('monthly');
+const planPrices = ref({});
+const pricingPlansLoading = ref(true);
+const pricingError = ref('');
 const displayPlans = computed(() =>
-  pricingPlans.map((plan) => ({
-    ...plan,
-    priceLabel: plan.price === 0
-      ? plan.priceLabel
-      : (billingCycle.value === 'annual'
-        ? new Intl.NumberFormat('fr-FR').format(plan.price * 10).replace(/\s/g, ' ')
-        : plan.priceLabel),
-    periodLabel: plan.price === 0 ? '' : (billingCycle.value === 'annual' ? '/ an' : '/ mois'),
-  }))
+  pricingPlans
+    .filter((plan) => Object.prototype.hasOwnProperty.call(planPrices.value, plan.slug))
+    .map((plan) => {
+      const price = planPrices.value[plan.slug];
+
+      return {
+        ...plan,
+        price,
+        priceLabel: price === 0
+          ? 'Gratuit'
+          : new Intl.NumberFormat('fr-FR')
+            .format(billingCycle.value === 'annual' ? price * 10 : price)
+            .replace(/\s/g, ' '),
+        periodLabel: price === 0 ? '' : (billingCycle.value === 'annual' ? '/ an' : '/ mois'),
+      };
+    })
 );
+
+async function fetchPricingPlans() {
+  pricingPlansLoading.value = true;
+  pricingError.value = '';
+
+  try {
+    const { data } = await axios.get('/subscriptions/plans');
+    const plans = data.data;
+
+    if (!Array.isArray(plans)) {
+      throw new Error('Réponse invalide lors du chargement des tarifs');
+    }
+
+    planPrices.value = Object.fromEntries(
+      plans.map((plan) => [plan.slug, plan.price_xof])
+    );
+  } catch (error) {
+    console.error('Erreur de chargement des tarifs', error);
+    pricingError.value = 'Impossible de charger les tarifs. Veuillez réessayer.';
+  } finally {
+    pricingPlansLoading.value = false;
+  }
+}
 const pricingExtras = [
   {
     title: 'Essai gratuit 14 jours',
@@ -678,6 +713,8 @@ function observe(el, delay = 0) {
 }
 
 onMounted(() => {
+  fetchPricingPlans();
+
   // Scroll listener
   const onScroll = () => { scrolled.value = window.scrollY > 20; };
   window.addEventListener('scroll', onScroll, { passive: true });

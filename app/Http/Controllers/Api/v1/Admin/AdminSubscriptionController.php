@@ -94,6 +94,24 @@ class AdminSubscriptionController extends Controller
         return response()->json(['data' => $plans], Response::HTTP_OK);
     }
 
+    public function updatePlan(Request $request, Plan $plan): JsonResponse
+    {
+        $validated = $request->validate([
+            'price_xof' => ['required', 'integer', 'min:0', 'max:1000000000000'],
+        ]);
+
+        $plan->update(['price_xof' => $validated['price_xof']]);
+
+        return response()->json([
+            'message' => 'Tarif de l’offre mis à jour.',
+            'data' => [
+                'id' => $plan->id,
+                'price_xof' => $plan->price_xof,
+                'currency' => $plan->currency,
+            ],
+        ], Response::HTTP_OK);
+    }
+
     public function overQuota(): JsonResponse
     {
         $rows = $this->quotas->freeCompaniesOverQuota();

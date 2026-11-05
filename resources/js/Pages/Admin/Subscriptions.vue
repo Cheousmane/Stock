@@ -30,7 +30,35 @@
             <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full" :class="plan.slug === 'free' ? 'bg-neutral-500/10 text-neutral-500 border border-neutral-500/20' : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'">{{ plan.slug }}</span>
           </div>
           <p class="mt-2 text-xl font-black tabular-nums text-text-primary">{{ plan.companies_count }} <span class="text-xs font-bold text-text-tertiary">{{ $t('adminPages.companies.company_plural') }}</span></p>
-          <p class="mt-0.5 text-xs font-semibold text-text-tertiary">{{ plan.price_xof > 0 ? formatCurrency(plan.price_xof, plan.currency) + '/' + $t('adminPages.subscriptions.month') : $t('adminPages.subscriptions.free') }}</p>
+          <div class="mt-0.5 flex items-center justify-between gap-2">
+            <p class="text-xs font-semibold text-text-tertiary">{{ plan.price_xof > 0 ? formatCurrency(plan.price_xof, plan.currency) + '/' + $t('adminPages.subscriptions.month') : $t('adminPages.subscriptions.free') }}</p>
+            <button
+              type="button"
+              class="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline disabled:opacity-50"
+              :disabled="savingPlanId === plan.id"
+              @click="startEditingPlan(plan)"
+            >{{ $t('common.edit') }}</button>
+          </div>
+          <form v-if="editingPlanId === plan.id" class="mt-3 space-y-2" @submit.prevent="savePlanPrice(plan)">
+            <label class="block text-[11px] font-bold text-text-secondary" :for="`plan-price-${plan.id}`">{{ $t('adminPages.subscriptions.monthly_price') }}</label>
+            <input
+              :id="`plan-price-${plan.id}`"
+              v-model.number="planPriceInput"
+              type="number"
+              min="0"
+              max="1000000000000"
+              step="1"
+              required
+              class="w-full px-3 py-2 text-sm font-bold rounded-xl border border-border bg-surface text-text-primary focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 outline-none"
+            />
+            <p v-if="planError" class="text-xs font-semibold text-red-600">{{ planError }}</p>
+            <div class="flex items-center gap-2">
+              <button type="submit" :disabled="savingPlanId === plan.id" class="px-3 py-1.5 text-xs font-extrabold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">
+                {{ savingPlanId === plan.id ? $t('common.saving') : $t('common.save') }}
+              </button>
+              <button type="button" class="px-2 py-1.5 text-xs font-bold text-text-tertiary hover:text-text-primary" @click="cancelEditingPlan">{{ $t('common.cancel') }}</button>
+            </div>
+          </form>
           <div class="mt-2 flex flex-wrap gap-1 text-[10px] font-bold text-text-tertiary">
             <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_users ?? '∞' }} {{ $t('adminPages.subscriptions.users_short') }}</span>
             <span class="px-1.5 py-0.5 rounded bg-surface-secondary border border-border/60">{{ plan.quotas?.max_products ?? '∞' }} {{ $t('adminPages.subscriptions.products_short') }}</span>
@@ -454,6 +482,10 @@ const pagination = ref(null)
 const detail = ref(null)
 const actionLoading = ref('')
 const notice = reactive({ type: 'success', message: '' })
+const editingPlanId = ref(null)
+const planPriceInput = ref(0)
+const savingPlanId = ref(null)
+const planError = ref('')
 
 const filters = reactive({ search: '', status: '', plan_id: '', subscription_status: '' })
 
@@ -604,6 +636,37 @@ async function fetchPlans() {
     plans.value = data.data || []
   } catch (err) {
     console.error('Erreur chargement plans', err)
+  }
+}
+
+function startEditingPlan(plan) {
+  editingPlanId.value = plan.id
+  planPriceInput.value = plan.price_xof
+  planError.value = ''
+}
+
+function cancelEditingPlan() {
+  editingPlanId.value = null
+  planError.value = ''
+}
+
+async function savePlanPrice(plan) {
+  savingPlanId.value = plan.id
+  planError.value = ''
+
+  try {
+    const { data } = await axios.put(`/admin/subscriptions/plans/${plan.id}`, {
+      price_xof: planPriceInput.value,
+    })
+    Object.assign(plan, data.data)
+    editingPlanId.value = null
+  } catch (err) {
+    console.error('Erreur mise à jour du tarif', err)
+    planError.value = Object.values(err.response?.data?.errors || {}).flat()?.[0]
+      || err.response?.data?.message
+      || t('adminPages.subscriptions.price_update_error')
+  } finally {
+    savingPlanId.value = null
   }
 }
 
