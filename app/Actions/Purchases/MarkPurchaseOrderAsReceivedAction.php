@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Purchases;
 
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -57,6 +58,11 @@ class MarkPurchaseOrderAsReceivedAction
                     'quantity' => $afterQuantity,
                     'available_quantity' => $stock->available_quantity + $item->quantity,
                 ]);
+
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $product->increment('quantity', $item->quantity);
+                }
 
                 // Create stock movement
                 StockMovement::create([
