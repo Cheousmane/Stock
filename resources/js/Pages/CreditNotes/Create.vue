@@ -9,10 +9,10 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <BaseInput :model-value="displayedNumber" :label="$t('page.credit_notes.number')" disabled :error="errors.number?.[0] || ''">
               <template #suffix>
-                <span class="text-xs text-text-tertiary">{{ $t('page.credit_notes.auto') }}</span>
+                <span class="text-xs text-text-tertiary">{{ $t('page.credit_notes.number_auto') }}</span>
               </template>
             </BaseInput>
-            <BaseSelect v-model="form.invoice_id" :label="$t('page.credit_notes.invoice')" required
+            <BaseSelect v-model="form.invoice_id" :label="$t('page.credit_notes.linked_invoice')" required
               :options="invoices.map(i => ({ value: i.id, label: `${i.number} - ${i.customer_name}` }))"
               :placeholder="$t('form.select')" :error="errors.invoice_id?.[0] || ''" />
             <BaseInput v-model="form.date" type="date" :label="$t('form.date')" required :error="errors.date?.[0] || ''" />
