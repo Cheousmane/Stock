@@ -1556,6 +1556,8 @@
     "trial_started": "Début de l'essai",
     "trial_ends": "Fin de l'essai",
     "subscription_ends": "Fin de l'abonnement",
+    "days_remaining": "Jours restants",
+    "expiring_soon": "Expire bientôt",
     "plan_features": "Fonctionnalités incluses",
     "frozen_title": "Données gelées",
     "frozen_items": "{n} élément(s) gelé(s)",

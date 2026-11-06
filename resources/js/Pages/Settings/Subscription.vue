@@ -70,7 +70,7 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 text-sm">
               <div class="p-3.5 bg-surface-tertiary rounded-xl">
                 <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.trial_started') }}</p>
                 <p class="mt-0.5 font-bold text-text-primary">{{ formatDateOrDash(snapshot?.trial?.started_at) }}</p>
@@ -82,6 +82,14 @@
               <div class="p-3.5 bg-surface-tertiary rounded-xl">
                 <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.subscription_ends') }}</p>
                 <p class="mt-0.5 font-bold text-text-primary">{{ formatDateOrDash(snapshot?.subscription?.ends_at) }}</p>
+              </div>
+              <div class="p-3.5 bg-surface-tertiary rounded-xl" :class="subscriptionExpiringSoon ? 'ring-2 ring-amber-500/40 bg-amber-500/5' : subscriptionExpired ? 'ring-2 ring-red-500/40 bg-red-500/5' : ''">
+                <p class="text-xs font-semibold text-text-tertiary">{{ $t('subscription.days_remaining') }}</p>
+                <p class="mt-0.5 font-bold" :class="subscriptionExpired ? 'text-red-600' : subscriptionExpiringSoon ? 'text-amber-600' : 'text-text-primary'">
+                  {{ subscriptionDaysRemaining }}
+                </p>
+                <p v-if="subscriptionExpiringSoon" class="text-xs text-amber-600 mt-1">{{ $t('subscription.expiring_soon') }}</p>
+                <p v-else-if="subscriptionExpired" class="text-xs text-red-600 mt-1">{{ $t('subscription.status_expired') }}</p>
               </div>
             </div>
 
@@ -252,7 +260,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import AdminLayout from '../../Components/AdminLayout.vue'
@@ -281,6 +289,16 @@ const plans = ref([])
 
 const quotas = computed(() => snapshot.value?.quotas?.resources ?? [])
 const totalFrozen = computed(() => snapshot.value?.total_frozen ?? snapshot.value?.quotas?.frozen_total ?? 0)
+
+const now = ref(Date.now())
+const subscriptionEndsAt = computed(() => snapshot.value?.subscription?.ends_at || snapshot.value?.trial?.ends_at || null)
+const subscriptionDaysRemaining = computed(() => {
+  if (!subscriptionEndsAt.value) return '—'
+  const diff = new Date(subscriptionEndsAt.value).getTime() - now.value
+  return Math.max(0, Math.ceil(diff / 86400000))
+})
+const subscriptionExpired = computed(() => subscriptionEndsAt.value && subscriptionDaysRemaining.value === 0)
+const subscriptionExpiringSoon = computed(() => typeof subscriptionDaysRemaining.value === 'number' && subscriptionDaysRemaining.value > 0 && subscriptionDaysRemaining.value <= 7)
 
 const COMPANY_STATUS = {
   trial: { label: 'subscription.status_trialing', variant: 'info' },
@@ -344,5 +362,14 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData)
+let refreshTimer = null
+onMounted(() => {
+  fetchData()
+  refreshTimer = setInterval(() => {
+    now.value = Date.now()
+  }, 60000)
+})
+onBeforeUnmount(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 </script>

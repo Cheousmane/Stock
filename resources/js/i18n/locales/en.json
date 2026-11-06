@@ -1556,6 +1556,8 @@
     "trial_started": "Trial start",
     "trial_ends": "Trial end",
     "subscription_ends": "Subscription end",
+    "days_remaining": "Days remaining",
+    "expiring_soon": "Expiring soon",
     "plan_features": "Included features",
     "frozen_title": "Frozen data",
     "frozen_items": "{n} frozen item(s)",
