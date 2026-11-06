@@ -92,11 +92,16 @@ class DashboardController extends Controller
                 ->whereRaw('(SELECT COALESCE(SUM(ws.quantity), 0) FROM warehouse_stock ws WHERE ws.product_id = p.id) < p.min_stock')
                 ->count();
 
+            $posRevenueTotal = (int) DB::table('pos_sales')
+                ->where('company_id', $companyId)
+                ->where('status', 'completed')
+                ->sum('total_xof');
+
             $aggregates = [
                 'revenue_by_month' => $revenueByMonth,
                 'total_invoices' => (int) $aggregateQuery->total_invoices,
                 'outstanding' => (int) $aggregateQuery->outstanding,
-                'total_revenue' => (int) $aggregateQuery->total_revenue,
+                'total_revenue' => (int) $aggregateQuery->total_revenue + $posRevenueTotal,
                 'total_products' => (int) $countsQuery->total_products,
                 'total_customers' => (int) $countsQuery->total_customers,
                 'recent_payments' => (int) $countsQuery->recent_payments,
