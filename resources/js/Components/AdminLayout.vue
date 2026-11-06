@@ -250,7 +250,6 @@
                   </div>
                   <div v-else class="py-6 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.no_results_for', { q: searchQuery }) }}</div>
                 </div>
-                <div v-else class="py-8 text-center text-sm font-semibold text-text-tertiary">{{ $t('header.search_hint') }}</div>
               </div>
             </div>
           </div>
