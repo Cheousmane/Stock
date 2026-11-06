@@ -258,6 +258,51 @@
           <LanguageSwitcher />
           <ThemeToggle />
 
+          <!-- Help & guided tour -->
+          <div class="relative" v-click-outside="() => helpOpen = false">
+            <button
+              data-tour="help"
+              type="button"
+              @click="helpOpen = !helpOpen"
+              :aria-expanded="helpOpen"
+              aria-controls="help-menu"
+              :aria-label="$t('appTour.help')"
+              :title="$t('appTour.help')"
+              class="flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface text-text-secondary hover:border-emerald-400/50 hover:text-emerald-600 shadow-sm active:scale-95 transition"
+            >
+              <QuestionMarkCircleIcon class="w-5 h-5" />
+            </button>
+            <div
+              v-if="helpOpen"
+              id="help-menu"
+              class="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-1rem))] bg-surface border border-border/70 rounded-2xl shadow-xl shadow-neutral-950/5 p-1.5 dropdown-in-enter-active"
+            >
+              <div class="px-3 py-2.5 border-b border-border/60">
+                <p class="text-sm font-extrabold text-text-primary">{{ $t('appTour.help_title') }}</p>
+                <p class="mt-0.5 text-xs font-medium text-text-tertiary">{{ $t('appTour.help_description') }}</p>
+              </div>
+              <button
+                type="button"
+                class="mt-1 flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-text-secondary hover:bg-emerald-500/[0.07] hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                @click="restartTour"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25M19.5 19.5v-5.25h-5.25M5.7 9.75a7.5 7.5 0 0112.6-2.4l1.2 2.4m-1.2 4.5a7.5 7.5 0 01-12.6 2.4l-1.2-2.4" />
+                </svg>
+                {{ $t('appTour.restart') }}
+              </button>
+              <router-link
+                v-if="can('manage_settings')"
+                to="/settings"
+                @click="helpOpen = false"
+                class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-text-secondary hover:bg-surface-tertiary rounded-xl transition-colors"
+              >
+                <Cog6ToothIcon class="h-4 w-4" />
+                {{ $t('nav.settings') }}
+              </router-link>
+            </div>
+          </div>
+
           <!-- User dropdown -->
           <div class="relative" v-click-outside="() => dropdownOpen = false">
             <button
@@ -286,7 +331,7 @@
                 </svg>
                 {{ $t('appTour.restart') }}
               </button>
-              <router-link to="/settings" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary">
+              <router-link v-if="can('manage_settings')" to="/settings" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -332,8 +377,6 @@
         </main>
       </div>
     </div>
-
-    <AppTour ref="appTourRef" :identity="tourIdentity" @navigation-target="onTourNavigationTarget" />
   </div>
 </template>
 
@@ -345,27 +388,27 @@ import { useI18n } from 'vue-i18n'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import AppLogo from './AppLogo.vue'
-import AppTour from './AppTour.vue'
+import { readStoredUser } from '../composables/useCurrentUser'
+import { TOUR_SIDEBAR_EVENT, TOUR_USER_UPDATED_EVENT, requestTourRestart } from '../tour/events'
 import {
   HomeIcon, ComputerDesktopIcon, CubeIcon, UsersIcon, DocumentTextIcon,
   DocumentDuplicateIcon, TruckIcon, CreditCardIcon, ArchiveBoxIcon,
   BanknotesIcon, TagIcon, BuildingStorefrontIcon, ScaleIcon,
   CalendarDaysIcon, BriefcaseIcon, ShoppingCartIcon,
   ArrowUturnLeftIcon, Cog6ToothIcon, ClockIcon, CurrencyDollarIcon, BuildingOfficeIcon,
-  PlusIcon,
+  PlusIcon, QuestionMarkCircleIcon,
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const route = useRoute()
 const { t, te } = useI18n()
-const appTourRef = ref(null)
-const tourIdentity = ref('')
 
 const sidebarOpen = ref(false)
 const navRef = ref(null)
 const linkRefs = ref([])
 const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') !== 'false')
 const dropdownOpen = ref(false)
+const helpOpen = ref(false)
 const quickCreateOpen = ref(false)
 const tooltip = ref({ text: '', x: 0, y: 0 })
 const searchOpen = ref(false)
@@ -413,6 +456,7 @@ watch(searchOpen, (v) => { if (v) nextTick(() => searchInput.value?.focus()) })
 watch(() => route.fullPath, () => {
   sidebarOpen.value = false
   dropdownOpen.value = false
+  helpOpen.value = false
   quickCreateOpen.value = false
   searchOpen.value = false
   // Scroll active nav item into view
@@ -434,13 +478,20 @@ function onGlobalKeydown(e) {
     searchOpen.value = false
     sidebarOpen.value = false
     dropdownOpen.value = false
+    helpOpen.value = false
     quickCreateOpen.value = false
   }
 }
 
-onMounted(() => document.addEventListener('keydown', onGlobalKeydown))
+onMounted(() => {
+  document.addEventListener('keydown', onGlobalKeydown)
+  window.addEventListener(TOUR_SIDEBAR_EVENT, onTourSidebar)
+  window.addEventListener(TOUR_USER_UPDATED_EVENT, syncUserFromCache)
+})
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onGlobalKeydown)
+  window.removeEventListener(TOUR_SIDEBAR_EVENT, onTourSidebar)
+  window.removeEventListener(TOUR_USER_UPDATED_EVENT, syncUserFromCache)
   document.body.style.overflow = ''
 })
 
@@ -490,15 +541,27 @@ const allNavItems = [
   { label: 'Paramètres', to: '/settings', icon: Cog6ToothIcon, key: 'nav.settings', permission: 'manage_settings' },
 ]
 
-function can(perm) { return !perm || userPermissions.value.includes(perm) }
+function can(perm) { return isSuperAdmin.value || !perm || userPermissions.value.includes(perm) }
 
-function onTourNavigationTarget(isNavigationTarget) {
-  sidebarOpen.value = window.innerWidth < 1024 && isNavigationTarget
+function syncUserFromCache() {
+  const u = readStoredUser()
+  if (!u || typeof u !== 'object') return
+  if (u.name) userName.value = u.name
+  if (u.email) userEmail.value = u.email
+  userPermissions.value = Array.isArray(u.permissions) ? u.permissions : []
+  userRole.value = Array.isArray(u.roles) && u.roles.length ? u.roles[0] : ''
+  isSuperAdmin.value = Boolean(u.is_super_admin)
+}
+
+function onTourSidebar(event) {
+  const shouldOpen = Boolean(event.detail?.open)
+  sidebarOpen.value = shouldOpen && window.innerWidth < 1024
 }
 
 function restartTour() {
   dropdownOpen.value = false
-  appTourRef.value?.start()
+  helpOpen.value = false
+  requestTourRestart()
 }
 
 const navItems = computed(() => {
@@ -608,28 +671,15 @@ onMounted(async () => {
       active.scrollIntoView({ block: 'nearest', behavior: 'auto' })
     }
   })
-  try {
-    const u = JSON.parse(localStorage.getItem('user') || '{}')
-    tourIdentity.value = String(u.id || u.email || '')
-    if (u.name) userName.value = u.name
-    if (u.email) userEmail.value = u.email
-    if (u.is_super_admin) isSuperAdmin.value = u.is_super_admin
-    if (u.roles?.length) userRole.value = u.roles[0]
-    if (u.permissions?.length) userPermissions.value = u.permissions
-    if (!u.permissions?.length || !u.roles?.length) {
+  syncUserFromCache()
+  if (!userPermissions.value.length || !userRole.value) {
+    try {
       const { data } = await axios.get('/auth/me')
       const fresh = data.user ?? data.data ?? data
       localStorage.setItem('user', JSON.stringify(fresh))
-      tourIdentity.value = String(fresh.id || fresh.email || '')
-      if (fresh.permissions) userPermissions.value = fresh.permissions
-      if (fresh.roles?.length) userRole.value = fresh.roles[0]
-      if (fresh.name) userName.value = fresh.name
-      if (fresh.email) userEmail.value = fresh.email
-      if (fresh.is_super_admin) isSuperAdmin.value = fresh.is_super_admin
-    }
-  } catch {}
-  await nextTick()
-  await appTourRef.value?.startIfNew()
+      syncUserFromCache()
+    } catch {}
+  }
   try {
     const cachedCompany = JSON.parse(localStorage.getItem('company') || '{}')
     if (cachedCompany.name) {

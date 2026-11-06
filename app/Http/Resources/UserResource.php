@@ -44,6 +44,7 @@ class UserResource extends JsonResource
             ]),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
             'last_seen_at' => $this->last_seen_at?->toIso8601String(),
+            'tour_completed_at' => $this->tour_completed_at?->toIso8601String(),
             'is_online' => $this->isOnline(),
             'created_at' => $this->created_at?->toIso8601String(),
         ];

@@ -1617,6 +1617,11 @@
     "previous": "Previous",
     "next": "Next",
     "finish": "Finish",
+    "personalized_for": "Tailored tour: {role}",
+    "help": "Help and guided tour",
+    "help_title": "Need help?",
+    "help_description": "Restart the guided tour to rediscover the tools available to you.",
+    "settings_link": "Open settings",
     "welcome_title": "Welcome to your workspace",
     "welcome_description": "Take a few steps to discover the main tools in your workspace. You can click highlighted items, then select “Next” to continue. Skip the tour at any time or restart it from your profile.",
     "dashboard_title": "Your dashboard",
@@ -1630,7 +1635,144 @@
     "settings_title": "Configure your company",
     "settings_description": "Settings let you manage your company information, preferences, and subscription.",
     "profile_title": "Your account and this tour",
-    "profile_description": "Open this menu to access settings, sign out, or restart this guided tour whenever you like."
+    "profile_description": "Open this menu to manage your account, change language or theme, sign out, and restart this guided tour.",
+    "settings_card": {
+      "title": "Guided tour",
+      "description": "Rediscover the features of your workspace.",
+      "hint": "The tour is tailored to your current roles and permissions. It does not grant access to any additional feature."
+    },
+    "profiles": {
+      "admin": {
+        "label": "Administrator",
+        "welcome_title": "Welcome to your administrator workspace",
+        "welcome_description": "You have full rights for your company. This tour presents the management, sales, documents, inventory, finance, and administration tools available to you."
+      },
+      "manager": {
+        "label": "Manager",
+        "welcome_title": "Welcome to your manager workspace",
+        "welcome_description": "Your tour covers the sales operations, documents, inventory, and finance allowed by your rights, along with settings and activity tracking."
+      },
+      "accountant": {
+        "label": "Accountant",
+        "welcome_title": "Welcome to your accounting workspace",
+        "welcome_description": "This tour focuses on the documents, payments, expenses, accounting, and financial reports available with your permissions."
+      },
+      "warehouse_manager": {
+        "label": "Inventory manager",
+        "welcome_title": "Welcome to your inventory workspace",
+        "welcome_description": "This tour presents the products, suppliers, purchase orders, deliveries, and stock movements you can manage."
+      },
+      "sales": {
+        "label": "Sales representative",
+        "welcome_title": "Welcome to your sales workspace",
+        "welcome_description": "This tour highlights the customers, quotes, invoices, payments, and delivery notes needed for your sales activity."
+      },
+      "employee": {
+        "label": "User",
+        "welcome_title": "Welcome to your workspace",
+        "welcome_description": "This tour guides you to the read-only modules available to you: products, customers, documents, payments, and inventory."
+      },
+      "custom": {
+        "label": "Custom profile",
+        "welcome_title": "Welcome to your workspace",
+        "welcome_description": "Your tour is built from your actual roles and permissions. Only the tools you can access are presented."
+      },
+      "super_admin": {
+        "label": "Super administrator",
+        "welcome_title": "Welcome to the administration console",
+        "welcome_description": "This tour presents global oversight: companies, subscriptions, users, security, and platform metrics."
+      }
+    },
+    "steps": {
+      "dashboard": {
+        "title": "Your dashboard",
+        "description": "Key metrics summarise your company activity. The cards shown depend on your permissions."
+      },
+      "navigation": {
+        "title": "Navigate the application",
+        "description": "The sidebar groups the modules available with your rights. On mobile, it opens automatically during the tour."
+      },
+      "search": {
+        "title": "Search the whole application",
+        "description": "Global search quickly finds your customers, products, invoices, and other documents."
+      },
+      "quick_create": {
+        "title": "Create in one click",
+        "description": "This shortcut opens the creation forms allowed for your profile."
+      },
+      "sales": {
+        "title": "Your sales activity",
+        "description": "Customers, checkout, and products: find the sales tools available with your permissions here."
+      },
+      "invoicing": {
+        "title": "Your documents",
+        "description": "Invoices, quotes, credit notes, and delivery notes are grouped in this section."
+      },
+      "purchasing": {
+        "title": "Your purchasing",
+        "description": "Suppliers and purchase orders help you track your supply chain."
+      },
+      "inventory": {
+        "title": "Your inventory",
+        "description": "Track stock levels, warehouses, categories, and units for your company."
+      },
+      "finance": {
+        "title": "Your finance",
+        "description": "Payments, expenses, and capital give an overview of your financial position."
+      },
+      "payroll": {
+        "title": "Your accounting",
+        "description": "View the accounting and payroll items allowed by your profile."
+      },
+      "reports": {
+        "title": "Your reports",
+        "description": "Charts and financial indicators help you track revenue and your best-performing products."
+      },
+      "team": {
+        "title": "Your team",
+        "description": "Manage users, their roles, and their permissions from this area."
+      },
+      "activity": {
+        "title": "The activity log",
+        "description": "Review actions performed in the application to keep track of important changes."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure your company information, preferences, and subscription."
+      },
+      "help": {
+        "title": "Your help and this tour",
+        "description": "This help menu lets you restart the guided tour at any time, with a tour rebuilt from your current rights."
+      },
+      "profile": {
+        "title": "Your account",
+        "description": "Manage your account, change language or theme, sign out, and restart the guided tour."
+      },
+      "admin_dashboard": {
+        "title": "Oversee the platform",
+        "description": "The console presents global metrics: companies, subscriptions, users, and recent activity."
+      },
+      "admin_navigation": {
+        "title": "Administration navigation",
+        "description": "The sidebar provides access to oversight, security, and platform system tools."
+      },
+      "admin_companies": {
+        "title": "Companies",
+        "description": "Create, review, and manage the platform's customer companies."
+      },
+      "admin_subscriptions": {
+        "title": "Subscriptions",
+        "description": "Track plans, renewal dates, and company subscription status."
+      },
+      "admin_security": {
+        "title": "Security",
+        "description": "Review sign-in logs and security events for the platform."
+      },
+      "admin_users": {
+        "title": "Global users",
+        "description": "Manage platform accounts and their global access."
+      }
+    }
   },
   "capital": {
     "title": "Capital",

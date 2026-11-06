@@ -148,6 +148,18 @@
           </form>
         </BaseCard>
 
+        <!-- Guided tour -->
+        <BaseCard :title="$t('appTour.settings_card.title')" :subtitle="$t('appTour.settings_card.description')" padding="lg">
+          <template #actions>
+            <BaseButton variant="secondary" size="sm" type="button" @click="restartTour">
+              <ArrowPathIcon class="w-4 h-4" /> {{ $t('appTour.restart') }}
+            </BaseButton>
+          </template>
+          <p class="pt-4 border-t border-border text-sm text-text-secondary">
+            {{ $t('appTour.settings_card.hint') }}
+          </p>
+        </BaseCard>
+
         <!-- Subscription -->
         <BaseCard :title="$t('settings.subscription')" :subtitle="$t('settings.manage_subscription')" padding="lg">
           <template #actions>
@@ -211,6 +223,7 @@ import BaseTextarea from '../../Components/ui/BaseTextarea.vue';
 import { ArrowPathIcon, CreditCardIcon, CheckCircleIcon, CheckIcon } from '@heroicons/vue/24/outline';
 import { formatPrice as formatPlanPrice, industryOptions } from '../../utils/format';
 import { translatePlanFeature } from '../../utils/planTranslations';
+import { requestTourRestart } from '../../tour/events';
 
 const showToast = inject('showToast');
 const { t } = useI18n();
@@ -238,6 +251,10 @@ const mailForm = reactive({
 const mailSaving = ref(false);
 const mailTesting = ref(false);
 const mailTestResult = ref(null);
+
+function restartTour() {
+  requestTourRestart();
+}
 
 async function fetchData() {
   loading.value = true;

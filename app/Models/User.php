@@ -32,6 +32,8 @@ class User extends Authenticatable
         'last_login_at',
         'last_seen_at',
         'frozen_at',
+        'tour_completed_at',
+        'tour_completed_hash',
     ];
 
     /**
@@ -73,6 +75,7 @@ class User extends Authenticatable
             'is_super_admin' => 'boolean',
             'is_active' => 'boolean',
             'frozen_at' => 'datetime',
+            'tour_completed_at' => 'datetime',
         ];
     }
 

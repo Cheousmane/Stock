@@ -61,7 +61,7 @@
       </div>
 
       <!-- Nav -->
-      <nav ref="navRef" class="flex-1 px-3 py-4 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <nav ref="navRef" data-tour="admin-navigation" class="flex-1 px-3 py-4 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div v-for="section in navSections" :key="section.title">
           <p
             class="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-sidebar-text-secondary/80 transition-all"
@@ -224,7 +224,7 @@
 
             <!-- User menu -->
             <div class="relative" ref="menuRef">
-              <button @click="menuOpen = !menuOpen" class="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-border bg-surface shadow-sm hover:border-emerald-400/40 hover:shadow-md active:scale-[0.98] transition-all">
+              <button data-tour="profile" @click="menuOpen = !menuOpen" class="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-border bg-surface shadow-sm hover:border-emerald-400/40 hover:shadow-md active:scale-[0.98] transition-all">
                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-white text-sm font-extrabold shadow">{{ userInitial }}</span>
                 <span class="hidden sm:block text-left leading-tight">
                   <span class="block text-[13px] font-bold text-text-primary max-w-[120px] truncate">{{ userName || t('header.administrator') }}</span>
@@ -238,6 +238,10 @@
                     <p class="text-sm font-bold text-text-primary truncate">{{ userName }}</p>
                     <p class="text-xs text-text-tertiary truncate">{{ userEmail }}</p>
                   </div>
+                  <button @click="restartTour" class="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm font-semibold text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25M19.5 19.5v-5.25h-5.25M5.7 9.75a7.5 7.5 0 0112.6-2.4l1.2 2.4m-1.2 4.5a7.5 7.5 0 01-12.6 2.4l-1.2-2.4" /></svg>
+                    {{ $t('appTour.restart') }}
+                  </button>
                   <router-link to="/dashboard" @click="menuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
                     {{ $t('admin.back_to_app') }}
@@ -284,6 +288,8 @@ import {
   ChartBarIcon, Cog6ToothIcon, CreditCardIcon
 } from '@heroicons/vue/24/outline'
 import { initAnalytics, setSuperAdminUser } from '@/composables/useAnalytics'
+import { readStoredUser } from '@/composables/useCurrentUser'
+import { TOUR_SIDEBAR_EVENT, TOUR_USER_UPDATED_EVENT, requestTourRestart } from '@/tour/events'
 import ThemeToggle from '@/Components/ThemeToggle.vue'
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue'
 import AppLogo from '@/Components/AppLogo.vue'
@@ -397,6 +403,27 @@ function isActive(to) {
   return route.path === to || route.path.startsWith(to + '/')
 }
 
+function syncUserFromCache() {
+  const u = readStoredUser()
+  if (!u || typeof u !== 'object') return
+  if (u.name) userName.value = u.name
+  if (u.email) userEmail.value = u.email
+  if (u.id) user.value = u
+  if (u.id && u.is_super_admin) {
+    initAnalytics().then(() => setSuperAdminUser(u))
+  }
+}
+
+function onTourSidebar(event) {
+  const shouldOpen = Boolean(event.detail?.open)
+  sidebarOpen.value = shouldOpen && window.innerWidth < 1024
+}
+
+function restartTour() {
+  menuOpen.value = false
+  requestTourRestart()
+}
+
 
 function tick() {
   time.value = new Date().toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
@@ -432,15 +459,9 @@ onMounted(() => {
   timer = setInterval(tick, 30000)
   document.addEventListener('click', onClickOutside)
   document.addEventListener('keydown', onKey)
-  try {
-    const u = JSON.parse(localStorage.getItem('user') || '{}')
-    if (u.name) userName.value = u.name
-    if (u.email) userEmail.value = u.email
-    if (u.id) {
-      user.value = u
-      initAnalytics().then(() => setSuperAdminUser(u))
-    }
-  } catch {}
+  window.addEventListener(TOUR_SIDEBAR_EVENT, onTourSidebar)
+  window.addEventListener(TOUR_USER_UPDATED_EVENT, syncUserFromCache)
+  syncUserFromCache()
   axios.get('/admin/dashboard').then(({ data }) => {
     const d = data.data ?? data
     const fails = Number(d?.failed_logins ?? 0)
@@ -453,6 +474,8 @@ onUnmounted(() => {
   clearInterval(timer)
   document.removeEventListener('click', onClickOutside)
   document.removeEventListener('keydown', onKey)
+  window.removeEventListener(TOUR_SIDEBAR_EVENT, onTourSidebar)
+  window.removeEventListener(TOUR_USER_UPDATED_EVENT, syncUserFromCache)
   document.body.style.overflow = ''
 })
 </script>

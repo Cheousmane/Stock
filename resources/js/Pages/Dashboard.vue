@@ -85,7 +85,7 @@
         </div>
 
         <!-- KPI Bento Cards (4 cartes maîtresses avec bascule optionnelle) -->
-        <div>
+        <div data-tour="dashboard-kpis">
           <div class="flex items-center justify-between mb-3">
             <h2 class="pro-section-title">{{ $t('page.dashboard.title') }}</h2>
             <button
@@ -129,7 +129,7 @@
         </div>
 
         <!-- Charts row -->
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div data-tour="dashboard-reports" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div class="lg:col-span-2 pro-card p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <div>

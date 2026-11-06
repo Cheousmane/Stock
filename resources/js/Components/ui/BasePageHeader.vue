@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-1">
+  <div data-tour="page-header" class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-1">
     <div class="min-w-0">
       <p v-if="eyebrow" class="pro-eyebrow">{{ eyebrow }}</p>
       <h1 class="pro-title">{{ title }}</h1>

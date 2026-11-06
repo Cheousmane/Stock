@@ -2,7 +2,7 @@
   <SuperAdminLayout>
     <div class="space-y-6 pb-10">
       <!-- Hero header -->
-      <div class="relative overflow-hidden rounded-[1.25rem] border border-emerald-500/15 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-600/20">
+      <div data-tour="admin-dashboard" class="relative overflow-hidden rounded-[1.25rem] border border-emerald-500/15 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-600/20">
         <div class="pointer-events-none absolute inset-0" aria-hidden="true">
           <div class="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-white/15 blur-3xl" />
           <div class="absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-teal-950/25 blur-3xl" />

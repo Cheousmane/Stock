@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\v1\UserController;
 use App\Http\Controllers\Api\v1\ActivityLogController;
 use App\Http\Controllers\Api\v1\CompanyController;
 use App\Http\Controllers\Api\v1\SettingController;
+use App\Http\Controllers\Api\v1\TourController;
 use App\Http\Controllers\Api\v1\UnitController;
 use App\Http\Controllers\Api\v1\WarehouseController;
 use App\Http\Controllers\Api\v1\WebhookEndpointController;
@@ -73,6 +74,11 @@ Route::post('/auth/resend-verification', [AuthController::class, 'resendVerifica
         Route::post('/auth/ping', [AuthController::class, 'ping'])->name('auth.ping');
         Route::put('/auth/locale', [AuthController::class, 'updateLocale'])->name('auth.locale');
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+        // Guided tour (personalised from the authenticated user's real permissions)
+        Route::get('/auth/tour', [TourController::class, 'show'])->name('auth.tour');
+        Route::post('/auth/tour/complete', [TourController::class, 'complete'])->name('auth.tour.complete');
+        Route::post('/auth/tour/restart', [TourController::class, 'restart'])->name('auth.tour.restart');
 
         // Products
         Route::apiResource('products', ProductController::class);

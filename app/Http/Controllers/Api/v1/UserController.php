@@ -103,6 +103,12 @@ class UserController extends Controller
             app(PermissionRegistrar::class)->setPermissionsTeamId($user->company_id);
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $user->syncRoles($request->filled('role') ? [$request->input('role')] : []);
+
+            // The user's guided tour must be rebuilt from their new access.
+            $user->forceFill([
+                'tour_completed_at' => null,
+                'tour_completed_hash' => null,
+            ])->save();
         }
 
         $user->load('roles');

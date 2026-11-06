@@ -1617,6 +1617,11 @@
     "previous": "Précédent",
     "next": "Suivant",
     "finish": "Terminer",
+    "personalized_for": "Parcours adapté : {role}",
+    "help": "Aide et visite guidée",
+    "help_title": "Besoin d'aide ?",
+    "help_description": "Relancez la visite guidée pour redécouvrir les outils auxquels vous avez accès.",
+    "settings_link": "Ouvrir les paramètres",
     "welcome_title": "Bienvenue dans votre espace",
     "welcome_description": "En quelques étapes, découvrez les principaux outils de votre espace. Vous pouvez cliquer sur les éléments mis en évidence, puis utiliser « Suivant » pour avancer. Ignorez la visite à tout moment ou relancez-la depuis votre profil.",
     "dashboard_title": "Votre tableau de bord",
@@ -1630,7 +1635,144 @@
     "settings_title": "Configurez votre entreprise",
     "settings_description": "Les paramètres permettent de gérer les informations de l'entreprise, les préférences et l'abonnement.",
     "profile_title": "Votre compte et cette visite",
-    "profile_description": "Ouvrez ce menu pour accéder aux paramètres, vous déconnecter ou relancer cette visite guidée quand vous le souhaitez."
+    "profile_description": "Ouvrez ce menu pour gérer votre compte, changer de langue ou de thème, vous déconnecter et relancer cette visite guidée.",
+    "settings_card": {
+      "title": "Visite guidée",
+      "description": "Redécouvrez les fonctionnalités de votre espace.",
+      "hint": "La visite est personnalisée selon vos rôles et permissions actuels. Elle ne donne accès à aucune fonctionnalité supplémentaire."
+    },
+    "profiles": {
+      "admin": {
+        "label": "Administrateur",
+        "welcome_title": "Bienvenue dans votre espace administrateur",
+        "welcome_description": "Vous disposez de l'ensemble des droits de votre entreprise. Cette visite présente le pilotage, les ventes, les documents, le stock, la finance et les outils d'administration auxquels vous avez accès."
+      },
+      "manager": {
+        "label": "Gestionnaire",
+        "welcome_title": "Bienvenue dans votre espace gestionnaire",
+        "welcome_description": "Votre parcours couvre les opérations commerciales, les documents, le stock et la finance que vos droits autorisent, ainsi que les paramètres et le suivi d'activité."
+      },
+      "accountant": {
+        "label": "Comptable",
+        "welcome_title": "Bienvenue dans votre espace comptable",
+        "welcome_description": "Cette visite met l'accent sur les documents, les paiements, les dépenses, la comptabilité et les états financiers accessibles avec vos permissions."
+      },
+      "warehouse_manager": {
+        "label": "Responsable de stock",
+        "welcome_title": "Bienvenue dans votre espace stock",
+        "welcome_description": "Cette visite présente les produits, les fournisseurs, les bons de commande, les livraisons et les mouvements de stock que vous pouvez gérer."
+      },
+      "sales": {
+        "label": "Commercial",
+        "welcome_title": "Bienvenue dans votre espace commercial",
+        "welcome_description": "Cette visite met en avant les clients, les devis, les factures, les encaissements et les bons de livraison nécessaires à votre activité de vente."
+      },
+      "employee": {
+        "label": "Utilisateur",
+        "welcome_title": "Bienvenue dans votre espace",
+        "welcome_description": "Cette visite vous guide vers les modules de consultation auxquels vous avez accès : produits, clients, documents, paiements et stock."
+      },
+      "custom": {
+        "label": "Profil personnalisé",
+        "welcome_title": "Bienvenue dans votre espace",
+        "welcome_description": "Votre parcours est construit à partir de vos rôles et permissions réels. Seuls les outils auxquels vous avez accès sont présentés."
+      },
+      "super_admin": {
+        "label": "Super administrateur",
+        "welcome_title": "Bienvenue dans la console d'administration",
+        "welcome_description": "Cette visite présente le pilotage global : entreprises, abonnements, utilisateurs, sécurité et indicateurs de la plateforme."
+      }
+    },
+    "steps": {
+      "dashboard": {
+        "title": "Votre tableau de bord",
+        "description": "Les indicateurs clés résument l'activité de votre entreprise. Les cartes affichées dépendent de vos permissions."
+      },
+      "navigation": {
+        "title": "Naviguez dans l'application",
+        "description": "Le menu latéral regroupe les modules accessibles avec vos droits. Sur mobile, il s'ouvre automatiquement pendant la visite."
+      },
+      "search": {
+        "title": "Recherchez dans toute l'application",
+        "description": "La recherche globale retrouve rapidement vos clients, produits, factures et autres documents."
+      },
+      "quick_create": {
+        "title": "Créez en un clic",
+        "description": "Ce raccourci ouvre directement les formulaires de création autorisés pour votre profil."
+      },
+      "sales": {
+        "title": "Votre activité commerciale",
+        "description": "Clients, caisse et produits : retrouvez ici les outils de vente accessibles avec vos permissions."
+      },
+      "invoicing": {
+        "title": "Vos documents",
+        "description": "Factures, devis, avoirs et bons de livraison sont regroupés dans cette section."
+      },
+      "purchasing": {
+        "title": "Vos achats",
+        "description": "Fournisseurs et bons de commande vous permettent de suivre vos approvisionnements."
+      },
+      "inventory": {
+        "title": "Votre stock",
+        "description": "Suivez les niveaux de stock, les dépôts, les catégories et les unités de votre entreprise."
+      },
+      "finance": {
+        "title": "Votre finance",
+        "description": "Paiements, dépenses et capital donnent une vue d'ensemble de la situation financière."
+      },
+      "payroll": {
+        "title": "Votre comptabilité",
+        "description": "Consultez les éléments de comptabilité et de paie autorisés par votre profil."
+      },
+      "reports": {
+        "title": "Vos rapports",
+        "description": "Les graphiques et indicateurs financiers vous aident à suivre les revenus et les produits les plus performants."
+      },
+      "team": {
+        "title": "Votre équipe",
+        "description": "Gérez les utilisateurs, leurs rôles et leurs permissions depuis cet espace."
+      },
+      "activity": {
+        "title": "Le journal d'activité",
+        "description": "Consultez les actions réalisées dans l'application pour garder une trace des changements importants."
+      },
+      "settings": {
+        "title": "Les paramètres",
+        "description": "Configurez les informations de l'entreprise, les préférences et l'abonnement."
+      },
+      "help": {
+        "title": "Votre aide et cette visite",
+        "description": "Ce menu d'aide permet de relancer la visite guidée à tout moment, avec un parcours reconstruit selon vos droits actuels."
+      },
+      "profile": {
+        "title": "Votre compte",
+        "description": "Gérez votre compte, changez de langue ou de thème, vous déconnectez et relancez la visite guidée."
+      },
+      "admin_dashboard": {
+        "title": "Pilotez la plateforme",
+        "description": "La console présente les indicateurs globaux : entreprises, abonnements, utilisateurs et activité récente."
+      },
+      "admin_navigation": {
+        "title": "La navigation d'administration",
+        "description": "Le menu latéral donne accès au pilotage, à la sécurité et aux outils système de la plateforme."
+      },
+      "admin_companies": {
+        "title": "Les entreprises",
+        "description": "Créez, consultez et gérez les entreprises clientes de la plateforme."
+      },
+      "admin_subscriptions": {
+        "title": "Les abonnements",
+        "description": "Suivez les plans, les échéances et l'état des abonnements des entreprises."
+      },
+      "admin_security": {
+        "title": "La sécurité",
+        "description": "Consultez les journaux de connexion et les événements de sécurité de la plateforme."
+      },
+      "admin_users": {
+        "title": "Les utilisateurs globaux",
+        "description": "Gérez les comptes de la plateforme et leurs accès au niveau global."
+      }
+    }
   },
   "capital": {
     "title": "Capital",

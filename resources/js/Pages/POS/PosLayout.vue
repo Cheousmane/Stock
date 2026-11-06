@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen h-dvh flex flex-col bg-surface-secondary text-text-primary overflow-hidden antialiased">
     <!-- Header -->
-    <header class="relative bg-surface/85 backdrop-blur-xl border-b border-border/70 shrink-0 z-30">
+    <header data-tour="page-header" class="relative bg-surface/85 backdrop-blur-xl border-b border-border/70 shrink-0 z-30">
       <div class="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500" />
       <div class="flex items-center gap-3 px-4 h-16 max-w-[1600px] mx-auto w-full">
         <router-link to="/dashboard" class="flex items-center justify-center w-10 h-10 rounded-2xl border border-border bg-surface text-text-secondary hover:text-emerald-600 hover:border-emerald-400/50 shadow-sm active:scale-95 transition" :title="$t('common.back_to_dashboard')">

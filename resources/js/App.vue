@@ -7,12 +7,14 @@
       <component :is="Component" />
     </transition>
   </router-view>
+  <TourHost />
   <Toast :show="toast.show" :message="toast.message" :type="toast.type" @close="toast.show = false" />
 </template>
 
 <script setup>
 import { provide, onMounted } from 'vue';
 import Toast from './Components/Toast.vue';
+import TourHost from './Components/TourHost.vue';
 import { navigationInProgress } from './router';
 import { useToast } from './composables/useToast';
 import { useRoute } from 'vue-router';
