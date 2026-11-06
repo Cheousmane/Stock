@@ -107,7 +107,7 @@ class ProductController extends Controller
             $product->update($data);
 
             // Si la quantite a change, creer un mouvement de stock d'ajustement
-            $newQuantity = $data['quantity'] ?? $oldQuantity;
+            $newQuantity = isset($data['quantity']) ? (int) $data['quantity'] : $oldQuantity;
             if ($newQuantity !== $oldQuantity) {
                 $this->recordStockAdjustment($product, $oldQuantity, $newQuantity);
             }
