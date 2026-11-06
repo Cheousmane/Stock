@@ -291,15 +291,6 @@
                 </svg>
                 {{ $t('appTour.restart') }}
               </button>
-              <router-link
-                v-if="can('manage_settings')"
-                to="/settings"
-                @click="helpOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-text-secondary hover:bg-surface-tertiary rounded-xl transition-colors"
-              >
-                <Cog6ToothIcon class="h-4 w-4" />
-                {{ $t('nav.settings') }}
-              </router-link>
             </div>
           </div>
 
