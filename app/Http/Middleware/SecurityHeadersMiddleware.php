@@ -43,7 +43,7 @@ class SecurityHeadersMiddleware
             "script-src 'self' https://www.googletagmanager.com https://accounts.google.com".($viteOrigin ? " {$viteOrigin}" : ''),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com".($viteOrigin ? " {$viteOrigin}" : ''),
             "font-src 'self' data: https://fonts.gstatic.com".($viteOrigin ? " {$viteOrigin}" : ''),
-            "img-src 'self' data: https:",
+            "img-src 'self' data: blob: https:",
             "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://accounts.google.com".($viteOrigin ? " {$viteOrigin}" : ''),
             "frame-src 'self' https://accounts.google.com",
             "frame-ancestors 'none'",
