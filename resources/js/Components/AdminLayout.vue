@@ -140,7 +140,7 @@
           </svg>
         </button>
 
-        <div class="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-nowrap overflow-hidden">
+        <div class="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-nowrap">
           <!-- Quick Create Action -->
           <div class="relative" v-click-outside="() => quickCreateOpen = false">
             <button
@@ -205,7 +205,7 @@
           <div
             data-tour="search"
             class="relative h-10 flex items-center transition-all duration-300 ease-out"
-            :class="searchOpen ? 'w-52 xl:w-64' : 'w-9 sm:w-10'"
+            :class="searchOpen ? 'w-52 xl:w-64' : 'w-10'"
             v-click-outside="() => { if (!searchJustOpened) searchOpen = false }"
           >
             <div
@@ -229,7 +229,7 @@
               v-if="!searchOpen"
               @click="openSearch"
               :aria-label="$t('header.search_placeholder')"
-              class="absolute inset-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border bg-surface-secondary/70 text-text-tertiary hover:border-emerald-400/50 hover:text-emerald-600 transition-all duration-300 ease-out shadow-sm"
+              class="absolute inset-0 flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-surface-secondary/70 text-text-tertiary hover:border-emerald-400/50 hover:text-emerald-600 transition-all duration-300 ease-out shadow-sm"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
