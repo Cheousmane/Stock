@@ -191,6 +191,9 @@ class PosController extends Controller
                 $stock->quantity -= $saleData['quantity'];
                 $stock->save();
 
+                // Keep product stock in sync with warehouse stock
+                $product->decrement('quantity', $saleData['quantity']);
+
                 // Create stock movement
                 StockMovement::create([
                     'company_id' => $companyId,
@@ -470,6 +473,11 @@ class PosController extends Controller
                 $stock->quantity = $beforeQuantity - $quantity;
                 $stock->available_quantity = max(0, (int) $stock->available_quantity - $quantity);
                 $stock->save();
+
+                $product = $products->get($productId);
+                if ($product) {
+                    $product->decrement('quantity', $quantity);
+                }
 
                 StockMovement::create([
                     'company_id' => $companyId,
