@@ -740,6 +740,8 @@
     "wholesale_price": "Wholesale price",
     "wholesale_price_xof": "Wholesale price (XOF)",
     "unit_price": "Unit price",
+    "symbol": "Symbol",
+    "conversion_factor": "Conversion factor",
     "item_description": "Item description"
   },
   "invoice": {
@@ -937,6 +939,9 @@
       "delete_confirm": "Delete credit note {number}?",
       "no_credit_notes": "No credit notes",
       "new": "New credit note",
+      "reason": "Reason",
+      "created": "Credit note created successfully",
+      "updated": "Credit note updated successfully",
       "create": "Create credit note",
       "created_success": "Credit note created successfully",
       "no_results": "No results",
@@ -1174,7 +1179,8 @@
       "total_count": "{count} payment(s) in total",
       "n_selected": "{n} payment(s) selected",
       "search_placeholder": "Search for a payment...",
-      "no_payments": "No payments found"
+      "no_payments": "No payments found",
+      "no_results": "No results"
     },
     "expenses": {
       "title": "Expenses",

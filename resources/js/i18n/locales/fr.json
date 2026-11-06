@@ -741,6 +741,8 @@
     "wholesale_price": "Prix de gros",
     "wholesale_price_xof": "Prix de gros (XOF)",
     "unit_price": "Prix unitaire",
+    "symbol": "Symbole",
+    "conversion_factor": "Facteur de conversion",
     "item_description": "Description de l'article"
   },
   "invoice": {
@@ -937,6 +939,9 @@
       "delete_confirm": "Supprimer l'avoir {number} ?",
       "no_credit_notes": "Aucun avoir",
       "new": "Nouvel avoir",
+      "reason": "Motif",
+      "created": "Avoir créé avec succès",
+      "updated": "Avoir mis à jour avec succès",
       "create": "Créer l'avoir",
       "created_success": "Avoir créé avec succès",
       "no_results": "Aucun résultat",
@@ -1174,7 +1179,8 @@
       "total_count": "{count} paiement(s) au total",
       "n_selected": "{n} paiement(s) sélectionné(s)",
       "search_placeholder": "Search for a payment...",
-      "no_payments": "No payments found"
+      "no_payments": "No payments found",
+      "no_results": "Aucun résultat"
     },
     "expenses": {
       "title": "Dépenses",
