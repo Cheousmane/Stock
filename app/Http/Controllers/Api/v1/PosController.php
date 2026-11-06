@@ -14,6 +14,7 @@ use App\Models\WarehouseStock;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -330,7 +331,19 @@ class PosController extends Controller
             ->select(['id', 'name', 'sku', 'barcode', 'image', 'price_xof'])
             ->with(['variants:id,product_id,price_xof'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function (Product $product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'barcode' => $product->barcode,
+                    'image' => $product->image,
+                    'image_url' => $product->image ? Storage::url($product->image) : null,
+                    'price_xof' => $product->price_xof,
+                    'variants' => $product->variants,
+                ];
+            });
 
         return response()->json(['data' => $products]);
     }

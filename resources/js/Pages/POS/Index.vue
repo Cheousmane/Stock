@@ -52,7 +52,7 @@
                 class="group relative text-left bg-surface rounded-[1.25rem] shadow-sm border border-border/60 overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:border-emerald-400/70 active:scale-[0.97]"
               >
                 <div class="h-32 bg-surface-tertiary flex items-center justify-center relative overflow-hidden">
-                  <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : '/storage/' + product.image"
+                  <img v-if="product.image_url || product.image" :src="product.image_url || (product.image.startsWith('http') ? product.image : '/storage/' + product.image)"
                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110" :alt="product.name">
                   <span v-else class="text-lg font-black text-text-tertiary/70 transition-transform duration-500 group-hover:scale-110">{{ (product.name || '?').charAt(0).toUpperCase() }}</span>
                   <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
